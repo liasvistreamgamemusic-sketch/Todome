@@ -44,6 +44,7 @@ export const REMIND_REPEATS = [
   'daily',
   'weekly',
   'monthly',
+  'yearly',
 ] as const;
 export type RemindRepeat = (typeof REMIND_REPEATS)[number];
 

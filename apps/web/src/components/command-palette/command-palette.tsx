@@ -130,7 +130,7 @@ export const CommandPalette = () => {
       .map((n): CommandItem => ({
         id: `note-${n.id}`,
         label: n.title || '無題のメモ',
-        secondaryText: n.plain_text.slice(0, 60),
+        secondaryText: (n.plain_text ?? '').slice(0, 60),
         icon: <FileText className="h-4 w-4" />,
         group: 'メモ',
         onSelect: () => {

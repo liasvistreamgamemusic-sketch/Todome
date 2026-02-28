@@ -41,7 +41,7 @@ export const NoteListItem = memo(function NoteListItem({
   const menuRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  const previewText = note.plain_text.slice(0, 120).replace(/\n/g, ' ');
+  const previewText = (note.plain_text ?? '').slice(0, 120).replace(/\n/g, ' ');
   const visibleTags = note.tags.slice(0, MAX_VISIBLE_TAGS);
   const extraTagCount = note.tags.length - MAX_VISIBLE_TAGS;
 

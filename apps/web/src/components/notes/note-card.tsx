@@ -22,9 +22,10 @@ type NoteCardProps = {
 
 const MAX_VISIBLE_TAGS = 3;
 
-const extractThumbnail = (content: Record<string, unknown>): string | null => {
+const extractThumbnail = (content: Note['content']): string | null => {
   try {
-    const nodes = content.content as Array<Record<string, unknown>> | undefined;
+    if (!content) return null;
+    const nodes = content.content;
     if (!Array.isArray(nodes)) return null;
     for (const node of nodes) {
       if (node.type === 'image') {
@@ -32,7 +33,7 @@ const extractThumbnail = (content: Record<string, unknown>): string | null => {
         if (attrs && typeof attrs.src === 'string') return attrs.src;
       }
       if (node.content && Array.isArray(node.content)) {
-        for (const child of node.content as Array<Record<string, unknown>>) {
+        for (const child of node.content) {
           if (child.type === 'image') {
             const attrs = child.attrs as Record<string, unknown> | undefined;
             if (attrs && typeof attrs.src === 'string') return attrs.src;
@@ -63,7 +64,7 @@ export const NoteCard = memo(function NoteCard({
   const menuRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  const previewText = note.plain_text.slice(0, 100).replace(/\n/g, ' ');
+  const previewText = (note.plain_text ?? '').slice(0, 100).replace(/\n/g, ' ');
   const visibleTags = note.tags.slice(0, MAX_VISIBLE_TAGS);
   const extraTagCount = note.tags.length - MAX_VISIBLE_TAGS;
   const thumbnail = useMemo(() => extractThumbnail(note.content), [note.content]);

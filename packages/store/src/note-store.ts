@@ -126,7 +126,7 @@ export const useNoteStore = create<NoteStoreState>()((set, get) => ({
       if (!note) return s;
       const hasTitle = note.title.trim().length > 0;
       const hasContent =
-        note.plain_text.trim().length > 0 ||
+        (note.plain_text ?? '').trim().length > 0 ||
         (Array.isArray((note.content as { content?: unknown[] }).content) &&
           (note.content as { content?: unknown[] }).content!.length > 0 &&
           JSON.stringify(note.content) !==
@@ -150,7 +150,7 @@ export const useNoteStore = create<NoteStoreState>()((set, get) => ({
       filtered = filtered.filter(
         (n) =>
           n.title.toLowerCase().includes(query) ||
-          n.plain_text.toLowerCase().includes(query) ||
+          (n.plain_text ?? '').toLowerCase().includes(query) ||
           n.tags.some((t) => t.toLowerCase().includes(query)),
       );
     }

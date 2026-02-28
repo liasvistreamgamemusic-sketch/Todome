@@ -122,7 +122,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
         : undefined;
 
       debouncedSave({
-        content,
+        content: content as unknown as Note['content'],
         plain_text: plainText,
         ...(autoTitle !== undefined ? { title: autoTitle } : {}),
       });

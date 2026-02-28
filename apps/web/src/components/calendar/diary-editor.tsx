@@ -8,6 +8,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import { createCalendarEvent, updateCalendarEvent as persistUpdateEvent, supabase } from '@todome/db';
+import type { TiptapDocument } from '@todome/db';
 import { useCalendarStore } from '@todome/store';
 
 type Props = {
@@ -43,9 +44,7 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
         placeholder: '今日の出来事を書きましょう...',
       }),
     ],
-    content: diaryEvent?.diary_content
-      ? JSON.parse(diaryEvent.diary_content)
-      : undefined,
+    content: diaryEvent?.diary_content ?? undefined,
     editorProps: {
       attributes: {
         class: clsx(
@@ -65,7 +64,7 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
 
   const saveDiary = useCallback(async () => {
     if (!editor) return;
-    const content = JSON.stringify(editor.getJSON());
+    const content = editor.getJSON() as TiptapDocument;
     const now = new Date().toISOString();
 
     if (eventIdRef.current) {

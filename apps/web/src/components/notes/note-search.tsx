@@ -52,7 +52,7 @@ const getMatchContext = (text: string, query: string, maxLen = 120): string => {
 };
 
 function SearchResult({ note, query, onClick }: SearchResultProps) {
-  const context = getMatchContext(note.plain_text, query);
+  const context = getMatchContext(note.plain_text ?? '', query);
 
   return (
     <button
@@ -91,7 +91,7 @@ export function NoteSearch() {
           !n.is_deleted &&
           !n.is_archived &&
           (n.title.toLowerCase().includes(query) ||
-            n.plain_text.toLowerCase().includes(query) ||
+            (n.plain_text ?? '').toLowerCase().includes(query) ||
             n.tags.some((t) => t.toLowerCase().includes(query))),
       )
     : [];

@@ -86,7 +86,7 @@ export const TodoDetail = () => {
           ? format(new Date(todo.remind_at), "yyyy-MM-dd'T'HH:mm")
           : '',
       );
-      setRemindRepeat(todo.remind_repeat);
+      setRemindRepeat(todo.remind_repeat ?? 'none');
       setTagInput('');
       setSubtasks([]);
     }
