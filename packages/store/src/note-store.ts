@@ -38,7 +38,7 @@ export type NoteStoreState = {
   archiveNote: (id: string) => void;
   unarchiveNote: (id: string) => void;
   moveNoteToFolder: (noteId: string, folderId: string | null) => void;
-  purgeIfEmpty: (id: string) => void;
+  purgeIfEmpty: (id: string) => Note | undefined;
 
   // Computed
   filteredNotes: () => Note[];
@@ -119,21 +119,17 @@ export const useNoteStore = create<NoteStoreState>()((set, get) => ({
       notes: patchNote(s.notes, noteId, { folder_id: folderId }),
     })),
 
-  // Purge empty note without trace (Apple Notes-style auto-deletion)
-  purgeIfEmpty: (id) =>
-    set((s) => {
-      const note = s.notes.find((n) => n.id === id);
-      if (!note) return s;
-      const hasTitle = note.title.trim().length > 0;
-      const hasContent =
-        (note.plain_text ?? '').trim().length > 0 ||
-        (Array.isArray((note.content as { content?: unknown[] }).content) &&
-          (note.content as { content?: unknown[] }).content!.length > 0 &&
-          JSON.stringify(note.content) !==
-            JSON.stringify({ type: 'doc', content: [] }));
-      if (hasTitle || hasContent) return s;
-      return { notes: s.notes.filter((n) => n.id !== id) };
-    }),
+  // Purge empty note (Apple Notes-style). Returns the purged note so callers
+  // can persist the deletion to DB, or undefined if not empty / not found.
+  purgeIfEmpty: (id) => {
+    const note = get().notes.find((n) => n.id === id);
+    if (!note) return undefined;
+    const hasTitle = note.title.trim().length > 0;
+    const hasContent = (note.plain_text ?? '').trim().length > 0;
+    if (hasTitle || hasContent) return undefined;
+    set((s) => ({ notes: s.notes.filter((n) => n.id !== id) }));
+    return note;
+  },
 
   // Computed: filtered & sorted notes
   filteredNotes: () => {

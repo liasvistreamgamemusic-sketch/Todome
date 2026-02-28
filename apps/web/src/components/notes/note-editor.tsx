@@ -47,10 +47,21 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevNoteIdRef = useRef<string>(noteId);
 
+  // Purge empty note from store + DB
+  const purgeAndPersist = useCallback(
+    (id: string) => {
+      const purged = purgeIfEmpty(id);
+      if (purged) {
+        persistDeleteNote(id, purged).catch(console.error);
+      }
+    },
+    [purgeIfEmpty],
+  );
+
   // Sync local state when noteId changes; purge previous note if empty
   useEffect(() => {
     if (prevNoteIdRef.current !== noteId) {
-      purgeIfEmpty(prevNoteIdRef.current);
+      purgeAndPersist(prevNoteIdRef.current);
       prevNoteIdRef.current = noteId;
     }
     if (note) {
@@ -58,7 +69,18 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       setTags(note.tags);
       setSaveStatus('saved');
     }
-  }, [noteId, note, purgeIfEmpty]);
+  }, [noteId, note, purgeAndPersist]);
+
+  // Purge on unmount (when navigating away from notes page)
+  useEffect(() => {
+    return () => {
+      const { purgeIfEmpty: purge } = useNoteStore.getState();
+      const purged = purge(noteId);
+      if (purged) {
+        persistDeleteNote(noteId, purged).catch(console.error);
+      }
+    };
+  }, [noteId]);
 
   // Close menus on click outside
   useEffect(() => {
