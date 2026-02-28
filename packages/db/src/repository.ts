@@ -101,7 +101,7 @@ export async function deleteNote(id: string, currentNote: Note): Promise<void> {
   await localDb.notes.put({ ...currentNote, is_deleted: true });
   await syncEngine.enqueue('notes', id, 'delete', { is_deleted: true });
   if (syncEngine.isOnline) {
-    syncEngine.pushChanges().catch(() => {});
+    await syncEngine.pushChanges();
   }
 }
 
@@ -264,6 +264,9 @@ export async function updateTodo(
 export async function deleteTodo(id: string, current: Todo): Promise<void> {
   await localDb.todos.put({ ...current, is_deleted: true });
   await syncEngine.enqueue('todos', id, 'delete', { is_deleted: true });
+  if (syncEngine.isOnline) {
+    await syncEngine.pushChanges();
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -353,4 +356,7 @@ export async function deleteCalendarEvent(
     'delete',
     { is_deleted: true },
   );
+  if (syncEngine.isOnline) {
+    await syncEngine.pushChanges();
+  }
 }

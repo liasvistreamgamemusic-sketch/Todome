@@ -9,7 +9,10 @@ import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { Note, NoteSortBy, Folder } from '@todome/store';
 import { useKeyboardShortcut, useClickOutside } from '@todome/hooks';
-import { supabase, createNote, createFolder } from '@todome/db';
+import {
+  supabase, createNote, createFolder,
+  updateNote as persistNote, deleteNote as persistDeleteNote,
+} from '@todome/db';
 import { NoteListItem } from './note-list-item';
 import { NoteCard } from './note-card';
 import { NoteSearch } from './note-search';
@@ -91,26 +94,34 @@ export function NoteList() {
     setShowFolderForm(false);
   }, [folderName, folderColor, folders.length, addFolder]);
 
-  // action handlers passed to each item
+  // action handlers passed to each item — all persist to DB via repository layer
   const handlePin = useCallback((id: string) => {
     const note = notes.find((n) => n.id === id);
     if (!note) return;
+    const patch = { is_pinned: !note.is_pinned };
     note.is_pinned ? unpinNote(id) : pinNote(id);
+    persistNote(id, patch, note).catch(console.error);
   }, [notes, pinNote, unpinNote]);
 
   const handleArchive = useCallback((id: string) => {
+    const note = notes.find((n) => n.id === id);
     archiveNote(id);
     if (selectedNoteId === id) selectNote(null);
-  }, [archiveNote, selectedNoteId, selectNote]);
+    if (note) persistNote(id, { is_archived: true }, note).catch(console.error);
+  }, [notes, archiveNote, selectedNoteId, selectNote]);
 
   const handleDelete = useCallback((id: string) => {
+    const note = notes.find((n) => n.id === id);
     deleteNote(id);
     if (selectedNoteId === id) selectNote(null);
-  }, [deleteNote, selectedNoteId, selectNote]);
+    if (note) persistDeleteNote(id, note).catch(console.error);
+  }, [notes, deleteNote, selectedNoteId, selectNote]);
 
   const handleMoveToFolder = useCallback((id: string, folderId: string | null) => {
+    const note = notes.find((n) => n.id === id);
     moveNoteToFolder(id, folderId);
-  }, [moveNoteToFolder]);
+    if (note) persistNote(id, { folder_id: folderId }, note).catch(console.error);
+  }, [notes, moveNoteToFolder]);
 
   const handleExportText = useCallback((id: string) => {
     const note = notes.find((n) => n.id === id);
