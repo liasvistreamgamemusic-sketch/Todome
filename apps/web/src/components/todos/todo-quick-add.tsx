@@ -6,6 +6,7 @@ import { Plus, Calendar } from 'lucide-react';
 import { addDays, startOfDay } from 'date-fns';
 import { useTodoStore } from '@todome/store/src/todo-store';
 import type { TodoPriority } from '@todome/store/src/types';
+import { createTodo, supabase } from '@todome/db';
 
 const PRIORITY_DOTS: { value: TodoPriority; color: string; label: string }[] = [
   { value: 1, color: 'bg-[#388E3C]', label: '低' },
@@ -47,7 +48,7 @@ export const TodoQuickAdd = () => {
   const [showOptions, setShowOptions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const trimmedTitle = title.trim();
     if (!trimmedTitle) return;
 
@@ -57,16 +58,18 @@ export const TodoQuickAdd = () => {
       0,
     );
 
-    addTodo({
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const todo = {
       id: generateId(),
-      user_id: '',
+      user_id: user?.id ?? '',
       title: trimmedTitle,
       detail: null,
       priority,
-      status: 'pending',
+      status: 'pending' as const,
       due_date: dueDate,
       remind_at: null,
-      remind_repeat: 'none',
+      remind_repeat: 'none' as const,
       note_ids: [],
       tags: [],
       sort_order: maxOrder + 1,
@@ -74,7 +77,10 @@ export const TodoQuickAdd = () => {
       completed_at: null,
       created_at: now,
       updated_at: now,
-    });
+    };
+
+    addTodo(todo);
+    createTodo(todo).catch(console.error);
     setFilterStatus('all');
 
     setTitle('');

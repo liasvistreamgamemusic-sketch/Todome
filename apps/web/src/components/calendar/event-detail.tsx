@@ -12,6 +12,7 @@ import {
   Link2,
   Palette,
 } from 'lucide-react';
+import { createCalendarEvent, updateCalendarEvent as persistUpdateEvent, deleteCalendarEvent as persistDeleteEvent, supabase } from '@todome/db';
 import { useCalendarStore, useTodoStore } from '@todome/store';
 import type { CalendarEvent } from '@todome/store';
 import { Button } from '@todome/ui';
@@ -200,8 +201,10 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
     return createRepeatRule(options);
   }, [form]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!form.title.trim()) return;
+
+    const { data: { user } } = await supabase.auth.getUser();
 
     const startAt = form.isAllDay
       ? new Date(`${form.startDate}T00:00:00`).toISOString()
@@ -215,7 +218,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
     const now = new Date().toISOString();
 
     if (isEditing && existingEvent) {
-      updateEvent(existingEvent.id, {
+      const patch = {
         title: form.title.trim(),
         start_at: startAt,
         end_at: endAt,
@@ -227,11 +230,13 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
         repeat_rule: repeatRule,
         todo_ids: form.linkedTodoIds,
         updated_at: now,
-      });
+      };
+      updateEvent(existingEvent.id, patch);
+      persistUpdateEvent(existingEvent.id, patch, existingEvent).catch(console.error);
     } else {
       const newEvent: CalendarEvent = {
         id: crypto.randomUUID(),
-        user_id: '',
+        user_id: user?.id ?? '',
         title: form.title.trim(),
         description: form.description.trim() || null,
         start_at: startAt,
@@ -249,6 +254,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
         updated_at: now,
       };
       addEvent(newEvent);
+      createCalendarEvent(newEvent).catch(console.error);
     }
 
     selectEvent(null);
@@ -266,6 +272,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
 
   const handleDelete = useCallback(() => {
     if (existingEvent) {
+      persistDeleteEvent(existingEvent.id, existingEvent).catch(console.error);
       deleteEvent(existingEvent.id);
       selectEvent(null);
       onClose();

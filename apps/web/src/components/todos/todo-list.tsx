@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { ChevronDown, ChevronRight, Inbox } from 'lucide-react';
 import { useTodoStore } from '@todome/store/src/todo-store';
 import type { Todo } from '@todome/store/src/types';
+import { updateTodo as persistTodo } from '@todome/db';
 import { TodoListItem } from './todo-list-item';
 
 const GROUP_LABELS: Record<string, string> = {
@@ -108,7 +109,13 @@ export const TodoList = () => {
 
   const handleToggleStatus = useCallback(
     (id: string) => {
+      const prev = useTodoStore.getState().todos.find((t) => t.id === id);
+      if (!prev) return;
       toggleTodoStatus(id);
+      const updated = useTodoStore.getState().todos.find((t) => t.id === id);
+      if (updated) {
+        persistTodo(id, { status: updated.status, completed_at: updated.completed_at, updated_at: updated.updated_at }, prev).catch(console.error);
+      }
     },
     [toggleTodoStatus],
   );

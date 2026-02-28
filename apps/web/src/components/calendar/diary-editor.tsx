@@ -7,6 +7,7 @@ import { X, BookOpen } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import { createCalendarEvent, updateCalendarEvent as persistUpdateEvent, supabase } from '@todome/db';
 import { useCalendarStore } from '@todome/store';
 
 type Props = {
@@ -62,22 +63,25 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
     },
   });
 
-  const saveDiary = useCallback(() => {
+  const saveDiary = useCallback(async () => {
     if (!editor) return;
     const content = JSON.stringify(editor.getJSON());
     const now = new Date().toISOString();
 
     if (eventIdRef.current) {
-      updateEvent(eventIdRef.current, {
-        diary_content: content,
-        updated_at: now,
-      });
+      const patch = { diary_content: content, updated_at: now };
+      updateEvent(eventIdRef.current, patch);
+      const current = events.find((e) => e.id === eventIdRef.current);
+      if (current) {
+        persistUpdateEvent(eventIdRef.current, patch, current).catch(console.error);
+      }
     } else {
+      const { data: { user } } = await supabase.auth.getUser();
       const newId = crypto.randomUUID();
       eventIdRef.current = newId;
-      addEvent({
+      const newEvent = {
         id: newId,
-        user_id: '',
+        user_id: user?.id ?? '',
         title: `日記 - ${format(date, 'M月d日')}`,
         description: null,
         start_at: `${dateKey}T00:00:00.000Z`,
@@ -93,10 +97,12 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
         is_deleted: false,
         created_at: now,
         updated_at: now,
-      });
+      };
+      addEvent(newEvent);
+      createCalendarEvent(newEvent).catch(console.error);
     }
     setSaved(true);
-  }, [editor, dateKey, date, updateEvent, addEvent]);
+  }, [editor, dateKey, date, events, updateEvent, addEvent]);
 
   // Debounced auto-save using a timer ref
   useEffect(() => {

@@ -16,6 +16,7 @@ import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { Note } from '@todome/store';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
+import { updateNote as persistNote, deleteNote as persistDeleteNote } from '@todome/db';
 
 type NoteEditorProps = {
   noteId: string;
@@ -87,6 +88,11 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
           setSaveStatus('saved');
         } catch {
           setSaveStatus('error');
+          return;
+        }
+        const currentNote = useNoteStore.getState().notes.find((n) => n.id === noteId);
+        if (currentNote) {
+          persistNote(noteId, patch, currentNote).catch(() => setSaveStatus('error'));
         }
       }, 500);
     },
@@ -169,12 +175,18 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
   const handleArchive = useCallback(() => {
     archiveNote(noteId);
     selectNote(null);
-  }, [noteId, archiveNote, selectNote]);
+    if (note) {
+      persistNote(noteId, { is_archived: true }, note).catch(console.error);
+    }
+  }, [noteId, note, archiveNote, selectNote]);
 
   const handleDelete = useCallback(() => {
+    if (note) {
+      persistDeleteNote(noteId, note).catch(console.error);
+    }
     deleteNote(noteId);
     selectNote(null);
-  }, [noteId, deleteNote, selectNote]);
+  }, [noteId, note, deleteNote, selectNote]);
 
   const handleMoveToFolder = useCallback(
     (folderId: string | null) => {

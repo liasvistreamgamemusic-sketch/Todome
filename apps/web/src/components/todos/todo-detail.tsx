@@ -22,6 +22,10 @@ import type {
   TodoPriority,
   TodoRemindRepeat,
 } from '@todome/store/src/types';
+import {
+  updateTodo as persistTodo,
+  deleteTodo as persistDeleteTodo,
+} from '@todome/db';
 import { TodoSubtasks, type Subtask } from './todo-subtasks';
 
 const STATUS_OPTIONS: { value: TodoStatus; label: string; color: string }[] = [
@@ -95,10 +99,9 @@ export const TodoDetail = () => {
   const handleUpdate = useCallback(
     (patch: Partial<Todo>) => {
       if (!todo) return;
-      updateTodo(todo.id, {
-        ...patch,
-        updated_at: new Date().toISOString(),
-      });
+      const fullPatch = { ...patch, updated_at: new Date().toISOString() };
+      updateTodo(todo.id, fullPatch);
+      persistTodo(todo.id, fullPatch, todo).catch(console.error);
     },
     [todo, updateTodo],
   );
@@ -199,6 +202,7 @@ export const TodoDetail = () => {
 
   const handleDelete = useCallback(() => {
     if (!todo) return;
+    persistDeleteTodo(todo.id, todo).catch(console.error);
     deleteTodo(todo.id);
     selectTodo(null);
   }, [todo, deleteTodo, selectTodo]);

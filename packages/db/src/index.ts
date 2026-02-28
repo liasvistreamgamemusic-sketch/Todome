@@ -51,3 +51,23 @@ export { TodomeLocalDB, localDb } from './local-db';
 
 // Sync engine
 export { SyncEngine, syncEngine } from './sync-engine';
+
+// Repository layer
+export {
+  loadNotes,
+  createNote,
+  updateNote,
+  deleteNote,
+  loadFolders,
+  createFolder,
+  updateFolder,
+  deleteFolder,
+  loadTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  loadCalendarEvents,
+  createCalendarEvent,
+  updateCalendarEvent,
+  deleteCalendarEvent,
+} from './repository';

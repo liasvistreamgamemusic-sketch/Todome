@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useUiStore } from '@todome/store';
+import { useDataProvider } from '@/hooks/use-data-provider';
 import { Sidebar } from './sidebar';
 import { BottomNav } from './bottom-nav';
 import { Header } from './header';
@@ -10,6 +11,10 @@ import { clsx } from 'clsx';
 const DESKTOP_QUERY = '(min-width: 768px)';
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
+  // Loads data from Supabase or localDb on mount and syncs every 30s.
+  // Runs in the background — UI renders immediately with empty state then fills in.
+  const { isLoading: _isDataLoading } = useDataProvider();
+
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const sidebarRef = useRef<HTMLDivElement>(null);
 

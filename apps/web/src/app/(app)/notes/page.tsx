@@ -5,6 +5,7 @@ import { NoteList } from '@/components/notes/note-list';
 import { NoteEditor } from '@/components/notes/note-editor';
 import { useNoteStore } from '@todome/store';
 import type { Note } from '@todome/store';
+import { createNote } from '@todome/db';
 
 function createEmptyNote(): Note {
   const now = new Date().toISOString();
@@ -44,6 +45,7 @@ export default function NotesPage() {
     } else {
       const newNote = createEmptyNote();
       addNote(newNote);
+      createNote(newNote).catch(console.error);
       selectNote(newNote.id);
     }
   }, [selectedNoteId, noteCount]);
