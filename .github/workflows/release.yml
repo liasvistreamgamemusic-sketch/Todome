@@ -103,7 +103,7 @@ jobs:
         run: pnpm build:tauri
 
       - name: Import Apple certificate (if available)
-        if: ${{ secrets.APPLE_CERTIFICATE != '' }}
+        if: ${{ vars.APPLE_SIGNING_ENABLED == 'true' }}
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
