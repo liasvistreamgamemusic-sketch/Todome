@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const PROTECTED_ROUTES = ['/notes', '/todos', '/calendar', '/settings']
-const AUTH_ROUTES = ['/auth']
+const AUTH_ROUTES = ['/login']
 
 function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(route + '/'))
@@ -43,7 +43,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 
   if (isProtectedRoute(pathname) && !user) {
     const loginUrl = request.nextUrl.clone()
-    loginUrl.pathname = '/auth/login'
+    loginUrl.pathname = '/login'
     loginUrl.searchParams.set('next', pathname)
     return NextResponse.redirect(loginUrl)
   }

@@ -92,7 +92,7 @@ export function useDataProvider(): DataProviderState {
         if (!user) {
           if (!redirectedRef.current) {
             redirectedRef.current = true;
-            router.replace('/auth/login');
+            router.replace('/login');
           }
           return;
         }
@@ -120,7 +120,7 @@ export function useDataProvider(): DataProviderState {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT' && !redirectedRef.current) {
         redirectedRef.current = true;
-        router.replace('/auth/login');
+        router.replace('/login');
       }
     });
 
