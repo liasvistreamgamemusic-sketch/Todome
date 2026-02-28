@@ -62,8 +62,7 @@ export const SignupForm = ({ onToggleMode }: SignupFormProps) => {
           return;
         }
 
-        router.push('/notes');
-        router.refresh();
+        window.location.href = '/notes';
       } catch {
         setError('アカウントの作成に失敗しました。もう一度お試しください。');
       } finally {

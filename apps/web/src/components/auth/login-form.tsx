@@ -46,8 +46,7 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
           return;
         }
 
-        router.push('/notes');
-        router.refresh();
+        window.location.href = '/notes';
       } catch {
         setError('ログインに失敗しました。もう一度お試しください。');
       } finally {
