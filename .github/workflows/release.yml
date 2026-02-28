@@ -117,7 +117,8 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
           rm -f certificate.p12
 
-      - name: Build Tauri (macOS universal binary)
+      - name: Build Tauri (macOS universal binary, signed)
+        if: ${{ vars.APPLE_SIGNING_ENABLED == 'true' }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
@@ -125,6 +126,15 @@ jobs:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cd apps/desktop
+          pnpm tauri build --target universal-apple-darwin
+
+      - name: Build Tauri (macOS universal binary)
+        if: ${{ vars.APPLE_SIGNING_ENABLED != 'true' }}
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: |
           cd apps/desktop
           pnpm tauri build --target universal-apple-darwin
