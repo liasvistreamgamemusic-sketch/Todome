@@ -97,7 +97,12 @@ export function useDataProvider(): DataProviderState {
           return;
         }
 
-        await loadFromSupabase(user.id);
+        try {
+          await loadFromSupabase(user.id);
+        } catch {
+          // Supabase unavailable (offline or misconfigured) — serve from local cache
+          await loadFromLocalDb();
+        }
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err : new Error(String(err)));

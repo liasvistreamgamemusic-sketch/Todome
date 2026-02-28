@@ -9,6 +9,7 @@ import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { Note, NoteSortBy, Folder } from '@todome/store';
 import { useKeyboardShortcut, useClickOutside } from '@todome/hooks';
+import { supabase, createNote, createFolder } from '@todome/db';
 import { NoteListItem } from './note-list-item';
 import { NoteCard } from './note-card';
 import { NoteSearch } from './note-search';
@@ -57,10 +58,11 @@ export function NoteList() {
     return { pinned: p, unpinned: u };
   }, [notes]);
 
-  const handleNewNote = useCallback(() => {
+  const handleNewNote = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
     const now = new Date().toISOString();
     const n: Note = {
-      id: crypto.randomUUID(), user_id: '', title: '',
+      id: crypto.randomUUID(), user_id: user?.id ?? '', title: '',
       content: { type: 'doc', content: [] }, plain_text: '',
       folder_id: null, tags: [], is_pinned: false,
       is_archived: false, is_deleted: false,
@@ -68,19 +70,22 @@ export function NoteList() {
     };
     addNote(n);
     selectNote(n.id);
+    createNote(n).catch(console.error);
   }, [addNote, selectNote]);
 
   useKeyboardShortcut('cmd+n', handleNewNote);
 
-  const handleCreateFolder = useCallback(() => {
+  const handleCreateFolder = useCallback(async () => {
     if (!folderName.trim()) return;
+    const { data: { user } } = await supabase.auth.getUser();
     const now = new Date().toISOString();
     const f: Folder = {
-      id: crypto.randomUUID(), user_id: '', name: folderName.trim(),
+      id: crypto.randomUUID(), user_id: user?.id ?? '', name: folderName.trim(),
       color: folderColor, icon: null, parent_id: null,
       sort_order: folders.length, created_at: now, updated_at: now,
     };
     addFolder(f);
+    createFolder(f).catch(console.error);
     setFolderName('');
     setFolderColor(FOLDER_COLORS[4] ?? '#3b82f6');
     setShowFolderForm(false);

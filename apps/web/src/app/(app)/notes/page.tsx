@@ -5,13 +5,14 @@ import { NoteList } from '@/components/notes/note-list';
 import { NoteEditor } from '@/components/notes/note-editor';
 import { useNoteStore } from '@todome/store';
 import type { Note } from '@todome/store';
-import { createNote } from '@todome/db';
+import { supabase, createNote } from '@todome/db';
 
-function createEmptyNote(): Note {
+async function createEmptyNote(): Promise<Note> {
+  const { data: { user } } = await supabase.auth.getUser();
   const now = new Date().toISOString();
   return {
     id: crypto.randomUUID(),
-    user_id: '',
+    user_id: user?.id ?? '',
     title: '',
     content: { type: 'doc', content: [] },
     plain_text: '',
@@ -43,10 +44,11 @@ export default function NotesPage() {
     if (visible.length > 0 && visible[0]) {
       selectNote(visible[0].id);
     } else {
-      const newNote = createEmptyNote();
-      addNote(newNote);
-      createNote(newNote).catch(console.error);
-      selectNote(newNote.id);
+      createEmptyNote().then((newNote) => {
+        addNote(newNote);
+        createNote(newNote).catch(console.error);
+        selectNote(newNote.id);
+      }).catch(console.error);
     }
   }, [selectedNoteId, noteCount]);
 
