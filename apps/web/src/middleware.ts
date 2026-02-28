@@ -41,6 +41,14 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     data: { user },
   } = await supabase.auth.getUser()
 
+  // Root redirect: authenticated -> /notes, unauthenticated -> /login
+  if (pathname === '/') {
+    const url = request.nextUrl.clone()
+    url.pathname = user ? '/notes' : '/login'
+    url.search = ''
+    return NextResponse.redirect(url)
+  }
+
   if (isProtectedRoute(pathname) && !user) {
     const loginUrl = request.nextUrl.clone()
     loginUrl.pathname = '/login'

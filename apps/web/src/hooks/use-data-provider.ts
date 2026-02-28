@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import { supabase, localDb, syncEngine } from '@todome/db';
 import type { Note, Folder, Todo, CalendarEvent } from '@todome/db';
 import { useNoteStore, useTodoStore, useCalendarStore } from '@todome/store';
@@ -66,17 +65,12 @@ async function loadFromLocalDb(): Promise<void> {
 }
 
 /**
- * Loads data from Supabase (authenticated) or redirects to login if not
- * authenticated. Keeps local changes flowing to the server via a 30-second
- * push interval.
- *
- * Must be used inside a Client Component tree.
+ * Loads data from Supabase on mount and syncs local changes every 30s.
+ * Route protection is handled by middleware — this hook only loads data.
  */
 export function useDataProvider(): DataProviderState {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
-  const router = useRouter();
-  const redirectedRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,13 +83,7 @@ export function useDataProvider(): DataProviderState {
 
         if (cancelled) return;
 
-        if (!user) {
-          if (!redirectedRef.current) {
-            redirectedRef.current = true;
-            router.replace('/login');
-          }
-          return;
-        }
+        if (!user) return;
 
         try {
           await loadFromSupabase(user.id);
@@ -118,9 +106,8 @@ export function useDataProvider(): DataProviderState {
 
     // Listen for auth state changes (logout, token expiry)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'SIGNED_OUT' && !redirectedRef.current) {
-        redirectedRef.current = true;
-        router.replace('/login');
+      if (event === 'SIGNED_OUT') {
+        window.location.href = '/login';
       }
     });
 
@@ -136,7 +123,7 @@ export function useDataProvider(): DataProviderState {
       clearInterval(interval);
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   return { isLoading, error };
 }

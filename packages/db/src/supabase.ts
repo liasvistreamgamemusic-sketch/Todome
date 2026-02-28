@@ -1,4 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import type {
   Note,
   Folder,
@@ -75,13 +76,14 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
-export const supabase: SupabaseClient<Database> = createClient<Database>(
-  SUPABASE_URL || 'https://placeholder.supabase.co',
-  SUPABASE_ANON_KEY || 'placeholder-key',
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    },
-  },
-);
+const isBrowser = typeof window !== 'undefined';
+const url = SUPABASE_URL || 'https://placeholder.supabase.co';
+const key = SUPABASE_ANON_KEY || 'placeholder-key';
+
+// Browser: createBrowserClient stores auth tokens in cookies (syncs with middleware)
+// Server/SSR: createClient with no session persistence (middleware handles auth)
+export const supabase: SupabaseClient<Database> = isBrowser
+  ? (createBrowserClient<Database>(url, key) as unknown as SupabaseClient<Database>)
+  : createClient<Database>(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });

@@ -11,6 +11,7 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
+    "@supabase/ssr": "^0.5.0",
     "@supabase/supabase-js": "^2.49.0",
     "dexie": "^4.0.0"
   },

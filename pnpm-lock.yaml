@@ -184,6 +184,9 @@ importers:
 
   packages/db:
     dependencies:
+      '@supabase/ssr':
+        specifier: ^0.5.0
+        version: 0.5.2(@supabase/supabase-js@2.98.0)
       '@supabase/supabase-js':
         specifier: ^2.49.0
         version: 2.98.0
