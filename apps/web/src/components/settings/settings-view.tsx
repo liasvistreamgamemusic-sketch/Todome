@@ -303,7 +303,7 @@ export const SettingsView = () => {
     try {
       const { supabase } = await import('@todome/db');
       await supabase.auth.signOut();
-      window.location.href = '/login';
+      window.location.href = '/auth/login';
     } catch {
       // Sign out failed
     }
