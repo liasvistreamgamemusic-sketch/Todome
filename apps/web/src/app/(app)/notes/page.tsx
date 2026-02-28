@@ -29,13 +29,14 @@ async function createEmptyNote(): Promise<Note> {
 
 export default function NotesPage() {
   const selectedNoteId = useNoteStore((s) => s.selectedNoteId);
-  // プリミティブな値のみサブスクライブして無限ループを防ぐ
+  const hydrated = useNoteStore((s) => s.hydrated);
   const noteCount = useNoteStore((s) =>
     s.notes.filter((n) => !n.is_deleted && !n.is_archived).length,
   );
 
   useEffect(() => {
-    // 既に選択中なら何もしない
+    // Supabase/localDb からのデータ到着まで待つ
+    if (!hydrated) return;
     if (selectedNoteId) return;
 
     const { addNote, selectNote, filteredNotes } = useNoteStore.getState();
@@ -50,7 +51,7 @@ export default function NotesPage() {
         selectNote(newNote.id);
       }).catch(console.error);
     }
-  }, [selectedNoteId, noteCount]);
+  }, [hydrated, selectedNoteId, noteCount]);
 
   return (
     <div className="flex h-full">

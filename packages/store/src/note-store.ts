@@ -8,6 +8,7 @@ export type NoteStoreState = {
   // State
   notes: Note[];
   folders: Folder[];
+  hydrated: boolean;
   selectedNoteId: string | null;
   selectedFolderId: string | null;
   searchQuery: string;
@@ -65,6 +66,7 @@ export const useNoteStore = create<NoteStoreState>()((set, get) => ({
   // Initial state
   notes: [],
   folders: [],
+  hydrated: false,
   selectedNoteId: null,
   selectedFolderId: null,
   searchQuery: '',
@@ -72,7 +74,7 @@ export const useNoteStore = create<NoteStoreState>()((set, get) => ({
   sortBy: 'updated_at',
 
   // Note CRUD
-  setNotes: (notes) => set({ notes }),
+  setNotes: (notes) => set({ notes, hydrated: true }),
   addNote: (note) => set((s) => ({ notes: [...s.notes, note] })),
   updateNote: (id, patch) =>
     set((s) => ({ notes: patchNote(s.notes, id, patch) })),

@@ -64,6 +64,9 @@ export async function createNote(note: Note): Promise<void> {
     'create',
     note as unknown as Record<string, unknown>,
   );
+  if (syncEngine.isOnline) {
+    syncEngine.pushChanges().catch(() => {});
+  }
 }
 
 /**
@@ -97,6 +100,9 @@ export async function updateNote(
 export async function deleteNote(id: string, currentNote: Note): Promise<void> {
   await localDb.notes.put({ ...currentNote, is_deleted: true });
   await syncEngine.enqueue('notes', id, 'delete', { is_deleted: true });
+  if (syncEngine.isOnline) {
+    syncEngine.pushChanges().catch(() => {});
+  }
 }
 
 // ---------------------------------------------------------------------------

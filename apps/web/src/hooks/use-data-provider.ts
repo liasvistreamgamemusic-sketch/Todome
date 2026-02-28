@@ -85,6 +85,11 @@ export function useDataProvider(): DataProviderState {
 
         if (!user) return;
 
+        // Flush pending local changes before fetching fresh data
+        if (syncEngine.isOnline) {
+          await syncEngine.pushChanges().catch(() => {});
+        }
+
         try {
           await loadFromSupabase(user.id);
         } catch {
