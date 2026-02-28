@@ -1,0 +1,589 @@
+@import 'katex/dist/katex.min.css';
+
+/* ProseMirror base styles */
+.tiptap-editor .ProseMirror {
+  outline: none;
+  padding: 16px 20px;
+  min-height: 200px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-primary);
+}
+
+.tiptap-editor .ProseMirror > * + * {
+  margin-top: 0.5em;
+}
+
+/* Placeholder */
+.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Selection */
+.tiptap-editor .ProseMirror ::selection {
+  background-color: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* Focus indicator */
+.tiptap-editor .ProseMirror:focus-visible {
+  outline: none;
+}
+
+/* Headings */
+.tiptap-editor .ProseMirror h1 {
+  font-size: 2em;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-top: 1em;
+  margin-bottom: 0.4em;
+}
+
+.tiptap-editor .ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-top: 0.8em;
+  margin-bottom: 0.3em;
+}
+
+.tiptap-editor .ProseMirror h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 0.6em;
+  margin-bottom: 0.2em;
+}
+
+.tiptap-editor .ProseMirror h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 0.5em;
+  margin-bottom: 0.2em;
+}
+
+/* Paragraphs */
+.tiptap-editor .ProseMirror p {
+  margin: 0;
+}
+
+/* Links */
+.tiptap-editor .ProseMirror a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.tiptap-editor .ProseMirror a:hover {
+  opacity: 0.8;
+}
+
+/* Bold, Italic, Underline */
+.tiptap-editor .ProseMirror strong {
+  font-weight: 700;
+}
+
+.tiptap-editor .ProseMirror em {
+  font-style: italic;
+}
+
+.tiptap-editor .ProseMirror u {
+  text-decoration: underline;
+}
+
+.tiptap-editor .ProseMirror s {
+  text-decoration: line-through;
+}
+
+/* Inline code */
+.tiptap-editor .ProseMirror code {
+  background-color: var(--bg-tertiary);
+  border-radius: 3px;
+  padding: 0.15em 0.3em;
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+  font-size: 0.9em;
+}
+
+/* Blockquote */
+.tiptap-editor .ProseMirror blockquote {
+  border-left: 3px solid var(--border);
+  padding-left: 16px;
+  margin-left: 0;
+  margin-right: 0;
+  color: var(--text-secondary);
+}
+
+/* Horizontal rule */
+.tiptap-editor .ProseMirror hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1em 0;
+}
+
+/* Lists */
+.tiptap-editor .ProseMirror ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
+
+.tiptap-editor .ProseMirror ul ul {
+  list-style-type: circle;
+}
+
+.tiptap-editor .ProseMirror ul ul ul {
+  list-style-type: square;
+}
+
+.tiptap-editor .ProseMirror ul ul ul ul {
+  list-style-type: disc;
+}
+
+.tiptap-editor .ProseMirror ul ul ul ul ul {
+  list-style-type: circle;
+}
+
+.tiptap-editor .ProseMirror ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+
+.tiptap-editor .ProseMirror ol ol {
+  list-style-type: lower-alpha;
+}
+
+.tiptap-editor .ProseMirror ol ol ol {
+  list-style-type: lower-roman;
+}
+
+.tiptap-editor .ProseMirror li {
+  margin: 0.15em 0;
+}
+
+.tiptap-editor .ProseMirror li p {
+  margin: 0;
+}
+
+/* Task list */
+.tiptap-editor .ProseMirror ul[data-type='taskList'] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.tiptap-editor .ProseMirror ul[data-type='taskList'] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.tiptap-editor .ProseMirror ul[data-type='taskList'] li > label {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  margin-top: 3px;
+}
+
+.tiptap-editor .ProseMirror ul[data-type='taskList'] li > label input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  position: relative;
+  background-color: transparent;
+  transition: all 150ms ease-out;
+}
+
+.tiptap-editor .ProseMirror ul[data-type='taskList'] li > label input[type='checkbox']:checked {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.tiptap-editor .ProseMirror ul[data-type='taskList'] li > label input[type='checkbox']:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid var(--bg-primary);
+  border-width: 0 1.5px 1.5px 0;
+  transform: rotate(45deg);
+}
+
+.tiptap-editor .ProseMirror ul[data-type='taskList'] li[data-checked='true'] > div > p {
+  text-decoration: line-through;
+  color: var(--text-tertiary);
+}
+
+.tiptap-editor .ProseMirror ul[data-type='taskList'] li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Code block */
+.tiptap-editor .ProseMirror pre {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+  font-size: 0.875em;
+  line-height: 1.5;
+}
+
+.tiptap-editor .ProseMirror pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+  color: inherit;
+}
+
+/* Syntax highlighting tokens */
+.tiptap-editor .ProseMirror pre .hljs-comment,
+.tiptap-editor .ProseMirror pre .hljs-quote {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-keyword,
+.tiptap-editor .ProseMirror pre .hljs-selector-tag,
+.tiptap-editor .ProseMirror pre .hljs-built_in {
+  color: #c678dd;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-string,
+.tiptap-editor .ProseMirror pre .hljs-attr {
+  color: #98c379;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-number,
+.tiptap-editor .ProseMirror pre .hljs-literal {
+  color: #d19a66;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-variable,
+.tiptap-editor .ProseMirror pre .hljs-template-variable {
+  color: #e06c75;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-title,
+.tiptap-editor .ProseMirror pre .hljs-section {
+  color: #61afef;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-type,
+.tiptap-editor .ProseMirror pre .hljs-class .hljs-title {
+  color: #e5c07b;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-tag,
+.tiptap-editor .ProseMirror pre .hljs-name {
+  color: #e06c75;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-attribute {
+  color: #d19a66;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-symbol,
+.tiptap-editor .ProseMirror pre .hljs-bullet {
+  color: #61afef;
+}
+
+.tiptap-editor .ProseMirror pre .hljs-addition {
+  color: #98c379;
+  background-color: rgba(152, 195, 121, 0.1);
+}
+
+.tiptap-editor .ProseMirror pre .hljs-deletion {
+  color: #e06c75;
+  background-color: rgba(224, 108, 117, 0.1);
+}
+
+/* Table styles */
+.tiptap-editor .ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 0.5em 0;
+  overflow: hidden;
+  table-layout: fixed;
+}
+
+.tiptap-editor .ProseMirror table td,
+.tiptap-editor .ProseMirror table th {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  vertical-align: top;
+  position: relative;
+  min-width: 60px;
+}
+
+.tiptap-editor .ProseMirror table th {
+  background-color: var(--bg-secondary);
+  font-weight: 600;
+  text-align: left;
+}
+
+.tiptap-editor .ProseMirror table td > *,
+.tiptap-editor .ProseMirror table th > * {
+  margin: 0;
+}
+
+.tiptap-editor .ProseMirror table .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--accent) 12%, transparent);
+  pointer-events: none;
+}
+
+.tiptap-editor .ProseMirror table .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: -2px;
+  width: 4px;
+  background-color: var(--accent);
+  pointer-events: none;
+}
+
+.tiptap-editor .ProseMirror .tableWrapper {
+  overflow-x: auto;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror.resize-cursor {
+  cursor: col-resize;
+}
+
+/* Image styles */
+.tiptap-editor .ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  display: block;
+  margin: 0.5em 0;
+}
+
+.tiptap-editor .ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Resizable image wrapper */
+.tiptap-editor .ProseMirror .resizable-image-wrapper {
+  position: relative;
+  display: inline-block;
+  max-width: 100%;
+  line-height: 0;
+  margin: 0.5em 0;
+  user-select: none;
+}
+
+.tiptap-editor .ProseMirror .resizable-image-wrapper img {
+  display: block;
+  max-width: 100%;
+  border-radius: 4px;
+  margin: 0;
+}
+
+.tiptap-editor .ProseMirror .resizable-image-wrapper.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tiptap-editor .ProseMirror .resizable-image-wrapper.resizing {
+  cursor: nwse-resize;
+}
+
+/* Resize handles */
+.resize-handle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: var(--accent);
+  border: 1px solid var(--bg-primary);
+  border-radius: 2px;
+  z-index: 10;
+  pointer-events: auto;
+}
+
+.resize-handle--top-left {
+  top: -4px;
+  left: -4px;
+  cursor: nwse-resize;
+}
+
+.resize-handle--top-right {
+  top: -4px;
+  right: -4px;
+  cursor: nesw-resize;
+}
+
+.resize-handle--bottom-left {
+  bottom: -4px;
+  left: -4px;
+  cursor: nesw-resize;
+}
+
+.resize-handle--bottom-right {
+  bottom: -4px;
+  right: -4px;
+  cursor: nwse-resize;
+}
+
+.resize-handle:hover {
+  background-color: color-mix(in srgb, var(--accent) 80%, white);
+  transform: scale(1.25);
+}
+
+/* Size indicator tooltip */
+.image-size-indicator {
+  position: absolute;
+  bottom: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+  line-height: 1.4;
+}
+
+/* Image preset size toolbar */
+.image-toolbar {
+  position: absolute;
+  bottom: -32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.image-toolbar__btn {
+  padding: 2px 8px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  background: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.image-toolbar__btn:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.image-toolbar__btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* Text alignment */
+.tiptap-editor .ProseMirror [style*='text-align: left'] {
+  text-align: left;
+}
+
+.tiptap-editor .ProseMirror [style*='text-align: center'] {
+  text-align: center;
+}
+
+.tiptap-editor .ProseMirror [style*='text-align: right'] {
+  text-align: right;
+}
+
+.tiptap-editor .ProseMirror [style*='text-align: justify'] {
+  text-align: justify;
+}
+
+/* Highlight mark */
+.tiptap-editor .ProseMirror mark {
+  border-radius: 2px;
+  padding: 0.1em 0;
+}
+
+/* KaTeX math styles */
+.tiptap-editor .ProseMirror .Tiptap-mathematics-editor {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
+  font-size: 0.875em;
+  color: var(--text-primary);
+}
+
+.tiptap-editor .ProseMirror .Tiptap-mathematics-editor:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.tiptap-editor .ProseMirror .Tiptap-mathematics-render {
+  padding: 2px 0;
+  cursor: pointer;
+}
+
+.tiptap-editor .ProseMirror .Tiptap-mathematics-render:hover {
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+}
+
+.tiptap-editor .ProseMirror .Tiptap-mathematics-render--editable {
+  cursor: text;
+}
+
+.tiptap-editor .ProseMirror .Tiptap-mathematics-editor--is-empty::before {
+  content: 'E = mc^2';
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+/* Mention link styles */
+.tiptap-editor .ProseMirror .mention-link {
+  color: var(--accent);
+  background-color: color-mix(in srgb, var(--accent) 8%, transparent);
+  border-radius: 3px;
+  padding: 0.1em 0.3em;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tiptap-editor .ProseMirror .mention-link:hover {
+  background-color: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* Gapcursor - hidden to prevent unwanted blinking cursor at top of editor */
+.tiptap-editor .ProseMirror .ProseMirror-gapcursor {
+  display: none;
+}
+
+/* Drop cursor */
+.tiptap-editor .ProseMirror .ProseMirror-dropcursor {
+  color: var(--accent);
+}

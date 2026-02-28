@@ -1,0 +1,20 @@
+{
+  "name": "todome",
+  "private": true,
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "build:web": "turbo build --filter=@todome/web",
+    "build:tauri": "turbo build:tauri --filter=@todome/web",
+    "desktop:dev": "pnpm --filter @todome/desktop tauri dev",
+    "desktop:build": "pnpm --filter @todome/desktop tauri build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "clean": "turbo clean"
+  },
+  "devDependencies": {
+    "turbo": "^2.4.0",
+    "typescript": "^5.7.0"
+  },
+  "packageManager": "pnpm@10.30.3"
+}

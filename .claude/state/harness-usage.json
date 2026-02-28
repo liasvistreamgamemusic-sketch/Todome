@@ -1,0 +1,37 @@
+{
+  "version": "1.0",
+  "updatedAt": "2026-02-28T00:27:41.424Z",
+  "skills": {},
+  "commands": {
+    "Users/nitandatomoya/repository/github/Todome/": {
+      "count": 1,
+      "lastUsed": "2026-02-27T09:39:12.328Z"
+    }
+  },
+  "agents": {
+    "general-purpose": {
+      "count": 21,
+      "lastUsed": "2026-02-28T00:27:41.424Z"
+    },
+    "Explore": {
+      "count": 12,
+      "lastUsed": "2026-02-27T23:57:50.554Z"
+    },
+    "Plan": {
+      "count": 1,
+      "lastUsed": "2026-02-28T00:01:54.208Z"
+    }
+  },
+  "hooks": {
+    "session-init": {
+      "triggered": 6,
+      "blocked": 0,
+      "lastTriggered": "2026-02-27T10:16:08.654Z"
+    },
+    "pretooluse-guard": {
+      "triggered": 134,
+      "blocked": 134,
+      "lastTriggered": "2026-02-27T10:11:48.291Z"
+    }
+  }
+}

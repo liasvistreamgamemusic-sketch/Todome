@@ -1,0 +1,140 @@
+{
+  "session_id": "AFD38BD4-975A-46D5-A123-A026A558FC78",
+  "started_at": "2026-02-27T10:16:08Z",
+  "cwd": "/Users/nitandatomoya/repository/github/Todome",
+  "project_name": "Todome",
+  "prompt_seq": 15,
+  "git": {
+    "branch": "HEAD",
+    "uncommitted_changes": 11,
+    "last_commit": "none"
+  },
+  "plans": {
+    "exists": false,
+    "last_modified": 0,
+    "wip_tasks": 0,
+    "todo_tasks": 0,
+    "pending_tasks": 0,
+    "completed_tasks": 0
+  },
+  "changes_this_session": [
+    {
+      "file": "/Users/nitandatomoya/.claude/plans/zesty-fluttering-dragon.md",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:02:57Z",
+      "important": false
+    },
+    {
+      "file": ".claude/state/skills-decision.json",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:26:04Z",
+      "important": false
+    },
+    {
+      "file": "apps/desktop/package.json",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:26:42Z",
+      "important": false
+    },
+    {
+      "file": "apps/desktop/src-tauri/tauri.conf.json",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:26:48Z",
+      "important": false
+    },
+    {
+      "file": "apps/desktop/src-tauri/Cargo.toml",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:26:50Z",
+      "important": false
+    },
+    {
+      "file": "apps/desktop/src-tauri/src/main.rs",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:26:52Z",
+      "important": false
+    },
+    {
+      "file": "apps/desktop/src-tauri/src/lib.rs",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:26:53Z",
+      "important": false
+    },
+    {
+      "file": "apps/desktop/src-tauri/capabilities/default.json",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:26:54Z",
+      "important": false
+    },
+    {
+      "file": "apps/desktop/src-tauri/build.rs",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:26:56Z",
+      "important": false
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:27:32Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/next.config.mjs",
+      "action": "Edit",
+      "timestamp": "2026-02-28T00:27:49Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/package.json",
+      "action": "Edit",
+      "timestamp": "2026-02-28T00:27:50Z",
+      "important": false
+    },
+    {
+      "file": "turbo.json",
+      "action": "Edit",
+      "timestamp": "2026-02-28T00:27:52Z",
+      "important": false
+    },
+    {
+      "file": "package.json",
+      "action": "Edit",
+      "timestamp": "2026-02-28T00:27:55Z",
+      "important": false
+    },
+    {
+      "file": ".gitignore",
+      "action": "Edit",
+      "timestamp": "2026-02-28T00:27:57Z",
+      "important": false
+    },
+    {
+      "file": "/Users/nitandatomoya/.claude/projects/-Users-nitandatomoya-repository-github-Todome/memory/MEMORY.md",
+      "action": "Edit",
+      "timestamp": "2026-02-28T00:28:30Z",
+      "important": false
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "action": "Edit",
+      "timestamp": "2026-02-28T00:48:09Z",
+      "important": false
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "action": "Edit",
+      "timestamp": "2026-02-28T00:48:15Z",
+      "important": false
+    },
+    {
+      "file": ".github/workflows/release.yml",
+      "action": "Write",
+      "timestamp": "2026-02-28T00:51:23Z",
+      "important": false
+    }
+  ],
+  "intent": "literal",
+  "ended_at": "2026-02-27T10:16:43Z",
+  "duration_minutes": 540,
+  "memory_logged": true
+}

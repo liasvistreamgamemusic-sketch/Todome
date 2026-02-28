@@ -1,0 +1,100 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f8f8;
+    --bg-tertiary: #f0f0f0;
+    --text-primary: #111111;
+    --text-secondary: #444444;
+    --text-tertiary: #888888;
+    --accent: #222222;
+    --border: #e0e0e0;
+    /* Glass morphism */
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.9);
+    --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.06), 0 1px 4px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255,255,255,1);
+  }
+
+  .dark {
+    --bg-primary: #0a0a0a;
+    --bg-secondary: #141414;
+    --bg-tertiary: #1e1e1e;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
+    --text-tertiary: #666666;
+    --accent: #dddddd;
+    --border: #2a2a2a;
+    /* Glass morphism */
+    --glass-bg: rgba(15, 15, 15, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.10);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.18);
+  }
+
+  html {
+    font-size: 14px;
+    line-height: 1.6;
+    /* backdrop-filter が機能するための微細グラデーション背景（ほぼ白） */
+    background: linear-gradient(145deg, #f7f7f7 0%, #f0f2f5 50%, #f5f5f7 100%);
+  }
+
+  html.dark {
+    background: linear-gradient(145deg, #080808 0%, #0e0e12 50%, #0a0a0e 100%);
+  }
+
+  body {
+    @apply text-text-primary font-sans antialiased;
+    background: transparent;
+  }
+
+  * {
+    @apply border-border;
+  }
+}
+
+@layer components {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 3px;
+  }
+
+  /* Glass morphism utilities */
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px) saturate(2.0);
+    -webkit-backdrop-filter: blur(20px) saturate(2.0);
+    border-color: var(--glass-border);
+    box-shadow: var(--glass-shadow);
+  }
+
+  .glass-sm {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px) saturate(1.8);
+    -webkit-backdrop-filter: blur(12px) saturate(1.8);
+    border-color: var(--glass-border);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+
+  .dark .glass,
+  .dark .glass-sm {
+    box-shadow: var(--glass-shadow);
+    /* ダークモードは白insetハイライト不要 */
+    background: var(--glass-bg);
+  }
+}
