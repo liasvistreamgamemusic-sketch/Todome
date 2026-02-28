@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:tauri": "NEXT_BUILD_TARGET=tauri next build",
+    "build:tauri": "cross-env NEXT_BUILD_TARGET=tauri next build",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
@@ -54,6 +54,7 @@
     "cmdk": "^1.0.0"
   },
   "devDependencies": {
+    "cross-env": "^7.0.0",
     "typescript": "^5.7.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

@@ -9,7 +9,9 @@ pub fn run() {
             // Check for updates on startup (non-blocking)
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                let _ = handle.updater().check().await;
+                if let Ok(updater) = handle.updater() {
+                    let _ = updater.check().await;
+                }
             });
             Ok(())
         })
