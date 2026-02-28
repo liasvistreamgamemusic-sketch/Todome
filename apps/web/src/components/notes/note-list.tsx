@@ -62,10 +62,10 @@ export function NoteList() {
   }, [notes]);
 
   const handleNewNote = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
     const now = new Date().toISOString();
     const n: Note = {
-      id: crypto.randomUUID(), user_id: user?.id ?? '', title: '',
+      id: crypto.randomUUID(), user_id: session?.user?.id ?? '', title: '',
       content: { type: 'doc', content: [] }, plain_text: '',
       folder_id: null, tags: [], is_pinned: false,
       is_archived: false, is_deleted: false,
@@ -80,10 +80,10 @@ export function NoteList() {
 
   const handleCreateFolder = useCallback(async () => {
     if (!folderName.trim()) return;
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { session } } = await supabase.auth.getSession();
     const now = new Date().toISOString();
     const f: Folder = {
-      id: crypto.randomUUID(), user_id: user?.id ?? '', name: folderName.trim(),
+      id: crypto.randomUUID(), user_id: session?.user?.id ?? '', name: folderName.trim(),
       color: folderColor, icon: null, parent_id: null,
       sort_order: folders.length, created_at: now, updated_at: now,
     };

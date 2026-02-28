@@ -8,11 +8,11 @@ import type { Note } from '@todome/store';
 import { supabase, createNote } from '@todome/db';
 
 async function createEmptyNote(): Promise<Note> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
   const now = new Date().toISOString();
   return {
     id: crypto.randomUUID(),
-    user_id: user?.id ?? '',
+    user_id: session?.user?.id ?? '',
     title: '',
     content: { type: 'doc', content: [] },
     plain_text: '',
