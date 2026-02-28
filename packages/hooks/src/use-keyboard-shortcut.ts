@@ -14,7 +14,7 @@ interface ParsedShortcut {
 
 const isMac = (): boolean => {
   if (typeof navigator === 'undefined') return false;
-  return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  return /mac/i.test(navigator.userAgent ?? '');
 };
 
 const parseShortcut = (shortcut: string): ParsedShortcut => {
@@ -41,7 +41,7 @@ export const useKeyboardShortcut = (
 
   const handleKeyDown = useCallback(
     (event: KeyboardEvent) => {
-      if (!enabled) return;
+      if (!enabled || !event.key) return;
 
       const parsed = parseShortcut(shortcut);
 
