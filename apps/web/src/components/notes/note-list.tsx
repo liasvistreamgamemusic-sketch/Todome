@@ -76,6 +76,7 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
       created_at: now, updated_at: now, synced_at: null,
     };
     addNote(n);
+    useNoteStore.getState().markLocalOnly(n.id);
     if (onSelectNote) onSelectNote(n.id);
     else selectNote(n.id);
     // Local only — note-editor will push to Supabase on first meaningful save

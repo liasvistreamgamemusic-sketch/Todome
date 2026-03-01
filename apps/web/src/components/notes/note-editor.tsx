@@ -18,7 +18,7 @@ import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { Note } from '@todome/store';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
-import { updateNote as persistNote, deleteNote as persistDeleteNote, purgeNote, createNote as persistCreateNote, localDb } from '@todome/db';
+import { updateNote as persistNote, deleteNote as persistDeleteNote, purgeNote, createNote as persistCreateNote } from '@todome/db';
 
 type NoteEditorProps = {
   noteId: string;
@@ -101,39 +101,15 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   }, []);
 
   // Track whether this note has been pushed to Supabase.
-  // Default to `true` (assume already synced) — only set to `false` for
-  // locally-created notes that have never reached Supabase.
-  const pushedToRemoteRef = useRef(true);
+  // Uses the store's localOnlyIds set — only notes explicitly created via
+  // createEmptyNote / handleNewNote are in this set.
+  const isLocalOnly = useNoteStore((s) => s.localOnlyIds.has(noteId));
+  const pushedToRemoteRef = useRef(!isLocalOnly);
 
-  // Reset on noteId change
+  // Sync ref when noteId or local-only status changes
   useEffect(() => {
-    // Assume synced until proven otherwise
-    pushedToRemoteRef.current = true;
-
-    // A note that was created locally but never synced will:
-    //   - have NO pending 'create' in the sync queue (hasn't been enqueued yet), AND
-    //   - have synced_at === null
-    // Notes loaded from Supabase always have synced_at set by loadNotes.
-    const currentNote = useNoteStore.getState().notes.find((n) => n.id === noteId);
-    if (currentNote && !currentNote.synced_at) {
-      // Could be a brand-new local note OR one with a pending create
-      localDb.syncQueue
-        .where('record_id')
-        .equals(noteId)
-        .filter((item) => item.operation === 'create' && item.table === 'notes')
-        .count()
-        .then((count) => {
-          if (count > 0) {
-            // Pending create exists — already enqueued, treat as pushed
-            pushedToRemoteRef.current = true;
-          } else {
-            // No synced_at AND no pending create — truly local-only
-            pushedToRemoteRef.current = false;
-          }
-        })
-        .catch(() => {});
-    }
-  }, [noteId]);
+    pushedToRemoteRef.current = !isLocalOnly;
+  }, [noteId, isLocalOnly]);
 
   const debouncedSave = useCallback(
     (patch: Partial<Note>) => {
@@ -155,9 +131,15 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
         if (!currentNote) return;
 
         if (!pushedToRemoteRef.current) {
-          // First meaningful save — push the full note to Supabase as a create
-          pushedToRemoteRef.current = true;
-          persistCreateNote(currentNote).catch(() => setSaveStatus('error'));
+          // Only push to Supabase if the note has meaningful content
+          const hasTitle = currentNote.title.trim().length > 0;
+          const hasContent = (currentNote.plain_text ?? '').trim().length > 0;
+          if (hasTitle || hasContent) {
+            pushedToRemoteRef.current = true;
+            useNoteStore.getState().unmarkLocalOnly(noteId);
+            persistCreateNote(currentNote).catch(() => setSaveStatus('error'));
+          }
+          // Otherwise skip — purge will clean up the local-only note
         } else {
           persistNote(noteId, patch, currentNote).catch(() => setSaveStatus('error'));
         }
@@ -234,10 +216,12 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const handleTogglePin = useCallback(() => {
     if (note?.is_pinned) {
       unpinNote(noteId);
+      if (note) persistNote(noteId, { is_pinned: false }, note).catch(console.error);
     } else {
       pinNote(noteId);
+      if (note) persistNote(noteId, { is_pinned: true }, note).catch(console.error);
     }
-  }, [note?.is_pinned, noteId, pinNote, unpinNote]);
+  }, [note, noteId, pinNote, unpinNote]);
 
   const handleArchive = useCallback(() => {
     archiveNote(noteId);
@@ -258,9 +242,12 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const handleMoveToFolder = useCallback(
     (folderId: string | null) => {
       moveNoteToFolder(noteId, folderId);
+      if (note) {
+        persistNote(noteId, { folder_id: folderId }, note).catch(console.error);
+      }
       setShowFolderMenu(false);
     },
-    [noteId, moveNoteToFolder],
+    [noteId, note, moveNoteToFolder],
   );
 
   if (!note) {

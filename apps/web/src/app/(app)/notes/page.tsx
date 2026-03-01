@@ -33,9 +33,7 @@ export default function NotesPage() {
   const selectedNoteId = useNoteStore((s) => s.selectedNoteId);
   const selectNote = useNoteStore((s) => s.selectNote);
   const hydrated = useNoteStore((s) => s.hydrated);
-  const noteCount = useNoteStore((s) =>
-    s.notes.filter((n) => !n.is_deleted && !n.is_archived).length,
-  );
+  const synced = useNoteStore((s) => s.synced);
 
   // モバイル: ドロワー一覧（初期表示で開く）
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -73,9 +71,9 @@ export default function NotesPage() {
     setDrawerOpen(false);
   }, [selectNote]);
 
-  // Auto-select or create note when:
-  // - store is hydrated AND
-  // - no note is selected OR selected note no longer exists in visible list
+  // Auto-select or create note:
+  // - Select existing: immediately after hydration (Phase 1)
+  // - Create empty: only after Supabase sync (Phase 2) to avoid flash
   const notes = useNoteStore((s) => s.notes);
   useEffect(() => {
     if (!hydrated) return;
@@ -87,17 +85,20 @@ export default function NotesPage() {
     if (selectedNoteId && visible.some((n) => n.id === selectedNoteId)) return;
 
     if (visible.length > 0 && visible[0]) {
+      // Select the first visible note (available after Phase 1)
       select(visible[0].id);
-    } else {
-      // Create empty note locally only — do NOT push to Supabase yet.
-      // The note-editor will push to Supabase on first meaningful save.
+    } else if (synced) {
+      // Only create an empty note after Supabase sync completes
+      // to avoid a flash of "untitled note" that disappears when real data arrives
+      const { markLocalOnly } = useNoteStore.getState();
       createEmptyNote().then(async (newNote) => {
         addNote(newNote);
+        markLocalOnly(newNote.id);
         await localDb.notes.put(newNote);
         select(newNote.id);
       }).catch(console.error);
     }
-  }, [hydrated, selectedNoteId, notes]);
+  }, [hydrated, synced, selectedNoteId, notes]);
 
   return (
     <div className="flex h-full">

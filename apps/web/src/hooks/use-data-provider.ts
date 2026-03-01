@@ -14,7 +14,17 @@ export type DataProviderState = {
 
 async function loadFromLocalDb(): Promise<void> {
   const [notes, folders, todos, events] = await Promise.all([
-    localDb.notes.filter((n) => !n.is_deleted).toArray(),
+    localDb.notes
+      .filter((n) => !n.is_deleted)
+      .toArray()
+      .then((all) =>
+        // Exclude empty notes (no title AND no content) left over from
+        // previous sessions — they were meant to be purged but may linger
+        // in IndexedDB. This prevents a flash of "untitled" on reload.
+        all.filter(
+          (n) => n.title.trim().length > 0 || (n.plain_text ?? '').trim().length > 0,
+        ),
+      ),
     localDb.folders.toArray(),
     localDb.todos.filter((t) => !t.is_deleted).toArray(),
     localDb.calendarEvents.filter((e) => !e.is_deleted).toArray(),
@@ -144,7 +154,10 @@ export function useDataProvider(): DataProviderState {
 
         // Phase 2: Background sync with Supabase
         const { data: { session } } = await supabase.auth.getSession();
-        if (cancelled || !session?.user) return;
+        if (cancelled || !session?.user) {
+          if (!cancelled) useNoteStore.getState().setSynced(true);
+          return;
+        }
 
         const userId = session.user.id;
 
@@ -156,10 +169,12 @@ export function useDataProvider(): DataProviderState {
 
         // Pull fresh data and merge with any remaining pending creates
         await refreshFromSupabase(userId);
+        if (!cancelled) useNoteStore.getState().setSynced(true);
       } catch (err) {
         if (!cancelled) {
           setError(err instanceof Error ? err : new Error(String(err)));
           setIsLoading(false);
+          useNoteStore.getState().setSynced(true);
         }
       }
     }

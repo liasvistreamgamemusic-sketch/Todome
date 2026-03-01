@@ -9,6 +9,10 @@ export type NoteStoreState = {
   notes: Note[];
   folders: Folder[];
   hydrated: boolean;
+  /** True after Supabase refresh completes (or fails/skipped). */
+  synced: boolean;
+  /** IDs of notes created locally that have never been pushed to Supabase. */
+  localOnlyIds: Set<string>;
   selectedNoteId: string | null;
   selectedFolderId: string | null;
   searchQuery: string;
@@ -17,7 +21,12 @@ export type NoteStoreState = {
 
   // Actions
   setNotes: (notes: Note[]) => void;
+  setSynced: (synced: boolean) => void;
   addNote: (note: Note) => void;
+  /** Mark a note as created locally (not yet on Supabase). */
+  markLocalOnly: (id: string) => void;
+  /** Remove a note from the local-only set (after push to Supabase). */
+  unmarkLocalOnly: (id: string) => void;
   updateNote: (id: string, patch: Partial<Note>) => void;
   deleteNote: (id: string) => void;
   restoreNote: (id: string) => void;
@@ -67,6 +76,8 @@ export const useNoteStore = create<NoteStoreState>()((set, get) => ({
   notes: [],
   folders: [],
   hydrated: false,
+  synced: false,
+  localOnlyIds: new Set(),
   selectedNoteId: null,
   selectedFolderId: null,
   searchQuery: '',
@@ -75,7 +86,16 @@ export const useNoteStore = create<NoteStoreState>()((set, get) => ({
 
   // Note CRUD
   setNotes: (notes) => set({ notes, hydrated: true }),
+  setSynced: (synced) => set({ synced }),
   addNote: (note) => set((s) => ({ notes: [...s.notes, note] })),
+  markLocalOnly: (id) =>
+    set((s) => ({ localOnlyIds: new Set([...s.localOnlyIds, id]) })),
+  unmarkLocalOnly: (id) =>
+    set((s) => {
+      const next = new Set(s.localOnlyIds);
+      next.delete(id);
+      return { localOnlyIds: next };
+    }),
   updateNote: (id, patch) =>
     set((s) => ({ notes: patchNote(s.notes, id, patch) })),
   deleteNote: (id) =>

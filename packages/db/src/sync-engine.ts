@@ -85,8 +85,8 @@ export class SyncEngine {
   private _online: boolean;
   private _syncInProgress = false;
   private _cleanupListeners: (() => void)[] = [];
-  private _failCounts = new Map<number, number>();
   private static readonly MAX_RETRIES = 3;
+  private static readonly FAIL_COUNTS_KEY = 'todome_sync_fail_counts';
 
   constructor() {
     this._online =
@@ -122,6 +122,51 @@ export class SyncEngine {
   }
 
   // -----------------------------------------------------------------------
+  // Persistent fail counts (survives page reload)
+  // -----------------------------------------------------------------------
+
+  private _getFailCounts(): Record<string, number> {
+    if (typeof globalThis.localStorage === 'undefined') return {};
+    try {
+      const raw = globalThis.localStorage.getItem(SyncEngine.FAIL_COUNTS_KEY);
+      return raw ? (JSON.parse(raw) as Record<string, number>) : {};
+    } catch {
+      return {};
+    }
+  }
+
+  private _setFailCounts(counts: Record<string, number>): void {
+    if (typeof globalThis.localStorage === 'undefined') return;
+    const entries = Object.entries(counts).filter(([, v]) => v > 0);
+    if (entries.length === 0) {
+      globalThis.localStorage.removeItem(SyncEngine.FAIL_COUNTS_KEY);
+    } else {
+      globalThis.localStorage.setItem(
+        SyncEngine.FAIL_COUNTS_KEY,
+        JSON.stringify(Object.fromEntries(entries)),
+      );
+    }
+  }
+
+  private _getFailCount(itemId: number): number {
+    return this._getFailCounts()[String(itemId)] ?? 0;
+  }
+
+  private _incrementFailCount(itemId: number): number {
+    const counts = this._getFailCounts();
+    const next = (counts[String(itemId)] ?? 0) + 1;
+    counts[String(itemId)] = next;
+    this._setFailCounts(counts);
+    return next;
+  }
+
+  private _clearFailCount(itemId: number): void {
+    const counts = this._getFailCounts();
+    delete counts[String(itemId)];
+    this._setFailCounts(counts);
+  }
+
+  // -----------------------------------------------------------------------
   // Push local changes to Supabase
   // -----------------------------------------------------------------------
 
@@ -141,17 +186,16 @@ export class SyncEngine {
         const result = await this.pushSingleChange(item);
         if (result.ok) {
           await localDb.syncQueue.delete(itemId);
-          this._failCounts.delete(itemId);
+          this._clearFailCount(itemId);
           pushed++;
         } else {
-          const count = (this._failCounts.get(itemId) ?? 0) + 1;
-          this._failCounts.set(itemId, count);
+          const count = this._incrementFailCount(itemId);
           if (count >= SyncEngine.MAX_RETRIES) {
             console.warn(
               `[sync] Dropping item ${itemId} (table=${item.table}, op=${item.operation}) after ${count} failures: ${result.error.message}`,
             );
             await localDb.syncQueue.delete(itemId);
-            this._failCounts.delete(itemId);
+            this._clearFailCount(itemId);
           }
           // Continue processing remaining items instead of blocking the queue.
         }
