@@ -120,8 +120,8 @@ export const CalendarView = () => {
   return (
     <div className="flex h-full flex-col bg-bg-primary">
       {/* Top bar */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border)] px-3 py-2 md:px-4">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 border-b border-[var(--border)] px-3 py-2 md:px-4">
+        <div className="flex min-w-0 items-center gap-2">
           {/* Navigation */}
           <IconButton
             icon={<ChevronLeft />}
@@ -142,7 +142,7 @@ export const CalendarView = () => {
             type="button"
             onClick={handleToday}
             className={clsx(
-              'rounded-md px-2.5 py-1 text-xs font-medium',
+              'shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium',
               'border border-[var(--border)] text-text-secondary',
               'hover:bg-bg-secondary transition-colors',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
@@ -152,12 +152,12 @@ export const CalendarView = () => {
           </button>
 
           {/* Date display */}
-          <h1 className="ml-2 text-base font-semibold text-text-primary">
+          <h1 className="ml-2 truncate text-base font-semibold text-text-primary">
             {dateDisplay}
           </h1>
         </div>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           {/* View mode toggle */}
           <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
             {VIEW_MODES.map((mode) => (
