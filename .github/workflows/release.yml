@@ -233,12 +233,19 @@ jobs:
           name: windows-artifacts
           path: artifacts/windows
 
-      - name: List downloaded artifacts (debug)
+      - name: Flatten artifact directories
         run: |
-          echo "=== macOS artifacts ==="
-          find artifacts/macos -type f 2>/dev/null || echo "No macOS artifacts"
-          echo "=== Windows artifacts ==="
-          find artifacts/windows -type f 2>/dev/null || echo "No Windows artifacts"
+          echo "=== Before flatten ==="
+          find artifacts -type f
+
+          # Flatten nested subdirectories into artifacts/macos/ and artifacts/windows/
+          find artifacts/macos -mindepth 2 -type f -exec mv {} artifacts/macos/ \;
+          find artifacts/windows -mindepth 2 -type f -exec mv {} artifacts/windows/ \;
+          find artifacts/macos -mindepth 1 -type d -empty -delete 2>/dev/null || true
+          find artifacts/windows -mindepth 1 -type d -empty -delete 2>/dev/null || true
+
+          echo "=== After flatten ==="
+          find artifacts -type f
 
       - name: Generate update manifest (latest.json)
         run: |
