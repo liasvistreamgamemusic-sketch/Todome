@@ -18,6 +18,7 @@ import { BookOpen, CheckSquare } from 'lucide-react';
 import { useCalendarStore, useTodoStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
 import { useIsMobile } from '@todome/hooks';
+import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
 
@@ -39,6 +40,9 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   const selectDate = useCalendarStore((s) => s.selectDate);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentTimeTop, setCurrentTimeTop] = useState(0);
+  const navigateDayPrev = useCalendarStore((s) => s.navigateDayPrev);
+  const navigateDayNext = useCalendarStore((s) => s.navigateDayNext);
+  const swipe = useSwipeNavigation(navigateDayNext, navigateDayPrev);
 
   const hours = useMemo(() => {
     const dayStart = startOfDay(new Date());
@@ -141,7 +145,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   );
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex flex-1 flex-col overflow-hidden" {...swipe}>
       {/* Date header */}
       <div className="flex items-center gap-3 border-b border-[var(--border)] px-4 py-3">
         <div className="flex flex-col items-center">

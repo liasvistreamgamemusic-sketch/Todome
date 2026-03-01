@@ -18,6 +18,7 @@ import {
 import { useCalendarStore, useUiStore, useTodoStore } from '@todome/store';
 import type { CalendarEvent } from '@todome/store';
 import { useIsMobile } from '@todome/hooks';
+import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { isHoliday } from '@/lib/japanese-holidays';
 
 type Props = {
@@ -35,6 +36,9 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
   const todos = useTodoStore((s) => s.todos);
+  const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
+  const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
+  const swipe = useSwipeNavigation(navigateMonthNext, navigateMonthPrev);
 
   const maxVisibleEvents = isMobile ? 1 : 3;
 
@@ -101,7 +105,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
   const weekCount = calendarDays.length / 7;
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
+    <div className="flex flex-1 flex-col overflow-hidden" {...swipe}>
       {/* Day-of-week header */}
       <div className="grid grid-cols-7 border-b border-[var(--border)]">
         {dayLabels.map((label, i) => {

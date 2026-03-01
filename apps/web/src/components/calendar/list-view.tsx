@@ -13,6 +13,7 @@ import {
 } from 'date-fns';
 import { MapPin, Clock } from 'lucide-react';
 import { useCalendarStore, useTodoStore } from '@todome/store';
+import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import type { CalendarEvent, Todo } from '@todome/store';
 import { isHoliday } from '@/lib/japanese-holidays';
 
@@ -37,6 +38,9 @@ export const ListView = ({ onSelectEvent }: Props) => {
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const events = useCalendarStore((s) => s.events);
   const todos = useTodoStore((s) => s.todos);
+  const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
+  const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
+  const swipe = useSwipeNavigation(navigateMonthNext, navigateMonthPrev);
 
   const groupedItems = useMemo(() => {
     const rangeStart = startOfDay(selectedDate);
@@ -113,7 +117,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex-1 overflow-y-auto" {...swipe}>
       {groupedItems.map(([dateKey, items]) => {
         const date = parseISO(dateKey);
         const holidayName = isHoliday(date);

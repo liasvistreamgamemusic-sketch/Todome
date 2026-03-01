@@ -13,7 +13,6 @@ import { useCalendarStore } from '@todome/store';
 import type { CalendarViewMode, CalendarEvent } from '@todome/store';
 import { Button } from '@todome/ui';
 import { IconButton } from '@todome/ui';
-import { useIsMobile } from '@todome/hooks';
 import { MonthView } from './month-view';
 import { WeekView } from './week-view';
 import { DayView } from './day-view';
@@ -31,7 +30,6 @@ const VIEW_MODE_LABELS: Record<CalendarViewMode, string> = {
 const VIEW_MODES: CalendarViewMode[] = ['month', 'week', 'day', 'list'];
 
 export const CalendarView = () => {
-  const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const viewMode = useCalendarStore((s) => s.viewMode);
   const setViewMode = useCalendarStore((s) => s.setViewMode);
@@ -50,8 +48,7 @@ export const CalendarView = () => {
   const [editEventId, setEditEventId] = useState<string | null>(null);
   const [diaryDate, setDiaryDate] = useState<Date | null>(null);
 
-  // On mobile, week view falls back to day view, so navigation should match
-  const effectiveViewMode = isMobile && viewMode === 'week' ? 'day' : viewMode;
+  const effectiveViewMode = viewMode;
 
   const handlePrev = useCallback(() => {
     switch (effectiveViewMode) {
@@ -198,18 +195,11 @@ export const CalendarView = () => {
           />
         )}
         {viewMode === 'week' && (
-          isMobile ? (
-            <DayView
-              onCreateEvent={handleCreateEvent}
-              onSelectEvent={handleSelectEvent}
-              onOpenDiary={handleOpenDiary}
-            />
-          ) : (
-            <WeekView
-              onCreateEvent={handleCreateEvent}
-              onSelectEvent={handleSelectEvent}
-            />
-          )
+          <WeekView
+            onCreateEvent={handleCreateEvent}
+            onSelectEvent={handleSelectEvent}
+            onOpenDiary={handleOpenDiary}
+          />
         )}
         {viewMode === 'day' && (
           <DayView
