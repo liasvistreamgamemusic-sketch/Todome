@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   title: 'Todome',
   description: 'Personal notes, todos, and calendar',
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/icon-180.png', sizes: '180x180' }],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -47,7 +54,7 @@ export default function RootLayout({
       className={`${inter.variable} ${notoSansJP.variable}`}
       suppressHydrationWarning
     >
-      <body>
+      <body suppressHydrationWarning>
         <Providers>{children}</Providers>
       </body>
     </html>

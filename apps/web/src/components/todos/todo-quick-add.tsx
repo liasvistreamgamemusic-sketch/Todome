@@ -35,9 +35,6 @@ const DUE_DATE_SHORTCUTS: DueDateShortcut[] = [
   },
 ];
 
-const generateId = (): string =>
-  `todo-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-
 export const TodoQuickAdd = () => {
   const addTodo = useTodoStore((s) => s.addTodo);
   const setFilterStatus = useTodoStore((s) => s.setFilterStatus);
@@ -61,7 +58,7 @@ export const TodoQuickAdd = () => {
     const { data: { user } } = await supabase.auth.getUser();
 
     const todo = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       user_id: user?.id ?? '',
       title: trimmedTitle,
       detail: null,

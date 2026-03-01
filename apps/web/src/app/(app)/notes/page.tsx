@@ -73,23 +73,29 @@ export default function NotesPage() {
     setDrawerOpen(false);
   }, [selectNote]);
 
+  // Auto-select or create note when:
+  // - store is hydrated AND
+  // - no note is selected OR selected note no longer exists in visible list
+  const notes = useNoteStore((s) => s.notes);
   useEffect(() => {
     if (!hydrated) return;
-    if (selectedNoteId) return;
 
-    const { addNote, selectNote, filteredNotes } = useNoteStore.getState();
+    const { addNote, selectNote: select, filteredNotes } = useNoteStore.getState();
     const visible = filteredNotes();
 
+    // If a valid note is already selected, nothing to do
+    if (selectedNoteId && visible.some((n) => n.id === selectedNoteId)) return;
+
     if (visible.length > 0 && visible[0]) {
-      selectNote(visible[0].id);
+      select(visible[0].id);
     } else {
       createEmptyNote().then((newNote) => {
         addNote(newNote);
         createNote(newNote).catch(console.error);
-        selectNote(newNote.id);
+        select(newNote.id);
       }).catch(console.error);
     }
-  }, [hydrated, selectedNoteId, noteCount]);
+  }, [hydrated, selectedNoteId, notes]);
 
   return (
     <div className="flex h-full">

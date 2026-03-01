@@ -99,7 +99,7 @@ CREATE TABLE public.todos (
                    CHECK (status IN ('pending', 'in_progress', 'completed', 'cancelled')),
   due_date       TIMESTAMPTZ,
   remind_at      TIMESTAMPTZ,
-  remind_repeat  TEXT CHECK (remind_repeat IN ('none', 'daily', 'weekly', 'monthly')),
+  remind_repeat  TEXT CHECK (remind_repeat IN ('none', 'daily', 'weekly', 'monthly', 'yearly')),
   note_ids       UUID[] NOT NULL DEFAULT '{}',
   tags           TEXT[] NOT NULL DEFAULT '{}',
   sort_order     INTEGER NOT NULL DEFAULT 0,

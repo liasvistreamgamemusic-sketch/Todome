@@ -18,7 +18,7 @@ import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { Note } from '@todome/store';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
-import { updateNote as persistNote, deleteNote as persistDeleteNote } from '@todome/db';
+import { updateNote as persistNote, deleteNote as persistDeleteNote, purgeNote } from '@todome/db';
 
 type NoteEditorProps = {
   noteId: string;
@@ -51,12 +51,12 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevNoteIdRef = useRef<string>(noteId);
 
-  // Purge empty note from store + DB
+  // Purge empty note from store + DB (cancels pending create if not yet pushed)
   const purgeAndPersist = useCallback(
     (id: string) => {
       const purged = purgeIfEmpty(id);
       if (purged) {
-        persistDeleteNote(id, purged).catch(console.error);
+        purgeNote(id, purged).catch(console.error);
       }
     },
     [purgeIfEmpty],
@@ -81,7 +81,7 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
       const { purgeIfEmpty: purge } = useNoteStore.getState();
       const purged = purge(noteId);
       if (purged) {
-        persistDeleteNote(noteId, purged).catch(console.error);
+        purgeNote(noteId, purged).catch(console.error);
       }
     };
   }, [noteId]);

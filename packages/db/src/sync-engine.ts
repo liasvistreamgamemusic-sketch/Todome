@@ -85,6 +85,8 @@ export class SyncEngine {
   private _online: boolean;
   private _syncInProgress = false;
   private _cleanupListeners: (() => void)[] = [];
+  private _failCounts = new Map<number, number>();
+  private static readonly MAX_RETRIES = 3;
 
   constructor() {
     this._online =
@@ -135,13 +137,23 @@ export class SyncEngine {
       let pushed = 0;
 
       for (const item of pending) {
+        const itemId = item.id as number;
         const result = await this.pushSingleChange(item);
         if (result.ok) {
-          await localDb.syncQueue.delete(item.id as number);
+          await localDb.syncQueue.delete(itemId);
+          this._failCounts.delete(itemId);
           pushed++;
         } else {
-          // Stop on first failure to preserve ordering guarantees.
-          return Err(result.error);
+          const count = (this._failCounts.get(itemId) ?? 0) + 1;
+          this._failCounts.set(itemId, count);
+          if (count >= SyncEngine.MAX_RETRIES) {
+            console.warn(
+              `[sync] Dropping item ${itemId} (table=${item.table}, op=${item.operation}) after ${count} failures: ${result.error.message}`,
+            );
+            await localDb.syncQueue.delete(itemId);
+            this._failCounts.delete(itemId);
+          }
+          // Continue processing remaining items instead of blocking the queue.
         }
       }
 

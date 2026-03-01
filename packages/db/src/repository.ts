@@ -105,6 +105,42 @@ export async function deleteNote(id: string, currentNote: Note): Promise<void> {
   }
 }
 
+/**
+ * Purge a note that was never meaningfully edited (empty title + content).
+ * Removes the pending `create` from the sync queue so it never reaches
+ * Supabase, and deletes the local IndexedDB row entirely.
+ * If the note was already pushed to Supabase, falls back to soft-delete.
+ */
+export async function purgeNote(id: string, currentNote: Note): Promise<void> {
+  // Remove any pending sync operations for this note
+  const pendingItems = await localDb.syncQueue
+    .where('record_id')
+    .equals(id)
+    .toArray();
+
+  const hadPendingCreate = pendingItems.some((item) => item.operation === 'create');
+
+  // Delete all pending sync items for this note
+  const idsToDelete = pendingItems
+    .map((item) => item.id)
+    .filter((itemId): itemId is number => itemId !== undefined);
+  if (idsToDelete.length > 0) {
+    await localDb.syncQueue.bulkDelete(idsToDelete);
+  }
+
+  if (hadPendingCreate) {
+    // Never reached Supabase — just remove from local DB
+    await localDb.notes.delete(id);
+  } else {
+    // Already on Supabase — soft-delete
+    await localDb.notes.put({ ...currentNote, is_deleted: true });
+    await syncEngine.enqueue('notes', id, 'delete', { is_deleted: true });
+    if (syncEngine.isOnline) {
+      await syncEngine.pushChanges();
+    }
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Folders
 // ---------------------------------------------------------------------------
@@ -148,6 +184,9 @@ export async function createFolder(folder: Folder): Promise<void> {
     'create',
     folder as unknown as Record<string, unknown>,
   );
+  if (syncEngine.isOnline) {
+    syncEngine.pushChanges().catch(() => {});
+  }
 }
 
 /**
@@ -231,6 +270,9 @@ export async function createTodo(todo: Todo): Promise<void> {
     'create',
     todo as unknown as Record<string, unknown>,
   );
+  if (syncEngine.isOnline) {
+    syncEngine.pushChanges().catch(() => {});
+  }
 }
 
 /**
@@ -315,6 +357,9 @@ export async function createCalendarEvent(event: CalendarEvent): Promise<void> {
     'create',
     event as unknown as Record<string, unknown>,
   );
+  if (syncEngine.isOnline) {
+    syncEngine.pushChanges().catch(() => {});
+  }
 }
 
 /**
