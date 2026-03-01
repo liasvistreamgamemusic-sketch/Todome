@@ -81,7 +81,7 @@ const SegmentedControl = <T extends string | number>({
         type="button"
         onClick={() => onChange(option.value)}
         className={clsx(
-          'inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors duration-150',
+          'inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-medium transition-colors duration-150 md:py-1.5',
           value === option.value
             ? 'bg-bg-primary text-text-primary shadow-sm'
             : 'text-text-secondary hover:text-text-primary',

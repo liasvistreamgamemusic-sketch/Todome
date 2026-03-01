@@ -153,13 +153,13 @@ export const NoteCard = memo(function NoteCard({
         aria-label="メニュー"
         onClick={handleMenuBtn}
         className={clsx(
-          'absolute right-2 top-2 p-1 rounded z-10',
+          'absolute right-2 top-2 p-2 md:p-1 rounded z-10',
           'text-text-tertiary hover:text-text-primary hover:bg-bg-tertiary transition-colors',
-          'opacity-0 group-hover:opacity-100 focus:opacity-100',
+          'opacity-100 md:opacity-0 md:group-hover:opacity-100 focus:opacity-100',
           open && 'opacity-100 bg-bg-tertiary text-text-primary',
         )}
       >
-        <MoreVertical className="h-3.5 w-3.5" />
+        <MoreVertical className="h-4 w-4 md:h-3.5 md:w-3.5" />
       </button>
 
       {/* Dropdown */}
@@ -170,12 +170,12 @@ export const NoteCard = memo(function NoteCard({
           onClick={(e) => e.stopPropagation()}
         >
           <button type="button" onClick={act(() => onPin(note.id))}
-            className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
+            className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
             <Pin className="h-4 w-4" />
             {note.is_pinned ? 'ピン解除' : 'ピン留め'}
           </button>
           <button type="button" onClick={act(() => onArchive(note.id))}
-            className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
+            className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
             <Archive className="h-4 w-4" />
             アーカイブ
           </button>
@@ -183,17 +183,17 @@ export const NoteCard = memo(function NoteCard({
           <div className="relative">
             <button type="button"
               onClick={(e) => { e.stopPropagation(); setFolderSub((v) => !v); setExportSub(false); }}
-              className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
+              className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
               <FolderOpen className="h-4 w-4" />フォルダへ移動
               <span className="ml-auto text-text-tertiary">›</span>
             </button>
             {folderSub && (
-              <div className="absolute right-full top-0 mr-1 w-40 bg-bg-primary border border-border rounded-lg shadow-xl z-50 py-1">
+              <div className="absolute left-0 top-full md:right-full md:top-0 md:left-auto mr-1 w-40 bg-bg-primary border border-border rounded-lg shadow-xl z-50 py-1">
                 <button type="button" onClick={act(() => onMoveToFolder(note.id, null))}
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary">未分類</button>
+                  className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary">未分類</button>
                 {folders.map((f) => (
                   <button key={f.id} type="button" onClick={act(() => onMoveToFolder(note.id, f.id))}
-                    className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
+                    className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
                     {f.color && <span className="inline-block h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: f.color }} />}
                     {f.name}
                   </button>
@@ -205,18 +205,18 @@ export const NoteCard = memo(function NoteCard({
           <div className="relative">
             <button type="button"
               onClick={(e) => { e.stopPropagation(); setExportSub((v) => !v); setFolderSub(false); }}
-              className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
+              className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
               <FileDown className="h-4 w-4" />出力
               <span className="ml-auto text-text-tertiary">›</span>
             </button>
             {exportSub && (
-              <div className="absolute right-full top-0 mr-1 w-44 bg-bg-primary border border-border rounded-lg shadow-xl z-50 py-1">
+              <div className="absolute left-0 top-full md:right-full md:top-0 md:left-auto mr-1 w-44 bg-bg-primary border border-border rounded-lg shadow-xl z-50 py-1">
                 <button type="button" onClick={act(() => onExportText(note.id))}
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
+                  className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
                   <FileText className="h-4 w-4" />テキスト (.txt)
                 </button>
                 <button type="button" onClick={act(() => onExportPdf(note.id))}
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
+                  className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
                   <FileDown className="h-4 w-4" />PDF (印刷)
                 </button>
               </div>
@@ -225,7 +225,7 @@ export const NoteCard = memo(function NoteCard({
 
           <div className="border-t border-border my-1" />
           <button type="button" onClick={act(() => onDelete(note.id))}
-            className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500">
+            className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500">
             <Trash2 className="h-4 w-4" />削除
           </button>
         </div>

@@ -17,6 +17,7 @@ import {
 import { BookOpen, CheckSquare } from 'lucide-react';
 import { useCalendarStore, useTodoStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
+import { useIsMobile } from '@todome/hooks';
 import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
 
@@ -26,11 +27,12 @@ type Props = {
   onOpenDiary: (date: Date) => void;
 };
 
-const HOUR_HEIGHT = 60;
 const TOTAL_HOURS = 24;
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) => {
+  const isMobile = useIsMobile();
+  const hourHeight = isMobile ? 48 : 60;
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const events = useCalendarStore((s) => s.events);
   const todos = useTodoStore((s) => s.todos);
@@ -92,21 +94,21 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   useEffect(() => {
     if (scrollRef.current) {
       const now = new Date();
-      const topPx = (now.getHours() + now.getMinutes() / 60) * HOUR_HEIGHT;
+      const topPx = (now.getHours() + now.getMinutes() / 60) * hourHeight;
       scrollRef.current.scrollTop = Math.max(0, topPx - 200);
     }
-  }, []);
+  }, [hourHeight]);
 
   // Update current time indicator
   useEffect(() => {
     const update = () => {
       const now = new Date();
-      setCurrentTimeTop((now.getHours() + now.getMinutes() / 60) * HOUR_HEIGHT);
+      setCurrentTimeTop((now.getHours() + now.getMinutes() / 60) * hourHeight);
     };
     update();
     const timer = setInterval(update, 60_000);
     return () => clearInterval(timer);
-  }, []);
+  }, [hourHeight]);
 
   const getEventPosition = useCallback(
     (event: CalendarEvent) => {
@@ -121,12 +123,12 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
       const topMinutes = differenceInMinutes(clampedStart, dayS);
       const durationMinutes = differenceInMinutes(clampedEnd, clampedStart);
 
-      const top = (topMinutes / 60) * HOUR_HEIGHT;
-      const height = Math.max((durationMinutes / 60) * HOUR_HEIGHT, 20);
+      const top = (topMinutes / 60) * hourHeight;
+      const height = Math.max((durationMinutes / 60) * hourHeight, 20);
 
       return { top: `${top}px`, height: `${height}px` };
     },
-    [selectedDate],
+    [selectedDate, hourHeight],
   );
 
   const handleTimeSlotClick = useCallback(
@@ -207,12 +209,12 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
       {/* Time grid */}
       <div ref={scrollRef} className="flex flex-1 overflow-y-auto">
         {/* Time labels */}
-        <div className="w-14 shrink-0">
+        <div className="w-10 shrink-0 md:w-14">
           {hours.map((hour) => (
             <div
               key={hour.toISOString()}
               className="flex items-start justify-end pr-2"
-              style={{ height: `${HOUR_HEIGHT}px` }}
+              style={{ height: `${hourHeight}px` }}
             >
               <span className="text-[10px] text-text-tertiary -translate-y-2">
                 {format(hour, 'H:00')}
@@ -234,7 +236,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
                 'hover:bg-bg-secondary/50 transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]',
               )}
-              style={{ height: `${HOUR_HEIGHT}px` }}
+              style={{ height: `${hourHeight}px` }}
               aria-label={`${idx}:00 に予定を作成`}
             />
           ))}
@@ -244,7 +246,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
             <div
               key={`half-${hour.toISOString()}`}
               className="absolute left-0 right-0 border-b border-dashed border-[var(--border)]/30 pointer-events-none"
-              style={{ top: `${(hours.indexOf(hour)) * HOUR_HEIGHT + HOUR_HEIGHT / 2}px` }}
+              style={{ top: `${(hours.indexOf(hour)) * hourHeight + hourHeight / 2}px` }}
             />
           ))}
 

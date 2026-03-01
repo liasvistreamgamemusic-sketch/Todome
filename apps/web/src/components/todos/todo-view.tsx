@@ -168,7 +168,7 @@ export const TodoView = () => {
                       type="button"
                       onClick={() => handleSortChange(opt.value)}
                       className={clsx(
-                        'w-full text-left px-3 py-1.5 text-xs',
+                        'w-full text-left px-3 py-2.5 md:py-1.5 text-xs',
                         'hover:bg-bg-secondary transition-colors',
                         sortBy === opt.value
                           ? 'text-[var(--accent)] font-medium'
@@ -215,7 +215,7 @@ export const TodoView = () => {
                         type="button"
                         onClick={() => handleGroupChange(opt.value)}
                         className={clsx(
-                          'w-full text-left px-3 py-1.5 text-xs',
+                          'w-full text-left px-3 py-2.5 md:py-1.5 text-xs',
                           'hover:bg-bg-secondary transition-colors',
                           groupBy === opt.value
                             ? 'text-[var(--accent)] font-medium'

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
+  ArrowLeft,
+  Menu,
   Pin,
   PinOff,
   Archive,
@@ -20,11 +22,13 @@ import { updateNote as persistNote, deleteNote as persistDeleteNote } from '@tod
 
 type NoteEditorProps = {
   noteId: string;
+  onBack?: () => void;
+  onMenu?: () => void;
 };
 
 type SaveStatus = 'saved' | 'saving' | 'error';
 
-export function NoteEditor({ noteId }: NoteEditorProps) {
+export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const note = useNoteStore((s) => s.notes.find((n) => n.id === noteId));
   const folders = useNoteStore((s) => s.folders);
   const updateNote = useNoteStore((s) => s.updateNote);
@@ -233,6 +237,26 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       {/* Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0">
         <div className="flex items-center gap-1">
+          {onMenu && (
+            <button
+              type="button"
+              onClick={onMenu}
+              className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors mr-1"
+              aria-label="メモ一覧"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
+          {onBack && !onMenu && (
+            <button
+              type="button"
+              onClick={onBack}
+              className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors mr-1"
+              aria-label="戻る"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+          )}
           {/* Save status */}
           <div className="flex items-center gap-1 text-xs text-text-tertiary mr-2">
             {saveStatus === 'saving' && (
@@ -338,13 +362,13 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       </div>
 
       {/* Title & metadata */}
-      <div className="px-6 pt-4 shrink-0">
+      <div className="px-4 md:px-6 pt-4 shrink-0">
         <input
           type="text"
           value={title}
           onChange={handleTitleChange}
           placeholder="タイトル"
-          className="w-full text-2xl font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-text-tertiary"
+          className="w-full text-xl md:text-2xl font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-text-tertiary"
         />
 
         {/* Tags input */}
@@ -423,7 +447,7 @@ export function NoteEditor({ noteId }: NoteEditorProps) {
       </div>
 
       {/* Editor */}
-      <div className="flex-1 min-h-0 px-6 pb-6 overflow-y-auto">
+      <div className="flex-1 min-h-0 px-4 md:px-6 pb-4 md:pb-6 overflow-y-auto">
         <TiptapEditor
           content={note.content}
           onChange={handleContentChange}

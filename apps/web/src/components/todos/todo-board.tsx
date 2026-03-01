@@ -91,14 +91,14 @@ export const TodoBoard = () => {
   );
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 h-full">
+    <div className="flex flex-col gap-3 md:flex-row md:gap-4 md:overflow-x-auto pb-4 h-full">
       {COLUMNS.map((col) => {
         const columnTodos = todosByStatus[col.status];
         return (
           <div
             key={col.status}
             className={clsx(
-              'flex flex-col flex-shrink-0 w-72 rounded-lg',
+              'flex flex-col w-full md:flex-shrink-0 md:w-72 rounded-lg',
               'glass-sm border',
               dragOverColumn === col.status &&
                 'ring-2 ring-[var(--accent)] border-[var(--accent)]',
@@ -122,7 +122,7 @@ export const TodoBoard = () => {
               </span>
             </div>
 
-            <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[120px]">
+            <div className="flex-1 p-2 space-y-2 overflow-y-auto min-h-[60px] md:min-h-[120px]">
               {columnTodos.length === 0 ? (
                 <div className="flex items-center justify-center h-20 text-xs text-text-tertiary">
                   ドロップしてここに移動

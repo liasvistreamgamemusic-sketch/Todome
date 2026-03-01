@@ -27,7 +27,11 @@ const SORT_OPTIONS: { value: NoteSortBy; label: string }[] = [
 
 const FOLDER_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7'];
 
-export function NoteList() {
+type NoteListProps = {
+  onSelectNote?: (id: string) => void;
+};
+
+export function NoteList({ onSelectNote }: NoteListProps = {}) {
   const filteredNotes = useNoteStore((s) => s.filteredNotes);
   const notes = filteredNotes();
   const selectedNoteId = useNoteStore((s) => s.selectedNoteId);
@@ -72,9 +76,10 @@ export function NoteList() {
       created_at: now, updated_at: now, synced_at: null,
     };
     addNote(n);
-    selectNote(n.id);
+    if (onSelectNote) onSelectNote(n.id);
+    else selectNote(n.id);
     createNote(n).catch(console.error);
-  }, [addNote, selectNote]);
+  }, [addNote, selectNote, onSelectNote]);
 
   useKeyboardShortcut('cmd+n', handleNewNote);
 
@@ -138,9 +143,14 @@ export function NoteList() {
     // right-click is handled by the item's own dropdown
   }, []);
 
+  const handleNoteClick = useCallback((id: string) => {
+    if (onSelectNote) onSelectNote(id);
+    else selectNote(id);
+  }, [onSelectNote, selectNote]);
+
   const itemProps = {
     folders,
-    onClick: selectNote,
+    onClick: handleNoteClick,
     onContextMenu: handleContextMenu,
     onPin: handlePin,
     onArchive: handleArchive,
@@ -158,7 +168,7 @@ export function NoteList() {
   };
 
   return (
-    <div className="w-[300px] h-full border-r flex flex-col glass shrink-0">
+    <div className="w-full md:w-[300px] h-full md:border-r flex flex-col glass md:shrink-0">
       <div className="px-3 pt-3 pb-2 space-y-2 shrink-0">
         <NoteSearch />
 
@@ -171,22 +181,22 @@ export function NoteList() {
           <div className="flex items-center gap-1">
             <button type="button" title="フォルダを作成"
               onClick={() => { setShowFolderForm((v) => !v); setTimeout(() => folderInputRef.current?.focus(), 50); }}
-              className="p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors">
-              <FolderPlus className="h-3.5 w-3.5" />
+              className="p-2 md:p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors">
+              <FolderPlus className="h-4 w-4 md:h-3.5 md:w-3.5" />
             </button>
 
             <button type="button"
               onClick={() => setViewMode(viewMode === 'list' ? 'card' : 'list')}
-              className="p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors"
+              className="p-2 md:p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors"
               title={viewMode === 'list' ? 'カード表示' : 'リスト表示'}>
-              {viewMode === 'list' ? <LayoutGrid className="h-3.5 w-3.5" /> : <List className="h-3.5 w-3.5" />}
+              {viewMode === 'list' ? <LayoutGrid className="h-4 w-4 md:h-3.5 md:w-3.5" /> : <List className="h-4 w-4 md:h-3.5 md:w-3.5" />}
             </button>
 
             <div className="relative" ref={sortMenuRef}>
               <button type="button" title="並び替え"
                 onClick={() => setShowSortMenu((v) => !v)}
-                className="p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors">
-                <ArrowUpDown className="h-3.5 w-3.5" />
+                className="p-2 md:p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors">
+                <ArrowUpDown className="h-4 w-4 md:h-3.5 md:w-3.5" />
               </button>
               {showSortMenu && (
                 <div className="absolute right-0 top-full mt-1 w-32 bg-bg-primary border border-border rounded-lg shadow-lg z-20 py-1">

@@ -13,6 +13,7 @@ import { useCalendarStore } from '@todome/store';
 import type { CalendarViewMode, CalendarEvent } from '@todome/store';
 import { Button } from '@todome/ui';
 import { IconButton } from '@todome/ui';
+import { useIsMobile } from '@todome/hooks';
 import { MonthView } from './month-view';
 import { WeekView } from './week-view';
 import { DayView } from './day-view';
@@ -30,6 +31,7 @@ const VIEW_MODE_LABELS: Record<CalendarViewMode, string> = {
 const VIEW_MODES: CalendarViewMode[] = ['month', 'week', 'day', 'list'];
 
 export const CalendarView = () => {
+  const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const viewMode = useCalendarStore((s) => s.viewMode);
   const setViewMode = useCalendarStore((s) => s.setViewMode);
@@ -48,23 +50,26 @@ export const CalendarView = () => {
   const [editEventId, setEditEventId] = useState<string | null>(null);
   const [diaryDate, setDiaryDate] = useState<Date | null>(null);
 
+  // On mobile, week view falls back to day view, so navigation should match
+  const effectiveViewMode = isMobile && viewMode === 'week' ? 'day' : viewMode;
+
   const handlePrev = useCallback(() => {
-    switch (viewMode) {
+    switch (effectiveViewMode) {
       case 'month': navigateMonthPrev(); break;
       case 'week': navigateWeekPrev(); break;
       case 'day': navigateDayPrev(); break;
       case 'list': navigateMonthPrev(); break;
     }
-  }, [viewMode, navigateMonthPrev, navigateWeekPrev, navigateDayPrev]);
+  }, [effectiveViewMode, navigateMonthPrev, navigateWeekPrev, navigateDayPrev]);
 
   const handleNext = useCallback(() => {
-    switch (viewMode) {
+    switch (effectiveViewMode) {
       case 'month': navigateMonthNext(); break;
       case 'week': navigateWeekNext(); break;
       case 'day': navigateDayNext(); break;
       case 'list': navigateMonthNext(); break;
     }
-  }, [viewMode, navigateMonthNext, navigateWeekNext, navigateDayNext]);
+  }, [effectiveViewMode, navigateMonthNext, navigateWeekNext, navigateDayNext]);
 
   const handleToday = useCallback(() => {
     selectDate(new Date());
@@ -103,7 +108,7 @@ export const CalendarView = () => {
   }, [handleCreateEvent, selectedDate]);
 
   const dateDisplay = (() => {
-    switch (viewMode) {
+    switch (effectiveViewMode) {
       case 'month':
         return format(selectedDate, 'yyyy年M月');
       case 'week':
@@ -118,7 +123,7 @@ export const CalendarView = () => {
   return (
     <div className="flex h-full flex-col bg-bg-primary">
       {/* Top bar */}
-      <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[var(--border)] px-3 py-2 md:px-4">
         <div className="flex items-center gap-2">
           {/* Navigation */}
           <IconButton
@@ -155,7 +160,7 @@ export const CalendarView = () => {
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-3">
           {/* View mode toggle */}
           <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
             {VIEW_MODES.map((mode) => (
@@ -164,7 +169,7 @@ export const CalendarView = () => {
                 type="button"
                 onClick={() => setViewMode(mode)}
                 className={clsx(
-                  'px-3 py-1.5 text-xs font-medium transition-colors',
+                  'px-2 py-1.5 text-xs font-medium transition-colors md:px-3',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]',
                   viewMode === mode
                     ? 'bg-[var(--accent)] text-white'
@@ -179,7 +184,7 @@ export const CalendarView = () => {
           {/* New event button */}
           <Button size="sm" onClick={handleNewEvent}>
             <Plus className="h-3.5 w-3.5" />
-            新規予定
+            <span className="hidden md:inline">新規予定</span>
           </Button>
         </div>
       </div>
@@ -193,10 +198,18 @@ export const CalendarView = () => {
           />
         )}
         {viewMode === 'week' && (
-          <WeekView
-            onCreateEvent={handleCreateEvent}
-            onSelectEvent={handleSelectEvent}
-          />
+          isMobile ? (
+            <DayView
+              onCreateEvent={handleCreateEvent}
+              onSelectEvent={handleSelectEvent}
+              onOpenDiary={handleOpenDiary}
+            />
+          ) : (
+            <WeekView
+              onCreateEvent={handleCreateEvent}
+              onSelectEvent={handleSelectEvent}
+            />
+          )
         )}
         {viewMode === 'day' && (
           <DayView

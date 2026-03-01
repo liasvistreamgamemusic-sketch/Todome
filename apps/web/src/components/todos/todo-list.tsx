@@ -94,13 +94,19 @@ const sortGroupKeys = (keys: string[], groupBy: string): string[] => {
 };
 
 export const TodoList = () => {
+  const todos = useTodoStore((s) => s.todos);
   const groupedTodos = useTodoStore((s) => s.groupedTodos);
   const groupBy = useTodoStore((s) => s.groupBy);
+  const sortBy = useTodoStore((s) => s.sortBy);
   const showCompleted = useTodoStore((s) => s.showCompleted);
+  const filterStatus = useTodoStore((s) => s.filterStatus);
+  const filterPriority = useTodoStore((s) => s.filterPriority);
+  const filterTags = useTodoStore((s) => s.filterTags);
   const toggleTodoStatus = useTodoStore((s) => s.toggleTodoStatus);
   const selectTodo = useTodoStore((s) => s.selectTodo);
 
-  const groups = groupedTodos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const groups = useMemo(() => groupedTodos(), [todos, groupBy, sortBy, showCompleted, filterStatus, filterPriority, filterTags]);
 
   const sortedKeys = useMemo(
     () => sortGroupKeys(Object.keys(groups), groupBy),

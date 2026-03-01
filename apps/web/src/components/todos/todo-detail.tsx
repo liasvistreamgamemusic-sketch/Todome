@@ -26,6 +26,7 @@ import {
   updateTodo as persistTodo,
   deleteTodo as persistDeleteTodo,
 } from '@todome/db';
+import { useIsMobile } from '@todome/hooks';
 import { TodoSubtasks, type Subtask } from './todo-subtasks';
 
 const STATUS_OPTIONS: { value: TodoStatus; label: string; color: string }[] = [
@@ -60,6 +61,8 @@ export const TodoDetail = () => {
   const updateTodo = useTodoStore((s) => s.updateTodo);
   const deleteTodo = useTodoStore((s) => s.deleteTodo);
   const selectTodo = useTodoStore((s) => s.selectTodo);
+
+  const isMobile = useIsMobile();
 
   const todo = useMemo(
     () => todos.find((t) => t.id === selectedTodoId) ?? null,
@@ -219,9 +222,17 @@ export const TodoDetail = () => {
   if (!todo) return null;
 
   return (
+    <>
+      {isMobile && (
+        <div
+          className="fixed inset-0 z-30 bg-black/30"
+          onClick={handleClose}
+          aria-hidden="true"
+        />
+      )}
     <div
       className={clsx(
-        'fixed inset-y-0 right-0 z-40 w-full max-w-md',
+        'fixed inset-y-0 right-0 z-40 w-full md:max-w-md',
         'bg-bg-primary border-l border-[var(--border)]',
         'shadow-xl overflow-y-auto',
         'animate-in slide-in-from-right duration-200',
@@ -236,7 +247,7 @@ export const TodoDetail = () => {
         <button
           type="button"
           onClick={handleClose}
-          className="p-1.5 rounded-md hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
+          className="p-2 md:p-1.5 rounded-md hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
           aria-label="閉じる"
         >
           <X className="h-4 w-4" />
@@ -270,7 +281,7 @@ export const TodoDetail = () => {
                 type="button"
                 onClick={() => handleStatusChange(opt.value)}
                 className={clsx(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
+                  'flex items-center gap-1.5 px-3 py-2 md:py-1.5 rounded-full text-xs font-medium',
                   'transition-all duration-150',
                   todo.status === opt.value
                     ? 'bg-[var(--accent)] text-white'
@@ -298,7 +309,7 @@ export const TodoDetail = () => {
                 type="button"
                 onClick={() => handlePriorityChange(opt.value)}
                 className={clsx(
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium',
+                  'flex items-center gap-1.5 px-3 py-2 md:py-1.5 rounded-full text-xs font-medium',
                   'transition-all duration-150',
                   todo.priority === opt.value
                     ? 'bg-[var(--accent)] text-white'
@@ -460,5 +471,6 @@ export const TodoDetail = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };

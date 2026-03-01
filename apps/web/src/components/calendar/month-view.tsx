@@ -17,6 +17,7 @@ import {
 } from 'date-fns';
 import { useCalendarStore, useUiStore, useTodoStore } from '@todome/store';
 import type { CalendarEvent } from '@todome/store';
+import { useIsMobile } from '@todome/hooks';
 import { isHoliday } from '@/lib/japanese-holidays';
 
 type Props = {
@@ -27,14 +28,15 @@ type Props = {
 const DAY_LABELS_SUN: string[] = ['日', '月', '火', '水', '木', '金', '土'];
 const DAY_LABELS_MON: string[] = ['月', '火', '水', '木', '金', '土', '日'];
 
-const MAX_VISIBLE_EVENTS = 3;
-
 export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
+  const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const events = useCalendarStore((s) => s.events);
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
   const todos = useTodoStore((s) => s.todos);
+
+  const maxVisibleEvents = isMobile ? 1 : 3;
 
   const dayLabels = weekStart === 0 ? DAY_LABELS_SUN : DAY_LABELS_MON;
 
@@ -78,9 +80,15 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
 
   const handleDateClick = useCallback(
     (day: Date) => {
+      if (isMobile) {
+        selectDate(day);
+        const { setViewMode } = useCalendarStore.getState();
+        setViewMode('day');
+        return;
+      }
       selectDate(day);
     },
-    [selectDate],
+    [selectDate, isMobile],
   );
 
   const handleDateDoubleClick = useCallback(
@@ -103,7 +111,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
             <div
               key={label}
               className={clsx(
-                'py-2 text-center text-xs font-medium',
+                'py-1.5 text-center text-xs font-medium md:py-2',
                 isSun && 'text-[#D32F2F]',
                 isSat && 'text-[#4285F4]',
                 !isSun && !isSat && 'text-text-secondary',
@@ -133,8 +141,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
           const isSunday = dayOfWeek === 0;
           const isSaturday = dayOfWeek === 6;
 
-          const visibleEvents = dayEvents.slice(0, MAX_VISIBLE_EVENTS);
-          const overflowCount = dayEvents.length - MAX_VISIBLE_EVENTS;
+          const visibleEvents = dayEvents.slice(0, maxVisibleEvents);
+          const overflowCount = dayEvents.length - maxVisibleEvents;
 
           return (
             <button

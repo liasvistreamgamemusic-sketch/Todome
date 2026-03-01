@@ -191,11 +191,18 @@ const DateGroupSection = ({
 };
 
 export const TodoDueDateView = () => {
+  const allTodos = useTodoStore((s) => s.todos);
   const filteredTodos = useTodoStore((s) => s.filteredTodos);
+  const showCompleted = useTodoStore((s) => s.showCompleted);
+  const filterStatus = useTodoStore((s) => s.filterStatus);
+  const filterPriority = useTodoStore((s) => s.filterPriority);
+  const filterTags = useTodoStore((s) => s.filterTags);
+  const sortBy = useTodoStore((s) => s.sortBy);
   const toggleTodoStatus = useTodoStore((s) => s.toggleTodoStatus);
   const selectTodo = useTodoStore((s) => s.selectTodo);
 
-  const todos = filteredTodos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const todos = useMemo(() => filteredTodos(), [allTodos, showCompleted, filterStatus, filterPriority, filterTags, sortBy]);
 
   const groups = useMemo(() => categorizeTodosByDate(todos), [todos]);
 
