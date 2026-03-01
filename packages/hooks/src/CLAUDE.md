@@ -7,5 +7,5 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
-| #6356 | 7:13 PM | 🔴 | Fixed click-outside detection race condition preventing menu from opening | ~369 |
+| #6094 | 12:50 PM | 🟣 | Core infrastructure implemented: database layer, state stores, hooks, and UI components | ~764 |
 </claude-mem-context>

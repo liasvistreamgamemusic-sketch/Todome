@@ -10,7 +10,7 @@ import { useNoteStore } from '@todome/store';
 import type { Note, NoteSortBy, Folder } from '@todome/store';
 import { useKeyboardShortcut, useClickOutside } from '@todome/hooks';
 import {
-  supabase, createNote, createFolder,
+  supabase, createFolder, localDb,
   updateNote as persistNote, deleteNote as persistDeleteNote,
 } from '@todome/db';
 import { NoteListItem } from './note-list-item';
@@ -78,7 +78,8 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
     addNote(n);
     if (onSelectNote) onSelectNote(n.id);
     else selectNote(n.id);
-    createNote(n).catch(console.error);
+    // Local only — note-editor will push to Supabase on first meaningful save
+    localDb.notes.put(n).catch(console.error);
   }, [addNote, selectNote, onSelectNote]);
 
   useKeyboardShortcut('cmd+n', handleNewNote);

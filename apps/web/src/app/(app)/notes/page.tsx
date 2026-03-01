@@ -6,7 +6,7 @@ import { NoteEditor } from '@/components/notes/note-editor';
 import { useNoteStore } from '@todome/store';
 import { useIsMobile } from '@todome/hooks';
 import type { Note } from '@todome/store';
-import { supabase, createNote } from '@todome/db';
+import { supabase, localDb } from '@todome/db';
 
 async function createEmptyNote(): Promise<Note> {
   const { data: { session } } = await supabase.auth.getSession();
@@ -89,9 +89,11 @@ export default function NotesPage() {
     if (visible.length > 0 && visible[0]) {
       select(visible[0].id);
     } else {
-      createEmptyNote().then((newNote) => {
+      // Create empty note locally only — do NOT push to Supabase yet.
+      // The note-editor will push to Supabase on first meaningful save.
+      createEmptyNote().then(async (newNote) => {
         addNote(newNote);
-        createNote(newNote).catch(console.error);
+        await localDb.notes.put(newNote);
         select(newNote.id);
       }).catch(console.error);
     }

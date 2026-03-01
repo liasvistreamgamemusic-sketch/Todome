@@ -249,3 +249,175 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-02-28T13:36:37Z
+
+- session_id: `1DFCFDC5-F031-4F9B-9F07-71FECD41CE6B`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-02-28T13:33:55Z`
+- ended_at: `2026-02-28T13:36:37Z`
+- duration_minutes: 542
+- changes: 5
+- commits: 1
+
+### 変更ファイル
+- `apps/web/src/middleware.ts`
+- `apps/web/src/app/page.tsx`
+- `apps/web/src/hooks/use-data-provider.ts`
+- `apps/web/src/components/settings/settings-view.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-02-28T14:02:20Z
+
+- session_id: `DAB36376-83F2-4ECB-B7E9-4032979BF2DC`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-02-28T13:45:37Z`
+- ended_at: `2026-02-28T14:02:20Z`
+- duration_minutes: 556
+- changes: 8
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/resilient-munching-bonbon.md`
+- `packages/db/package.json`
+- `packages/db/src/supabase.ts`
+- `apps/web/src/middleware.ts`
+- `apps/web/src/hooks/use-data-provider.ts`
+- `apps/web/src/app/page.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-02-28T14:09:56Z
+
+- session_id: `316D97A3-C194-43E6-8E6D-709CFBBC4B5F`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-02-28T14:06:23Z`
+- ended_at: `2026-02-28T14:09:56Z`
+- duration_minutes: 543
+- changes: 2
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/delegated-cooking-widget.md`
+- `.github/workflows/release.yml`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-02-28T14:59:02Z
+
+- session_id: `C2C34C55-35F7-4D5C-8FC4-7137BB607617`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-02-28T14:56:03Z`
+- ended_at: `2026-02-28T14:59:02Z`
+- duration_minutes: 542
+- changes: 0
+- commits: 1
+
+### 変更ファイル
+- （なし）
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-02-28T15:03:50Z
+
+- session_id: `59B3B399-BF31-45E5-9B99-9414ECA3575F`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-02-28T15:00:43Z`
+- ended_at: `2026-02-28T15:03:50Z`
+- duration_minutes: 543
+- changes: 0
+
+### 変更ファイル
+- （なし）
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-01T05:11:22Z
+
+- session_id: `3B91B9D8-9777-4242-A11C-DAF058110B41`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-01T05:05:57Z`
+- ended_at: `2026-03-01T05:11:22Z`
+- duration_minutes: 545
+- changes: 51
+
+### 変更ファイル
+- `apps/web/src/app/(app)/notes/page.tsx`
+- `apps/web/src/components/todos/todo-board.tsx`
+- `apps/web/src/components/notes/note-list.tsx`
+- `apps/web/src/components/todos/todo-detail.tsx`
+- `apps/web/src/components/calendar/calendar-view.tsx`
+- `apps/web/src/components/calendar/month-view.tsx`
+- `apps/web/src/components/calendar/day-view.tsx`
+- `apps/web/src/components/notes/note-list-item.tsx`
+- `apps/web/src/components/todos/todo-view.tsx`
+- `apps/web/src/components/notes/note-card.tsx`
+- `apps/web/src/components/notes/note-editor.tsx`
+- `apps/web/src/components/settings/settings-view.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-01T06:04:18Z
+
+- session_id: `55152E03-86DA-4BD1-9293-9FABFA9659D5`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-01T06:00:16Z`
+- ended_at: `2026-03-01T06:04:18Z`
+- duration_minutes: 544
+- changes: 8
+
+### 変更ファイル
+- `apps/web/src/components/calendar/week-view.tsx`
+- `apps/web/src/components/calendar/calendar-view.tsx`
+- `apps/web/src/components/todos/todo-quick-add.tsx`
+- `packages/db/src/types.ts`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

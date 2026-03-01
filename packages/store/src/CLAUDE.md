@@ -7,11 +7,11 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
-| #6353 | 7:13 PM | 🟣 | Implemented folder creation UI with color picker | ~305 |
-| #6325 | 6:37 PM | 🟣 | Implemented Apple Notes-style empty note auto-deletion with cleanup hooks | ~412 |
-| #6324 | " | 🟣 | Implemented purgeIfEmpty action for Apple Notes-style auto-deletion | ~307 |
-| #6310 | 6:17 PM | 🔵 | Memo Creation Flow Analyzed - No Draft State, Immediate Creation Pattern | ~508 |
-| #6309 | 6:16 PM | 🔵 | Three Todo Component Bugs Identified with Root Causes | ~550 |
-| #6110 | 1:18 PM | 🔴 | Fixed SSR hydration errors in AppShell component | ~328 |
-| #6106 | 1:17 PM | 🔵 | UI state management implemented with Zustand store | ~336 |
+| #6100 | 12:58 PM | 🟣 | UI store implemented for global application state and preferences | ~899 |
+| #6098 | 12:55 PM | ✅ | Store package public API defined with all store exports | ~488 |
+| #6097 | 12:53 PM | 🟣 | Todo store implemented with advanced filtering and grouping | ~869 |
+| #6096 | " | 🟣 | Calendar store implemented with date navigation and event filtering | ~202 |
+| #6095 | 12:51 PM | 🟣 | Note store implemented with Zustand for client-side state management | ~803 |
+| #6094 | 12:50 PM | 🟣 | Core infrastructure implemented: database layer, state stores, hooks, and UI components | ~764 |
+| #6092 | 12:49 PM | ✅ | Store package type definitions created (temporary schema mirror) | ~162 |
 </claude-mem-context>

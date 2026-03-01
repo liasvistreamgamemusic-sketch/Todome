@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add apps/web/src/middleware.ts apps/web/src/app/page.tsx apps/web/src/hooks/use-data-provider.ts apps/web/src/components/settings/settings-view.tsx)",
+      "Bash(git add packages/hooks/src/use-keyboard-shortcut.ts)",
+      "Bash(git add apps/web/src/components/auth/login-form.tsx apps/web/src/components/auth/signup-form.tsx)",
+      "Bash(ls -la /Users/nitandatomoya/repository/github/Todome/apps/web/src/app/\\\\\\(auth\\\\\\)/)",
+      "Bash(ls -la /Users/nitandatomoya/repository/github/Todome/apps/web/src/app/\\\\\\(auth\\\\\\)/login/)",
+      "Bash(ls -la /Users/nitandatomoya/repository/github/Todome/apps/web/src/app/\\\\\\(app\\\\\\)/)",
+      "Bash(ls -la /Users/nitandatomoya/repository/github/Todome/*.md)",
+      "Bash(pnpm build)"
+    ]
+  }
+}

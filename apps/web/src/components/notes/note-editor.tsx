@@ -18,7 +18,7 @@ import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { Note } from '@todome/store';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
-import { updateNote as persistNote, deleteNote as persistDeleteNote, purgeNote } from '@todome/db';
+import { updateNote as persistNote, deleteNote as persistDeleteNote, purgeNote, createNote as persistCreateNote, localDb } from '@todome/db';
 
 type NoteEditorProps = {
   noteId: string;
@@ -100,12 +100,47 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Track whether this note has been pushed to Supabase.
+  // Default to `true` (assume already synced) — only set to `false` for
+  // locally-created notes that have never reached Supabase.
+  const pushedToRemoteRef = useRef(true);
+
+  // Reset on noteId change
+  useEffect(() => {
+    // Assume synced until proven otherwise
+    pushedToRemoteRef.current = true;
+
+    // A note that was created locally but never synced will:
+    //   - have NO pending 'create' in the sync queue (hasn't been enqueued yet), AND
+    //   - have synced_at === null
+    // Notes loaded from Supabase always have synced_at set by loadNotes.
+    const currentNote = useNoteStore.getState().notes.find((n) => n.id === noteId);
+    if (currentNote && !currentNote.synced_at) {
+      // Could be a brand-new local note OR one with a pending create
+      localDb.syncQueue
+        .where('record_id')
+        .equals(noteId)
+        .filter((item) => item.operation === 'create' && item.table === 'notes')
+        .count()
+        .then((count) => {
+          if (count > 0) {
+            // Pending create exists — already enqueued, treat as pushed
+            pushedToRemoteRef.current = true;
+          } else {
+            // No synced_at AND no pending create — truly local-only
+            pushedToRemoteRef.current = false;
+          }
+        })
+        .catch(() => {});
+    }
+  }, [noteId]);
+
   const debouncedSave = useCallback(
     (patch: Partial<Note>) => {
       setSaveStatus('saving');
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
-      saveTimerRef.current = setTimeout(() => {
+      saveTimerRef.current = setTimeout(async () => {
         try {
           updateNote(noteId, {
             ...patch,
@@ -117,7 +152,13 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
           return;
         }
         const currentNote = useNoteStore.getState().notes.find((n) => n.id === noteId);
-        if (currentNote) {
+        if (!currentNote) return;
+
+        if (!pushedToRemoteRef.current) {
+          // First meaningful save — push the full note to Supabase as a create
+          pushedToRemoteRef.current = true;
+          persistCreateNote(currentNote).catch(() => setSaveStatus('error'));
+        } else {
           persistNote(noteId, patch, currentNote).catch(() => setSaveStatus('error'));
         }
       }, 500);
