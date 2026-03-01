@@ -125,7 +125,8 @@ async function mergeWithPending<T extends { id: string; is_deleted?: boolean }>(
 /**
  * Local-first data provider: shows IndexedDB data instantly, then
  * refreshes from Supabase in the background.
- * Route protection is handled by middleware — this hook only loads data.
+ * Route protection is handled by AuthGuard in (app)/layout.tsx.
+ * This hook only loads data.
  */
 export function useDataProvider(): DataProviderState {
   const [isLoading, setIsLoading] = useState(true);

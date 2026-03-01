@@ -233,18 +233,32 @@ jobs:
           name: windows-artifacts
           path: artifacts/windows
 
+      - name: List downloaded artifacts (debug)
+        run: |
+          echo "=== macOS artifacts ==="
+          find artifacts/macos -type f 2>/dev/null || echo "No macOS artifacts"
+          echo "=== Windows artifacts ==="
+          find artifacts/windows -type f 2>/dev/null || echo "No Windows artifacts"
+
       - name: Generate update manifest (latest.json)
         run: |
           VERSION=${{ needs.version.outputs.version }}
           TAG=${{ needs.version.outputs.tag }}
           RELEASE_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
           REPO="${{ github.repository }}"
+          BASE_URL="https://github.com/$REPO/releases/download/$TAG"
 
           MAC_SIG=$(cat artifacts/macos/*.app.tar.gz.sig 2>/dev/null || echo "")
           WIN_SIG=$(cat artifacts/windows/*.exe.sig 2>/dev/null || cat artifacts/windows/*.msi.sig 2>/dev/null || echo "")
 
           MAC_FILE=$(ls artifacts/macos/*.app.tar.gz 2>/dev/null | head -1 | xargs basename 2>/dev/null || echo "")
           WIN_FILE=$(ls artifacts/windows/*.exe 2>/dev/null | head -1 | xargs basename 2>/dev/null || ls artifacts/windows/*.msi 2>/dev/null | head -1 | xargs basename 2>/dev/null || echo "")
+
+          # Validate: macOS must have both signature and binary for updater to work
+          if [ -z "$MAC_SIG" ] || [ -z "$MAC_FILE" ]; then
+            echo "::error::macOS updater artifacts incomplete (sig='${MAC_SIG:0:20}...' file='$MAC_FILE'). Ensure TAURI_SIGNING_PRIVATE_KEY is set."
+            exit 1
+          fi
 
           cat > artifacts/latest.json << EOF
           {
@@ -254,15 +268,18 @@ jobs:
             "platforms": {
               "darwin-universal": {
                 "signature": "$MAC_SIG",
-                "url": "https://github.com/$REPO/releases/download/$TAG/$MAC_FILE"
+                "url": "$BASE_URL/$MAC_FILE"
               },
               "windows-x86_64": {
                 "signature": "$WIN_SIG",
-                "url": "https://github.com/$REPO/releases/download/$TAG/$WIN_FILE"
+                "url": "$BASE_URL/$WIN_FILE"
               }
             }
           }
           EOF
+
+          echo "=== Generated latest.json ==="
+          cat artifacts/latest.json
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
