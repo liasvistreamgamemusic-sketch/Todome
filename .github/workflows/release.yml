@@ -121,7 +121,6 @@ jobs:
         if: ${{ vars.APPLE_SIGNING_ENABLED == 'true' }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
@@ -134,7 +133,6 @@ jobs:
         if: ${{ vars.APPLE_SIGNING_ENABLED != 'true' }}
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: |
           cd apps/desktop
           pnpm tauri build --target universal-apple-darwin
@@ -192,7 +190,6 @@ jobs:
       - name: Build Tauri (Windows)
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: |
           cd apps/desktop
           pnpm tauri build
