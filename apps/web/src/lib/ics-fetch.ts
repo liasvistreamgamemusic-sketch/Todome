@@ -3,18 +3,24 @@ export type IcsFetchResult = {
   etag: string | null;
 } | null; // null = 304 Not Modified
 
+/** Normalize webcal:// (common in Outlook) to https:// */
+function normalizeIcsUrl(url: string): string {
+  return url.replace(/^webcal:\/\//i, 'https://');
+}
+
 export async function fetchIcs(
   url: string,
   etag: string | null,
 ): Promise<IcsFetchResult> {
+  const normalizedUrl = normalizeIcsUrl(url);
   const isTauri =
     typeof window !== 'undefined' && '__TAURI__' in window;
 
   if (isTauri) {
-    return fetchIcsTauri(url, etag);
+    return fetchIcsTauri(normalizedUrl, etag);
   }
 
-  return fetchIcsProxy(url, etag);
+  return fetchIcsProxy(normalizedUrl, etag);
 }
 
 async function fetchIcsProxy(

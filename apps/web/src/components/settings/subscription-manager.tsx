@@ -10,6 +10,7 @@ import {
   useCreateCalendarSubscription,
   useUpdateCalendarSubscription,
   useDeleteCalendarSubscription,
+  useUserId,
 } from '@/hooks/queries';
 import { useSubscriptionStore } from '@todome/store';
 import { useIcsSync } from '@/hooks/use-ics-sync';
@@ -25,6 +26,7 @@ const PRESET_COLORS: string[] = [
 const DEFAULT_SUB_COLOR = '#7986CB';
 
 export const SubscriptionManager = () => {
+  const userId = useUserId();
   const { data: subscriptions = [] } = useCalendarSubscriptions();
   const createSub = useCreateCalendarSubscription();
   const updateSub = useUpdateCalendarSubscription();
@@ -75,7 +77,7 @@ export const SubscriptionManager = () => {
       const provider = detectProvider(addUrl);
       const sub: CalendarSubscription = {
         id: crypto.randomUUID(),
-        user_id: '', // Will be set by RLS
+        user_id: userId ?? '',
         name: addName.trim(),
         url: addUrl.trim(),
         color: addColor,
@@ -89,7 +91,7 @@ export const SubscriptionManager = () => {
         updated_at: new Date().toISOString(),
       };
 
-      createSub.mutate(sub);
+      await createSub.mutateAsync(sub);
 
       // Reset form
       setAddUrl('');
@@ -105,7 +107,7 @@ export const SubscriptionManager = () => {
     } finally {
       setAddLoading(false);
     }
-  }, [addUrl, addName, addColor, createSub, syncSubscription]);
+  }, [addUrl, addName, addColor, userId, createSub, syncSubscription]);
 
   const handleDelete = useCallback(
     (id: string) => {
@@ -311,7 +313,7 @@ export const SubscriptionManager = () => {
             size="sm"
             onClick={handleAdd}
             loading={addLoading}
-            disabled={!addUrl.trim() || !addName.trim()}
+            disabled={!addUrl.trim() || !addName.trim() || !userId}
             className="w-full"
           >
             追加

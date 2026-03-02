@@ -160,7 +160,9 @@ function expandRecurringEvent(
  */
 export function detectProvider(url: string): CalendarProvider {
   try {
-    const hostname = new URL(url).hostname.toLowerCase();
+    // Normalize webcal:// to https:// before parsing
+    const normalized = url.replace(/^webcal:\/\//i, 'https://');
+    const hostname = new URL(normalized).hostname.toLowerCase();
 
     if (hostname.includes('google.com') || hostname.includes('googleapis.com')) {
       return 'google';
@@ -169,6 +171,8 @@ export function detectProvider(url: string): CalendarProvider {
       hostname.includes('outlook.live.com') ||
       hostname.includes('outlook.office365.com') ||
       hostname.includes('outlook.office.com') ||
+      hostname.includes('calendar.live.com') ||
+      hostname.includes('calendar.office365.com') ||
       hostname.includes('microsoft.com')
     ) {
       return 'outlook';
