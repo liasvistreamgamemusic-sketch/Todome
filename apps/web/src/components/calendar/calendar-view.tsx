@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
@@ -53,7 +53,14 @@ export const CalendarView = () => {
   const [dayEventsDate, setDayEventsDate] = useState<Date | null>(null);
 
   const allExternalEvents = useSubscriptionStore((s) => s.allExternalEvents);
+  const setEnabledIds = useSubscriptionStore((s) => s.setEnabledIds);
   const { data: subscriptions = [] } = useCalendarSubscriptions();
+
+  // Sync enabled subscription IDs to the store for filtering
+  useEffect(() => {
+    const ids = subscriptions.filter((s) => s.is_enabled).map((s) => s.id);
+    setEnabledIds(ids);
+  }, [subscriptions, setEnabledIds]);
 
   const effectiveViewMode = viewMode;
 

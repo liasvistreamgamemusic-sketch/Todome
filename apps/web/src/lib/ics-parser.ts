@@ -19,6 +19,33 @@ export type ParsedExternalEvent = {
 
 const MAX_EVENTS_PER_SUBSCRIPTION = 2000;
 
+/** Extract date components from ICAL.Time without timezone conversion. */
+function icalDateToISO(t: ICAL.Time): string {
+  const y = t.year;
+  const m = String(t.month).padStart(2, '0');
+  const d = String(t.day).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Convert all-day event dates to ISO strings without TZ shift.
+ * For VALUE=DATE types, ical.js toJSDate() applies local TZ offset
+ * which shifts dates when serialized to UTC via toISOString().
+ * ICS spec: DTEND is exclusive for all-day events, so we subtract 1 day.
+ */
+function allDayDates(
+  dtstart: ICAL.Time,
+  dtend: ICAL.Time | null,
+): { startAt: string; endAt: string } {
+  const startAt = `${icalDateToISO(dtstart)}T00:00:00.000Z`;
+  if (dtend && dtend.isDate) {
+    const inclusive = dtend.clone();
+    inclusive.day -= 1;
+    return { startAt, endAt: `${icalDateToISO(inclusive)}T23:59:59.999Z` };
+  }
+  return { startAt, endAt: startAt };
+}
+
 /**
  * Parse ICS text into ExternalCalendarEvent array.
  */
@@ -86,10 +113,15 @@ function parseSingleEvent(
   if (!dtstart) return null;
 
   const isAllDay = dtstart.isDate;
-  const startAt = dtstart.toJSDate().toISOString();
-  const endAt = dtend
-    ? dtend.toJSDate().toISOString()
-    : startAt;
+
+  let startAt: string;
+  let endAt: string;
+  if (isAllDay) {
+    ({ startAt, endAt } = allDayDates(dtstart, dtend));
+  } else {
+    startAt = dtstart.toJSDate().toISOString();
+    endAt = dtend ? dtend.toJSDate().toISOString() : startAt;
+  }
 
   return {
     id: `${subscriptionId}:${uid}`,
@@ -129,10 +161,20 @@ function expandRecurringEvent(
     if (occurrenceDate > rangeEnd) break;
 
     if (occurrenceDate >= rangeStart) {
+      const isAllDay = next.isDate;
       const duration = event.duration;
       const endDate = next.clone();
       if (duration) {
         endDate.addDuration(duration);
+      }
+
+      let startAt: string;
+      let endAt: string;
+      if (isAllDay) {
+        ({ startAt, endAt } = allDayDates(next, endDate));
+      } else {
+        startAt = occurrenceDate.toISOString();
+        endAt = endDate.toJSDate().toISOString();
       }
 
       events.push({
@@ -140,9 +182,9 @@ function expandRecurringEvent(
         subscription_id: subscriptionId,
         title: event.summary ?? '(Untitled)',
         description: event.description ?? null,
-        start_at: occurrenceDate.toISOString(),
-        end_at: endDate.toJSDate().toISOString(),
-        is_all_day: next.isDate,
+        start_at: startAt,
+        end_at: endAt,
+        is_all_day: isAllDay,
         location: event.location ?? null,
         color,
         provider,

@@ -116,14 +116,20 @@ export const SubscriptionManager = () => {
     [deleteSub],
   );
 
+  const clearEvents = useSubscriptionStore((s) => s.clearEvents);
+
   const handleToggle = useCallback(
     (sub: CalendarSubscription) => {
+      const willDisable = sub.is_enabled;
       updateSub.mutate({
         id: sub.id,
         patch: { is_enabled: !sub.is_enabled },
       });
+      if (willDisable) {
+        clearEvents(sub.id);
+      }
     },
-    [updateSub],
+    [updateSub, clearEvents],
   );
 
   return (

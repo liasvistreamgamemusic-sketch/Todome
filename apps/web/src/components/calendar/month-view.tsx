@@ -205,6 +205,15 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                 >
                   {format(day, 'd')}
                 </span>
+                {diaryDates.has(dateKey) && (
+                  <BookOpen
+                    className="h-2.5 w-2.5 text-[#7986CB] cursor-pointer hover:opacity-70 transition-opacity shrink-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenDiary(day);
+                    }}
+                  />
+                )}
                 {holidayName && (
                   <span className="truncate text-[10px] text-[#D32F2F]">
                     {holidayName}
@@ -285,26 +294,6 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                 </div>
               )}
 
-              {/* Diary indicator */}
-              {diaryDates.has(dateKey) && (
-                <div
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenDiary(day);
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.stopPropagation();
-                      onOpenDiary(day);
-                    }
-                  }}
-                  className="flex items-center gap-0.5 pl-0.5 cursor-pointer hover:opacity-70 transition-opacity"
-                >
-                  <BookOpen className="h-3 w-3 text-[#7986CB]" />
-                </div>
-              )}
             </button>
           );
         })}

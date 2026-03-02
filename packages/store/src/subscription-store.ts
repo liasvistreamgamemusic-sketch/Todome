@@ -21,11 +21,13 @@ export type SubscriptionSyncStatus = 'idle' | 'syncing' | 'error';
 export type SubscriptionStoreState = {
   eventsBySubscription: Record<string, ExternalCalendarEvent[]>;
   syncStatus: Record<string, SubscriptionSyncStatus>;
+  enabledSubscriptionIds: string[];
 
   allExternalEvents: () => ExternalCalendarEvent[];
   setEvents: (subscriptionId: string, events: ExternalCalendarEvent[]) => void;
   clearEvents: (subscriptionId: string) => void;
   setSyncStatus: (subscriptionId: string, status: SubscriptionSyncStatus) => void;
+  setEnabledIds: (ids: string[]) => void;
   clearAll: () => void;
 };
 
@@ -34,12 +36,14 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
     (set, get) => ({
       eventsBySubscription: {},
       syncStatus: {},
+      enabledSubscriptionIds: [],
 
       allExternalEvents: () => {
-        const map = get().eventsBySubscription;
+        const { eventsBySubscription, enabledSubscriptionIds } = get();
+        const enabled = new Set(enabledSubscriptionIds);
         const all: ExternalCalendarEvent[] = [];
-        for (const events of Object.values(map)) {
-          all.push(...events);
+        for (const [subId, events] of Object.entries(eventsBySubscription)) {
+          if (enabled.has(subId)) all.push(...events);
         }
         return all;
       },
@@ -64,7 +68,9 @@ export const useSubscriptionStore = create<SubscriptionStoreState>()(
           syncStatus: { ...s.syncStatus, [subscriptionId]: status },
         })),
 
-      clearAll: () => set({ eventsBySubscription: {}, syncStatus: {} }),
+      setEnabledIds: (ids) => set({ enabledSubscriptionIds: ids }),
+
+      clearAll: () => set({ eventsBySubscription: {}, syncStatus: {}, enabledSubscriptionIds: [] }),
     }),
     {
       name: 'todome-subscription-events',

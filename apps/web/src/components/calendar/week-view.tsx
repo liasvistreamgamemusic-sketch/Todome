@@ -387,7 +387,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
   return (
     <div className="flex flex-1 flex-col overflow-hidden" {...swipe}>
       {/* Header row */}
-      <div className="flex border-b border-[var(--border)]">
+      <div className="flex border-b border-[var(--border)] overflow-y-hidden" style={{ scrollbarGutter: 'stable' }}>
         <div className="w-14 shrink-0" />
         <div className="grid flex-1 grid-cols-7">
           {weekDays.map((day) => {
@@ -448,7 +448,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
       </div>
 
       {/* All-day events row */}
-      <div className="flex border-b border-[var(--border)] min-h-[32px]">
+      <div className="flex border-b border-[var(--border)] min-h-[32px] overflow-y-hidden" style={{ scrollbarGutter: 'stable' }}>
         <div className="w-14 shrink-0 flex items-center justify-center text-[10px] text-text-tertiary">
           終日
         </div>

@@ -85,13 +85,15 @@ export function useIcsSync() {
     return () => clearInterval(interval);
   }, [syncAll]);
 
-  // Clean up events for removed subscriptions
+  // Clean up events for removed or disabled subscriptions
   useEffect(() => {
     if (!subscriptions) return;
-    const activeIds = new Set(subscriptions.map((s) => s.id));
+    const enabledIds = new Set(
+      subscriptions.filter((s) => s.is_enabled).map((s) => s.id),
+    );
     const store = useSubscriptionStore.getState();
     for (const key of Object.keys(store.eventsBySubscription)) {
-      if (!activeIds.has(key)) {
+      if (!enabledIds.has(key)) {
         clearEvents(key);
       }
     }

@@ -1,6 +1,5 @@
 'use client';
 
-import { clsx } from 'clsx';
 import { format, parseISO } from 'date-fns';
 import { X, MapPin, Clock, FileText } from 'lucide-react';
 import type { ExternalCalendarEvent, CalendarSubscription } from '@todome/db';
@@ -23,41 +22,39 @@ export const ExternalEventDetail = ({ event, subscription, onClose }: Props) => 
   const dateText = format(startDate, 'yyyy年M月d日');
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <>
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/40"
+        className="fixed inset-0 z-40 bg-black/30"
         onClick={onClose}
-        onKeyDown={(e) => e.key === 'Escape' && onClose()}
-        role="button"
-        tabIndex={0}
-        aria-label="閉じる"
+        aria-hidden="true"
       />
 
-      {/* Modal */}
-      <div className="relative mx-4 w-full max-w-md rounded-xl border border-[var(--border)] bg-bg-primary shadow-xl">
+      {/* Panel */}
+      <div className="fixed inset-y-0 right-0 z-50 flex w-full flex-col overflow-hidden border-l border-[var(--border)] bg-bg-primary shadow-xl animate-in slide-in-from-right duration-200 md:max-w-md">
         {/* Header */}
-        <div className="flex items-start justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
           <div className="flex items-center gap-2 min-w-0">
             <span
               className="h-3 w-3 shrink-0 rounded-full"
               style={{ backgroundColor: event.color }}
             />
-            <h2 className="text-lg font-semibold text-text-primary truncate">
+            <h2 className="text-sm font-semibold text-text-primary truncate">
               {event.title}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="shrink-0 rounded-md p-1 text-text-secondary hover:bg-bg-secondary transition-colors"
+            className="rounded-md p-1 text-text-tertiary hover:bg-bg-secondary hover:text-text-primary transition"
+            aria-label="閉じる"
           >
-            <X className="h-5 w-5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="space-y-4 px-5 py-4">
+        <div className="flex-1 overflow-y-auto space-y-4 px-5 py-4">
           {/* Source indicator */}
           <div className="flex items-center gap-2 rounded-lg bg-bg-secondary px-3 py-2">
             <ProviderIcon provider={event.provider} size={16} />
@@ -90,22 +87,7 @@ export const ExternalEventDetail = ({ event, subscription, onClose }: Props) => 
             </div>
           )}
         </div>
-
-        {/* Footer */}
-        <div className="border-t border-[var(--border)] px-5 py-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className={clsx(
-              'w-full rounded-lg px-4 py-2 text-sm font-medium',
-              'bg-bg-secondary text-text-primary',
-              'hover:bg-bg-tertiary transition-colors',
-            )}
-          >
-            閉じる
-          </button>
-        </div>
       </div>
-    </div>
+    </>
   );
 };
