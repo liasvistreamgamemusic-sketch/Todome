@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
 import {
   Plus, List, LayoutGrid, ArrowUpDown,
-  FolderPlus, Check, X,
+  FolderPlus, Check, X, Archive,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
@@ -42,6 +42,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   const sortBy = useNoteStore((s) => s.sortBy);
   const noteFilter = useNoteStore((s) => s.noteFilter);
   const selectNote = useNoteStore((s) => s.selectNote);
+  const setNoteFilter = useNoteStore((s) => s.setNoteFilter);
   const setViewMode = useNoteStore((s) => s.setViewMode);
   const setSortBy = useNoteStore((s) => s.setSortBy);
 
@@ -189,6 +190,16 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
           )}
 
           <div className="flex items-center gap-1">
+            <button type="button"
+              title={isArchiveView ? 'すべてのメモ' : 'アーカイブ'}
+              onClick={() => setNoteFilter(isArchiveView ? 'active' : 'archived')}
+              className={clsx(
+                'p-2 md:p-1 rounded transition-colors',
+                isArchiveView ? 'text-accent hover:bg-accent/10' : 'text-text-tertiary hover:bg-bg-secondary',
+              )}>
+              <Archive className="h-4 w-4 md:h-3.5 md:w-3.5" />
+            </button>
+
             <button type="button" title="フォルダを作成"
               onClick={() => { setShowFolderForm((v) => !v); setTimeout(() => folderInputRef.current?.focus(), 50); }}
               className="p-2 md:p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors">
@@ -292,6 +303,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
           </div>
         )}
       </div>
+
     </div>
   );
 }
