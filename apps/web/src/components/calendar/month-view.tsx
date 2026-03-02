@@ -8,6 +8,8 @@ import {
   startOfWeek,
   endOfWeek,
   eachDayOfInterval,
+  startOfDay,
+  endOfDay,
   isSameMonth,
   isSameDay,
   isToday,
@@ -91,17 +93,21 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
     }));
     const allEvents = [...activeLocal, ...activeExternal];
 
-    for (const event of allEvents) {
-      const dateKey = format(parseISO(event.start_at), 'yyyy-MM-dd');
-      const existing = map.get(dateKey);
-      if (existing) {
-        existing.push(event);
-      } else {
-        map.set(dateKey, [event]);
+    for (const day of calendarDays) {
+      const dateKey = format(day, 'yyyy-MM-dd');
+      const dayS = startOfDay(day);
+      const dayE = endOfDay(day);
+      const dayEvents = allEvents.filter((e) => {
+        const eventStart = parseISO(e.start_at);
+        const eventEnd = parseISO(e.end_at);
+        return eventStart <= dayE && eventEnd >= dayS;
+      });
+      if (dayEvents.length > 0) {
+        map.set(dateKey, dayEvents);
       }
     }
     return map;
-  }, [events, externalEvents]);
+  }, [events, externalEvents, calendarDays]);
 
   const todosWithDueDate = useMemo(() => {
     const map = new Map<string, number>();

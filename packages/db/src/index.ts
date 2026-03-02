@@ -63,7 +63,6 @@ export {
   createNote,
   updateNote,
   deleteNote,
-  purgeNote,
   loadFolders,
   createFolder,
   updateFolder,

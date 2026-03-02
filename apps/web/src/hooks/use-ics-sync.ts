@@ -23,10 +23,20 @@ export function useIcsSync() {
       setSyncStatus(sub.id, 'syncing');
 
       try {
-        const result = await fetchIcs(sub.url, sub.etag);
+        // If this device has no cached events for this subscription,
+        // skip etag so we get a full fetch instead of 304 Not Modified
+        const hasLocalCache = !!useSubscriptionStore.getState().eventsBySubscription[sub.id]?.length;
+        const etag = hasLocalCache ? sub.etag : null;
+
+        let result = await fetchIcs(sub.url, etag);
+
+        // If 304 but no local cache, retry without etag to force full fetch
+        if (result === null && !hasLocalCache) {
+          result = await fetchIcs(sub.url, null);
+        }
 
         if (result === null) {
-          // 304 Not Modified
+          // 304 Not Modified and local cache exists
           setSyncStatus(sub.id, 'idle');
           return;
         }

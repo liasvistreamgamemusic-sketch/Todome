@@ -31,14 +31,16 @@ const FOLDER_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#
 
 type NoteListProps = {
   onSelectNote?: (id: string) => void;
+  onCreateNote?: (id: string) => void;
 };
 
-export function NoteList({ onSelectNote }: NoteListProps = {}) {
+export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   const selectedNoteId = useNoteStore((s) => s.selectedNoteId);
   const selectedFolderId = useNoteStore((s) => s.selectedFolderId);
   const searchQuery = useNoteStore((s) => s.searchQuery);
   const viewMode = useNoteStore((s) => s.viewMode);
   const sortBy = useNoteStore((s) => s.sortBy);
+  const noteFilter = useNoteStore((s) => s.noteFilter);
   const selectNote = useNoteStore((s) => s.selectNote);
   const setViewMode = useNoteStore((s) => s.setViewMode);
   const setSortBy = useNoteStore((s) => s.setSortBy);
@@ -51,9 +53,11 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
   const deleteNoteMutation = useDeleteNote();
   const createFolderMutation = useCreateFolder();
 
+  const isArchiveView = noteFilter === 'archived';
+
   const notes = useMemo(
-    () => filterAndSortNotes(allNotes ?? [], { folderId: selectedFolderId, searchQuery, sortBy }),
-    [allNotes, selectedFolderId, searchQuery, sortBy],
+    () => filterAndSortNotes(allNotes ?? [], { folderId: selectedFolderId, searchQuery, sortBy, noteFilter }),
+    [allNotes, selectedFolderId, searchQuery, sortBy, noteFilter],
   );
 
   const [showSortMenu, setShowSortMenu] = useState(false);
@@ -78,14 +82,15 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
     const n: Note = {
       id: crypto.randomUUID(), user_id: userId, title: '',
       content: { type: 'doc', content: [] }, plain_text: '',
-      folder_id: null, tags: [], is_pinned: false,
+      folder_id: selectedFolderId, tags: [], is_pinned: false,
       is_archived: false, is_deleted: false,
       created_at: now, updated_at: now, synced_at: null,
     };
     createNoteMutation.mutate(n);
-    if (onSelectNote) onSelectNote(n.id);
+    if (onCreateNote) onCreateNote(n.id);
+    else if (onSelectNote) onSelectNote(n.id);
     else selectNote(n.id);
-  }, [userId, createNoteMutation, selectNote, onSelectNote]);
+  }, [userId, selectedFolderId, createNoteMutation, selectNote, onSelectNote, onCreateNote]);
 
   useKeyboardShortcut('cmd+n', handleNewNote);
 
@@ -111,6 +116,11 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
 
   const handleArchive = useCallback((id: string) => {
     updateNoteMutation.mutate({ id, patch: { is_archived: true } });
+    if (selectedNoteId === id) selectNote(null);
+  }, [updateNoteMutation, selectedNoteId, selectNote]);
+
+  const handleRestore = useCallback((id: string) => {
+    updateNoteMutation.mutate({ id, patch: { is_archived: false } });
     if (selectedNoteId === id) selectNote(null);
   }, [updateNoteMutation, selectedNoteId, selectNote]);
 
@@ -144,10 +154,12 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
 
   const itemProps = {
     folders,
+    isArchiveView,
     onClick: handleNoteClick,
     onContextMenu: handleContextMenu,
     onPin: handlePin,
     onArchive: handleArchive,
+    onRestore: handleRestore,
     onDelete: handleDelete,
     onMoveToFolder: handleMoveToFolder,
     onExportText: handleExportText,
@@ -167,10 +179,14 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
         <NoteSearch />
 
         <div className="flex items-center justify-between">
-          <button type="button" onClick={handleNewNote}
-            className="flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors">
-            <Plus className="h-3.5 w-3.5" />新規メモ
-          </button>
+          {isArchiveView ? (
+            <span className="text-xs font-medium text-text-secondary">アーカイブ</span>
+          ) : (
+            <button type="button" onClick={handleNewNote}
+              className="flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors">
+              <Plus className="h-3.5 w-3.5" />新規メモ
+            </button>
+          )}
 
           <div className="flex items-center gap-1">
             <button type="button" title="フォルダを作成"
@@ -244,9 +260,13 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
       <div className="flex-1 overflow-y-auto min-h-0">
         {notes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6 text-center">
-            <p className="text-text-tertiary text-sm mb-2">メモがありません</p>
-            <button type="button" onClick={handleNewNote}
-              className="text-xs text-accent hover:text-accent/80 transition-colors">新規メモを作成</button>
+            <p className="text-text-tertiary text-sm mb-2">
+              {isArchiveView ? 'アーカイブされたメモはありません' : 'メモがありません'}
+            </p>
+            {!isArchiveView && (
+              <button type="button" onClick={handleNewNote}
+                className="text-xs text-accent hover:text-accent/80 transition-colors">新規メモを作成</button>
+            )}
           </div>
         ) : viewMode === 'card' ? (
           <div className="px-3 pb-3 space-y-3">

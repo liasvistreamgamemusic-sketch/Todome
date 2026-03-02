@@ -7,6 +7,7 @@ import {
   Pin,
   PinOff,
   Archive,
+  ArchiveRestore,
   Trash2,
   MoreHorizontal,
   FolderOpen,
@@ -18,7 +19,7 @@ import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { Note } from '@todome/db';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
-import { useNotes, useFolders, useUpdateNote, useDeleteNote, usePurgeNote } from '@/hooks/queries';
+import { useNotes, useFolders, useUpdateNote, useDeleteNote } from '@/hooks/queries';
 
 type NoteEditorProps = {
   noteId: string;
@@ -33,7 +34,6 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const { data: folders = [] } = useFolders();
   const updateNoteMutation = useUpdateNote();
   const deleteNoteMutation = useDeleteNote();
-  const purgeNoteMutation = usePurgeNote();
   const selectNote = useNoteStore((s) => s.selectNote);
 
   const note = allNotes?.find((n) => n.id === noteId) ?? null;
@@ -61,15 +61,15 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
     return !hasTitle && !hasContent;
   }, []);
 
-  // Purge empty note from DB
+  // Delete empty note from DB
   const purgeAndPersist = useCallback(
     (id: string) => {
       const targetNote = allNotes?.find((n) => n.id === id) ?? null;
       if (isNoteEmpty(targetNote)) {
-        purgeNoteMutation.mutate(id);
+        deleteNoteMutation.mutate(id);
       }
     },
-    [allNotes, isNoteEmpty, purgeNoteMutation],
+    [allNotes, isNoteEmpty, deleteNoteMutation],
   );
 
   // Sync local state when noteId changes or remote data arrives
@@ -221,6 +221,11 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
     selectNote(null);
   }, [noteId, updateNoteMutation, selectNote]);
 
+  const handleRestore = useCallback(() => {
+    updateNoteMutation.mutate({ id: noteId, patch: { is_archived: false } });
+    selectNote(null);
+  }, [noteId, updateNoteMutation, selectNote]);
+
   const handleDelete = useCallback(() => {
     deleteNoteMutation.mutate(noteId);
     selectNote(null);
@@ -293,83 +298,107 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
         </div>
 
         <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={handleTogglePin}
-            className={clsx(
-              'p-1.5 rounded-md transition-colors',
-              note.is_pinned
-                ? 'text-accent hover:bg-accent/10'
-                : 'text-text-tertiary hover:bg-bg-secondary',
-            )}
-            title={note.is_pinned ? 'ピン解除' : 'ピン留め'}
-          >
-            {note.is_pinned ? (
-              <PinOff className="h-4 w-4" />
-            ) : (
-              <Pin className="h-4 w-4" />
-            )}
-          </button>
+          {note.is_archived ? (
+            <>
+              <button
+                type="button"
+                onClick={handleRestore}
+                className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
+                title="復元"
+              >
+                <ArchiveRestore className="h-4 w-4" />
+              </button>
 
-          <button
-            type="button"
-            onClick={handleArchive}
-            className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
-            title="アーカイブ"
-          >
-            <Archive className="h-4 w-4" />
-          </button>
-
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="p-1.5 rounded-md text-text-tertiary hover:bg-red-500/10 hover:text-red-500 transition-colors"
-            title="削除"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
-
-          {/* More menu */}
-          <div className="relative" ref={moreMenuRef}>
-            <button
-              type="button"
-              onClick={() => setShowMoreMenu((v) => !v)}
-              className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
-              title="その他"
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
-
-            {showMoreMenu && (
-              <div className="absolute right-0 top-full mt-1 w-48 bg-bg-primary border border-border rounded-lg shadow-lg z-30 py-1">
-                <button
-                  type="button"
-                  onClick={handleTogglePin}
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2"
-                >
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="p-1.5 rounded-md text-text-tertiary hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                title="完全に削除"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleTogglePin}
+                className={clsx(
+                  'p-1.5 rounded-md transition-colors',
+                  note.is_pinned
+                    ? 'text-accent hover:bg-accent/10'
+                    : 'text-text-tertiary hover:bg-bg-secondary',
+                )}
+                title={note.is_pinned ? 'ピン解除' : 'ピン留め'}
+              >
+                {note.is_pinned ? (
+                  <PinOff className="h-4 w-4" />
+                ) : (
                   <Pin className="h-4 w-4" />
-                  {note.is_pinned ? 'ピン解除' : 'ピン留め'}
-                </button>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleArchive}
+                className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
+                title="アーカイブ"
+              >
+                <Archive className="h-4 w-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="p-1.5 rounded-md text-text-tertiary hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                title="削除"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+
+              {/* More menu */}
+              <div className="relative" ref={moreMenuRef}>
                 <button
                   type="button"
-                  onClick={handleArchive}
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2"
+                  onClick={() => setShowMoreMenu((v) => !v)}
+                  className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
+                  title="その他"
                 >
-                  <Archive className="h-4 w-4" />
-                  アーカイブ
+                  <MoreHorizontal className="h-4 w-4" />
                 </button>
-                <div className="border-t border-border my-1" />
-                <button
-                  type="button"
-                  onClick={handleDelete}
-                  className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  削除
-                </button>
+
+                {showMoreMenu && (
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-bg-primary border border-border rounded-lg shadow-lg z-30 py-1">
+                    <button
+                      type="button"
+                      onClick={handleTogglePin}
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2"
+                    >
+                      <Pin className="h-4 w-4" />
+                      {note.is_pinned ? 'ピン解除' : 'ピン留め'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleArchive}
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2"
+                    >
+                      <Archive className="h-4 w-4" />
+                      アーカイブ
+                    </button>
+                    <div className="border-t border-border my-1" />
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      削除
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </div>
 

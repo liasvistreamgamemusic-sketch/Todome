@@ -49,14 +49,6 @@ export async function updateNote(
 export async function deleteNote(id: string): Promise<void> {
   const { error } = await supabase
     .from('notes')
-    .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
-    .eq('id', id);
-  if (error) throw error;
-}
-
-export async function purgeNote(id: string): Promise<void> {
-  const { error } = await supabase
-    .from('notes')
     .delete()
     .eq('id', id);
   if (error) throw error;

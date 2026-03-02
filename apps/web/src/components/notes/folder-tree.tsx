@@ -149,7 +149,9 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
   const { data: folders = [] } = useFolders();
   const { data: notes = [] } = useNotes();
   const selectedFolderId = useNoteStore((s) => s.selectedFolderId);
+  const noteFilter = useNoteStore((s) => s.noteFilter);
   const selectFolder = useNoteStore((s) => s.selectFolder);
+  const setNoteFilter = useNoteStore((s) => s.setNoteFilter);
   const deleteFolderMutation = useDeleteFolder();
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -188,11 +190,6 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
 
   const archivedCount = useMemo(
     () => notes.filter((n) => n.is_archived && !n.is_deleted).length,
-    [notes],
-  );
-
-  const trashedCount = useMemo(
-    () => notes.filter((n) => n.is_deleted).length,
     [notes],
   );
 
@@ -255,9 +252,9 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
         className={clsx(
           'w-full flex items-center gap-1.5 px-2 py-1 rounded-md',
           'hover:bg-bg-secondary transition-colors cursor-pointer',
-          selectedFolderId === null && 'bg-bg-tertiary font-medium',
+          noteFilter === 'active' && selectedFolderId === null && 'bg-bg-tertiary font-medium',
         )}
-        onClick={() => handleSelect(null)}
+        onClick={() => { setNoteFilter('active'); handleSelect(null); }}
       >
         <FileText className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
         <span className="flex-1 text-left text-text-primary">すべてのメモ</span>
@@ -307,33 +304,18 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
       <div className="border-t border-border mt-2 pt-1 space-y-0.5">
         <button
           type="button"
-          className="w-full flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-bg-secondary transition-colors cursor-pointer text-text-secondary"
-          onClick={() => {
-            // Archive view is handled externally; for now just deselect folder
-            handleSelect(null);
-          }}
+          className={clsx(
+            'w-full flex items-center gap-1.5 px-2 py-1 rounded-md',
+            'hover:bg-bg-secondary transition-colors cursor-pointer text-text-secondary',
+            noteFilter === 'archived' && 'bg-bg-tertiary font-medium',
+          )}
+          onClick={() => setNoteFilter('archived')}
         >
           <Archive className="h-3.5 w-3.5 shrink-0" />
           <span className="flex-1 text-left">アーカイブ</span>
           {archivedCount > 0 && (
             <span className="text-[10px] text-text-tertiary tabular-nums">
               {archivedCount}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          className="w-full flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-bg-secondary transition-colors cursor-pointer text-text-secondary"
-          onClick={() => {
-            handleSelect(null);
-          }}
-        >
-          <Trash2 className="h-3.5 w-3.5 shrink-0" />
-          <span className="flex-1 text-left">ゴミ箱</span>
-          {trashedCount > 0 && (
-            <span className="text-[10px] text-text-tertiary tabular-nums">
-              {trashedCount}
             </span>
           )}
         </button>

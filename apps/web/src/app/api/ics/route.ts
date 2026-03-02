@@ -3,12 +3,19 @@ import { NextRequest, NextResponse } from 'next/server';
 const MAX_ICS_SIZE = 5 * 1024 * 1024; // 5 MB
 const FETCH_TIMEOUT = 15_000; // 15 seconds
 
-export async function GET(request: NextRequest) {
-  const url = request.nextUrl.searchParams.get('url');
+/** Normalize webcal:// (common in Outlook/Apple) to https:// */
+function normalizeIcsUrl(url: string): string {
+  return url.replace(/^webcal:\/\//i, 'https://');
+}
 
-  if (!url) {
+export async function GET(request: NextRequest) {
+  const rawUrl = request.nextUrl.searchParams.get('url');
+
+  if (!rawUrl) {
     return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
   }
+
+  const url = normalizeIcsUrl(rawUrl);
 
   let parsedUrl: URL;
   try {
@@ -23,8 +30,9 @@ export async function GET(request: NextRequest) {
 
   const ifNoneMatch = request.headers.get('if-none-match');
   const headers: HeadersInit = {
-    'User-Agent': 'Todome/1.0 (Calendar Subscription)',
+    'User-Agent': 'Mozilla/5.0 (compatible; Todome/1.0; +https://todome.app)',
     Accept: 'text/calendar, text/plain;q=0.9, */*;q=0.1',
+    'Accept-Language': 'ja,en;q=0.9',
   };
   if (ifNoneMatch) {
     headers['If-None-Match'] = ifNoneMatch;

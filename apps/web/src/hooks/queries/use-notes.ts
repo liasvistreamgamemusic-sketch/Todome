@@ -11,7 +11,6 @@ import {
   createNote,
   updateNote,
   deleteNote,
-  purgeNote,
   createFolder,
   updateFolder,
   deleteFolder,
@@ -50,7 +49,7 @@ export function useCreateNote() {
       const key = queryKeys.notes.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<Note[]>(key);
-      queryClient.setQueryData<Note[]>(key, (old) => [...(old ?? []), note]);
+      queryClient.setQueryData<Note[]>(key, (old) => [note, ...(old ?? [])]);
       return { previous };
     },
     onError: (_err, _vars, context) => {
@@ -97,32 +96,6 @@ export function useDeleteNote() {
 
   return useMutation({
     mutationFn: (id: string) => deleteNote(id),
-    onMutate: async (id) => {
-      const key = queryKeys.notes.all(userId!);
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Note[]>(key);
-      queryClient.setQueryData<Note[]>(key, (old) =>
-        (old ?? []).filter((n) => n.id !== id),
-      );
-      return { previous };
-    },
-    onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKeys.notes.all(userId!), context.previous);
-      }
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
-    },
-  });
-}
-
-export function usePurgeNote() {
-  const queryClient = useQueryClient();
-  const userId = useUserId();
-
-  return useMutation({
-    mutationFn: (id: string) => purgeNote(id),
     onMutate: async (id) => {
       const key = queryKeys.notes.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });

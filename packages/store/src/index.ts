@@ -18,7 +18,7 @@ export type {
 
 // Note store
 export { useNoteStore } from './note-store';
-export type { NoteStoreState, NoteSortBy, NoteViewMode } from './note-store';
+export type { NoteStoreState, NoteSortBy, NoteViewMode, NoteFilter } from './note-store';
 
 // Todo store
 export { useTodoStore } from './todo-store';

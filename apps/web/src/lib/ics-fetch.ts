@@ -58,8 +58,9 @@ async function fetchIcsTauri(
   etag: string | null,
 ): Promise<IcsFetchResult> {
   const headers: Record<string, string> = {
-    'User-Agent': 'Todome/1.0 (Calendar Subscription)',
+    'User-Agent': 'Mozilla/5.0 (compatible; Todome/1.0; +https://todome.app)',
     Accept: 'text/calendar, text/plain;q=0.9, */*;q=0.1',
+    'Accept-Language': 'ja,en;q=0.9',
   };
   if (etag) headers['If-None-Match'] = etag;
 

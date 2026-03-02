@@ -74,9 +74,9 @@
     border-radius: 3px;
   }
 
-  /* Overlay scrollbar — prevents scrollbar from consuming layout width (fixes Windows grid alignment) */
+  /* Scrollable container with thin scrollbar styling */
   .scrollbar-overlay {
-    overflow-y: overlay;
+    overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
   }

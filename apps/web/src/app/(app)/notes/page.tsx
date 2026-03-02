@@ -16,6 +16,7 @@ export default function NotesPage() {
   const selectedFolderId = useNoteStore((s) => s.selectedFolderId);
   const searchQuery = useNoteStore((s) => s.searchQuery);
   const sortBy = useNoteStore((s) => s.sortBy);
+  const noteFilter = useNoteStore((s) => s.noteFilter);
 
   const userId = useUserId();
   const { data: notes } = useNotes();
@@ -24,6 +25,7 @@ export default function NotesPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerInitRef = useRef(false);
   const autoCreatedRef = useRef(false);
+  const justCreatedNoteIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (isMobile && notes && !drawerInitRef.current) {
@@ -54,17 +56,36 @@ export default function NotesPage() {
     setDrawerOpen(false);
   }, [selectNote]);
 
+  const handleCreateNote = useCallback((id: string) => {
+    justCreatedNoteIdRef.current = id;
+    selectNote(id);
+  }, [selectNote]);
+
+  const handleDrawerCreateNote = useCallback((id: string) => {
+    justCreatedNoteIdRef.current = id;
+    selectNote(id);
+    setDrawerOpen(false);
+  }, [selectNote]);
+
   // Auto-select or create note
   useEffect(() => {
     if (!notes || !userId) return;
 
-    const visible = filterAndSortNotes(notes, { folderId: selectedFolderId, searchQuery, sortBy });
+    const visible = filterAndSortNotes(notes, { folderId: selectedFolderId, searchQuery, sortBy, noteFilter });
+
+    // Guard: if a note was just created, don't let auto-select overwrite it
+    if (justCreatedNoteIdRef.current) {
+      if (visible.some((n) => n.id === justCreatedNoteIdRef.current)) {
+        justCreatedNoteIdRef.current = null;
+      }
+      return;
+    }
 
     if (selectedNoteId && visible.some((n) => n.id === selectedNoteId)) return;
 
     if (visible.length > 0 && visible[0]) {
       selectNote(visible[0].id);
-    } else if (!autoCreatedRef.current) {
+    } else if (noteFilter === 'active' && !autoCreatedRef.current) {
       autoCreatedRef.current = true;
       const now = new Date().toISOString();
       const newNote: Note = {
@@ -73,7 +94,7 @@ export default function NotesPage() {
         title: '',
         content: { type: 'doc', content: [] },
         plain_text: '',
-        folder_id: null,
+        folder_id: selectedFolderId,
         tags: [],
         is_pinned: false,
         is_archived: false,
@@ -82,10 +103,13 @@ export default function NotesPage() {
         updated_at: now,
         synced_at: null,
       };
+      justCreatedNoteIdRef.current = newNote.id;
       createNote.mutate(newNote);
       selectNote(newNote.id);
+    } else if (noteFilter !== 'active') {
+      selectNote(null);
     }
-  }, [notes, userId, selectedNoteId, selectedFolderId, searchQuery, sortBy, selectNote, createNote]);
+  }, [notes, userId, selectedNoteId, selectedFolderId, searchQuery, sortBy, noteFilter, selectNote, createNote]);
 
   return (
     <div className="flex h-full">
@@ -106,14 +130,14 @@ export default function NotesPage() {
                 aria-hidden="true"
               />
               <div className="fixed inset-y-0 left-0 z-50 w-[80%] max-w-[320px] animate-slide-in">
-                <NoteList onSelectNote={handleDrawerSelect} />
+                <NoteList onSelectNote={handleDrawerSelect} onCreateNote={handleDrawerCreateNote} />
               </div>
             </>
           )}
         </div>
       ) : (
         <>
-          <NoteList />
+          <NoteList onCreateNote={handleCreateNote} />
           <div className="flex-1 min-w-0">
             {selectedNoteId && <NoteEditor noteId={selectedNoteId} />}
           </div>

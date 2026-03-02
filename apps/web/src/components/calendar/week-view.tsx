@@ -70,6 +70,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
   const navigateWeekNext = useCalendarStore((s) => s.navigateWeekNext);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentTimeTop, setCurrentTimeTop] = useState(0);
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const swipe = useSwipeNavigation(navigateWeekNext, navigateWeekPrev);
 
   const hourHeight = isMobile ? 48 : 60;
@@ -176,6 +177,21 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
     }
     return map;
   }, [isMobile, weekDays, activeEvents]);
+
+  // Detect scrollbar width for grid alignment (Windows shows visible scrollbar)
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setScrollbarWidth(el.offsetWidth - el.clientWidth);
+    // Measure after content renders
+    const raf = requestAnimationFrame(measure);
+    // Re-measure on resize (e.g. window resize may toggle scrollbar)
+    window.addEventListener('resize', measure);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('resize', measure);
+    };
+  }, []);
 
   // Scroll to current time on mount
   useEffect(() => {
@@ -386,8 +402,8 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
   // ─── DESKTOP LAYOUT (unchanged) ────────────────────────────────────
   return (
     <div className="flex flex-1 flex-col overflow-hidden" {...swipe}>
-      {/* Header row */}
-      <div className="flex border-b border-[var(--border)]">
+      {/* Header row — right padding matches scrollbar width for grid alignment */}
+      <div className="flex border-b border-[var(--border)]" style={{ paddingRight: scrollbarWidth }}>
         <div className="w-14 shrink-0" />
         <div className="grid flex-1 grid-cols-7">
           {weekDays.map((day) => {
@@ -447,8 +463,8 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
         </div>
       </div>
 
-      {/* All-day events row */}
-      <div className="flex border-b border-[var(--border)] min-h-[32px]">
+      {/* All-day events row — right padding matches scrollbar width for grid alignment */}
+      <div className="flex border-b border-[var(--border)] min-h-[32px]" style={{ paddingRight: scrollbarWidth }}>
         <div className="w-14 shrink-0 flex items-center justify-center text-[10px] text-text-tertiary">
           終日
         </div>
