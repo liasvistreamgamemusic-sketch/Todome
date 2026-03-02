@@ -2145,6 +2145,36 @@
           "markdownDescription": "Denies the unminimize command without any pre-configured scope."
         },
         {
+          "description": "Allows all fetch operations\n#### This default permission set includes:\n\n- `allow-cors-request`\n- `allow-cancel-cors-request`",
+          "type": "string",
+          "const": "cors-fetch:default",
+          "markdownDescription": "Allows all fetch operations\n#### This default permission set includes:\n\n- `allow-cors-request`\n- `allow-cancel-cors-request`"
+        },
+        {
+          "description": "Enables the cancel_cors_request command without any pre-configured scope.",
+          "type": "string",
+          "const": "cors-fetch:allow-cancel-cors-request",
+          "markdownDescription": "Enables the cancel_cors_request command without any pre-configured scope."
+        },
+        {
+          "description": "Enables the cors_request command without any pre-configured scope.",
+          "type": "string",
+          "const": "cors-fetch:allow-cors-request",
+          "markdownDescription": "Enables the cors_request command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the cancel_cors_request command without any pre-configured scope.",
+          "type": "string",
+          "const": "cors-fetch:deny-cancel-cors-request",
+          "markdownDescription": "Denies the cancel_cors_request command without any pre-configured scope."
+        },
+        {
+          "description": "Denies the cors_request command without any pre-configured scope.",
+          "type": "string",
+          "const": "cors-fetch:deny-cors-request",
+          "markdownDescription": "Denies the cors_request command without any pre-configured scope."
+        },
+        {
           "description": "This permission set configures the types of dialogs\navailable from the dialog plugin.\n\n#### Granted Permissions\n\nAll dialog types are enabled.\n\n\n\n#### This default permission set includes:\n\n- `allow-ask`\n- `allow-confirm`\n- `allow-message`\n- `allow-save`\n- `allow-open`",
           "type": "string",
           "const": "dialog:default",
