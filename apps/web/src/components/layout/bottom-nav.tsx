@@ -2,26 +2,23 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileText, CheckSquare, Calendar, Search, Settings } from 'lucide-react';
-import { useUiStore } from '@todome/store';
+import { FileText, CheckSquare, BookOpen, Calendar, Settings } from 'lucide-react';
 import { clsx } from 'clsx';
 
 type BottomNavItem = {
   href: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  action?: () => void;
 };
 
 export const BottomNav = () => {
   const pathname = usePathname();
-  const toggleCommandPalette = useUiStore((s) => s.toggleCommandPalette);
 
   const items: BottomNavItem[] = [
     { href: '/notes', label: 'メモ', icon: FileText },
     { href: '/todos', label: 'Todo', icon: CheckSquare },
+    { href: '/diary', label: '日記', icon: BookOpen },
     { href: '/calendar', label: 'カレンダー', icon: Calendar },
-    { href: '#search', label: '検索', icon: Search, action: toggleCommandPalette },
     { href: '/settings', label: '設定', icon: Settings },
   ];
 
@@ -29,23 +26,8 @@ export const BottomNav = () => {
     <nav className="fixed bottom-0 left-0 right-0 z-40 border-t glass">
       <div style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
         <ul className="flex items-center justify-around">
-          {items.map(({ href, label, icon: Icon, action }) => {
-            const isActive = !action && pathname.startsWith(href);
-
-            if (action) {
-              return (
-                <li key={href} className="flex-1">
-                  <button
-                    type="button"
-                    onClick={action}
-                    className="flex w-full flex-col items-center gap-0.5 py-2 text-text-tertiary transition hover:text-text-primary"
-                  >
-                    <Icon className="h-5 w-5" />
-                    <span className="text-[10px]">{label}</span>
-                  </button>
-                </li>
-              );
-            }
+          {items.map(({ href, label, icon: Icon }) => {
+            const isActive = pathname.startsWith(href);
 
             return (
               <li key={href} className="flex-1">

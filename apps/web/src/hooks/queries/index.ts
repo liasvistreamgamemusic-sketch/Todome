@@ -27,4 +27,11 @@ export {
   useDeleteCalendarEvent,
 } from './use-calendar-events';
 
+export {
+  useDiaries,
+  useCreateDiary,
+  useUpdateDiary,
+  useDeleteDiary,
+} from './use-diaries';
+
 export { useRealtimeSync } from './use-realtime';

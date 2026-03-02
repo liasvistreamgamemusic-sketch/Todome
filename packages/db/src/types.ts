@@ -248,6 +248,58 @@ export interface UpdateCalendarEventInput {
   is_deleted?: boolean;
 }
 
+// ---------------------------------------------------------------------------
+// Diary
+// ---------------------------------------------------------------------------
+
+export const DIARY_MOODS = ['great', 'good', 'neutral', 'bad', 'terrible'] as const;
+export type DiaryMood = (typeof DIARY_MOODS)[number];
+
+export const DIARY_WEATHERS = ['sunny', 'cloudy', 'rainy', 'snowy', 'stormy', 'windy'] as const;
+export type DiaryWeather = (typeof DIARY_WEATHERS)[number];
+
+export const DIARY_RATINGS = [1, 2, 3, 4, 5] as const;
+export type DiaryRating = (typeof DIARY_RATINGS)[number];
+
+export interface Diary {
+  id: string;
+  user_id: string;
+  date: string;
+  events_text: TiptapDocument | null;
+  summary: TiptapDocument | null;
+  rating: DiaryRating | null;
+  mood: DiaryMood | null;
+  weather: DiaryWeather | null;
+  gratitude: string[];
+  tags: string[];
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateDiaryInput {
+  date: string;
+  events_text?: TiptapDocument | null;
+  summary?: TiptapDocument | null;
+  rating?: DiaryRating | null;
+  mood?: DiaryMood | null;
+  weather?: DiaryWeather | null;
+  gratitude?: string[];
+  tags?: string[];
+}
+
+export interface UpdateDiaryInput {
+  date?: string;
+  events_text?: TiptapDocument | null;
+  summary?: TiptapDocument | null;
+  rating?: DiaryRating | null;
+  mood?: DiaryMood | null;
+  weather?: DiaryWeather | null;
+  gratitude?: string[];
+  tags?: string[];
+  is_deleted?: boolean;
+}
+
 export interface CreateAttachmentInput {
   parent_type: ParentType;
   parent_id: string;

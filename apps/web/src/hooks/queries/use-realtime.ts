@@ -78,6 +78,20 @@ export function useRealtimeSync(): void {
           });
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'diaries',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          queryClient.refetchQueries({
+            queryKey: queryKeys.diaries.all(userId),
+          });
+        },
+      )
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           console.debug('[realtime] subscribed to db-changes');

@@ -25,6 +25,12 @@ export type {
   UpdateTodoInput,
   CreateCalendarEventInput,
   UpdateCalendarEventInput,
+  Diary,
+  DiaryMood,
+  DiaryWeather,
+  DiaryRating,
+  CreateDiaryInput,
+  UpdateDiaryInput,
   CreateAttachmentInput,
 } from './types';
 
@@ -33,6 +39,9 @@ export {
   TODO_STATUSES,
   PARENT_TYPES,
   REMIND_REPEATS,
+  DIARY_MOODS,
+  DIARY_WEATHERS,
+  DIARY_RATINGS,
   Ok,
   Err,
 } from './types';
@@ -60,4 +69,8 @@ export {
   createCalendarEvent,
   updateCalendarEvent,
   deleteCalendarEvent,
+  loadDiaries,
+  createDiary,
+  updateDiary,
+  deleteDiary,
 } from './repository';

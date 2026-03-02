@@ -10,6 +10,7 @@ import type {
   Folder,
   Todo,
   CalendarEvent,
+  Diary,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -176,6 +177,46 @@ export async function updateCalendarEvent(
 export async function deleteCalendarEvent(id: string): Promise<void> {
   const { error } = await supabase
     .from('calendar_events')
+    .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Diaries
+// ---------------------------------------------------------------------------
+
+export async function loadDiaries(userId: string): Promise<Diary[]> {
+  const { data, error } = await supabase
+    .from('diaries')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_deleted', false)
+    .order('date', { ascending: false });
+
+  if (error) throw error;
+  return data as Diary[];
+}
+
+export async function createDiary(diary: Diary): Promise<void> {
+  const { error } = await supabase.from('diaries').insert(diary as never);
+  if (error) throw error;
+}
+
+export async function updateDiary(
+  id: string,
+  patch: Partial<Diary>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('diaries')
+    .update(patch as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteDiary(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('diaries')
     .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
     .eq('id', id);
   if (error) throw error;

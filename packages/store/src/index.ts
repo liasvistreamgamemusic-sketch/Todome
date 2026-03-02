@@ -6,6 +6,10 @@ export type {
   TodoStatus,
   TodoPriority,
   CalendarEvent,
+  Diary,
+  DiaryMood,
+  DiaryWeather,
+  DiaryRating,
   TodoRemindRepeat,
 } from './types';
 
@@ -28,6 +32,10 @@ export type {
   CalendarStoreState,
   CalendarViewMode,
 } from './calendar-store';
+
+// Diary store
+export { useDiaryStore } from './diary-store';
+export type { DiaryStoreState } from './diary-store';
 
 // UI store
 export { useUiStore } from './ui-store';

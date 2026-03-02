@@ -1,7 +1,12 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-03-02T02:46:44.062Z",
-  "skills": {},
+  "updatedAt": "2026-03-02T05:24:55.145Z",
+  "skills": {
+    "commit": {
+      "count": 1,
+      "lastUsed": "2026-03-02T05:24:55.144Z"
+    }
+  },
   "commands": {
     "Users/nitandatomoya/repository/github/Todome/": {
       "count": 1,
@@ -10,20 +15,24 @@
     "auth/login": {
       "count": 1,
       "lastUsed": "2026-02-28T13:34:55.178Z"
+    },
+    "Users/nitandatomoya/repository/github/Todome/todome_icon": {
+      "count": 1,
+      "lastUsed": "2026-03-02T04:26:53.916Z"
     }
   },
   "agents": {
     "general-purpose": {
-      "count": 34,
-      "lastUsed": "2026-03-02T01:42:00.149Z"
+      "count": 46,
+      "lastUsed": "2026-03-02T05:16:25.281Z"
     },
     "Explore": {
-      "count": 42,
-      "lastUsed": "2026-03-02T02:22:12.925Z"
+      "count": 52,
+      "lastUsed": "2026-03-02T04:54:25.155Z"
     },
     "Plan": {
-      "count": 4,
-      "lastUsed": "2026-03-02T01:21:15.754Z"
+      "count": 7,
+      "lastUsed": "2026-03-02T04:57:53.001Z"
     },
     "feature-dev:code-explorer": {
       "count": 2,
@@ -36,14 +45,14 @@
   },
   "hooks": {
     "session-init": {
-      "triggered": 28,
+      "triggered": 37,
       "blocked": 0,
-      "lastTriggered": "2026-03-02T02:11:43.688Z"
+      "lastTriggered": "2026-03-02T05:24:42.150Z"
     },
     "pretooluse-guard": {
-      "triggered": 183,
-      "blocked": 183,
-      "lastTriggered": "2026-03-02T02:46:44.061Z"
+      "triggered": 189,
+      "blocked": 189,
+      "lastTriggered": "2026-03-02T05:07:08.701Z"
     }
   }
 }

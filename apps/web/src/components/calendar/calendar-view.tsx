@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
 import {
@@ -18,7 +19,6 @@ import { WeekView } from './week-view';
 import { DayView } from './day-view';
 import { ListView } from './list-view';
 import { EventDetail } from './event-detail';
-import { DiaryEditor } from './diary-editor';
 
 const VIEW_MODE_LABELS: Record<CalendarViewMode, string> = {
   month: '月',
@@ -46,7 +46,6 @@ export const CalendarView = () => {
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [eventDetailInitialDate, setEventDetailInitialDate] = useState<Date | undefined>(undefined);
   const [editEventId, setEditEventId] = useState<string | null>(null);
-  const [diaryDate, setDiaryDate] = useState<Date | null>(null);
 
   const effectiveViewMode = viewMode;
 
@@ -92,13 +91,11 @@ export const CalendarView = () => {
     selectEvent(null);
   }, [selectEvent]);
 
-  const handleOpenDiary = useCallback((date: Date) => {
-    setDiaryDate(date);
-  }, []);
+  const router = useRouter();
 
-  const handleCloseDiary = useCallback(() => {
-    setDiaryDate(null);
-  }, []);
+  const handleOpenDiary = useCallback((date: Date) => {
+    router.push(`/diary?date=${format(date, 'yyyy-MM-dd')}`);
+  }, [router]);
 
   const handleNewEvent = useCallback(() => {
     handleCreateEvent(selectedDate);
@@ -223,10 +220,6 @@ export const CalendarView = () => {
         />
       )}
 
-      {/* Diary editor modal */}
-      {diaryDate && (
-        <DiaryEditor date={diaryDate} onClose={handleCloseDiary} />
-      )}
     </div>
   );
 };

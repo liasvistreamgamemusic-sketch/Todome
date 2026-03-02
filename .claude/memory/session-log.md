@@ -538,3 +538,70 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-02T03:11:02Z
+
+- session_id: `D7FBD9D7-C491-42FF-A946-0736F1B66CED`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T02:58:37Z`
+- ended_at: `2026-03-02T03:11:02Z`
+- duration_minutes: 552
+- changes: 4
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/expressive-soaring-scroll.md`
+- `packages/db/src/supabase.ts`
+- `apps/web/src/hooks/queries/use-realtime.ts`
+- `apps/web/src/app/providers.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-02T04:29:26Z
+
+- session_id: `83710F94-78FD-43A1-9574-B6C3D00D2DCE`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T04:20:55Z`
+- ended_at: `2026-03-02T04:29:26Z`
+- duration_minutes: 548
+- changes: 1
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/immutable-floating-pumpkin.md`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-02T04:56:43Z
+
+- session_id: `F09D208C-75D4-4C81-8DAB-F2DC227DB3BE`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T04:46:25Z`
+- ended_at: `2026-03-02T04:56:43Z`
+- duration_minutes: 550
+- changes: 2
+
+### 変更ファイル
+- `apps/web/src/components/calendar/week-view.tsx`
+- `apps/web/src/components/calendar/day-view.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

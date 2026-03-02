@@ -8,5 +8,9 @@ export type {
   TodoStatus,
   TodoPriority,
   CalendarEvent,
+  Diary,
+  DiaryMood,
+  DiaryWeather,
+  DiaryRating,
   RemindRepeat as TodoRemindRepeat,
 } from '@todome/db';

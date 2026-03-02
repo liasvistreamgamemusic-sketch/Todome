@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ActiveSection = 'notes' | 'todos' | 'calendar' | 'settings';
+export type ActiveSection = 'notes' | 'todos' | 'diary' | 'calendar' | 'settings';
 export type Theme = 'light' | 'dark' | 'system';
 export type FontSize = 'small' | 'medium' | 'large' | 'xlarge';
 export type Locale = 'ja' | 'en';
