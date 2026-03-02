@@ -65,9 +65,6 @@ export const BottomNav = () => {
             );
           })}
         </ul>
-        <p className="text-center text-[8px] text-text-tertiary/40 -mt-1 pb-0.5 select-none">
-          v{process.env.APP_VERSION}
-        </p>
       </div>
     </nav>
   );
