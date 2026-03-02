@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-03-02T10:03:08.333Z",
+  "updatedAt": "2026-03-02T14:12:32.190Z",
   "skills": {
     "commit": {
       "count": 1,
@@ -19,20 +19,28 @@
     "Users/nitandatomoya/repository/github/Todome/todome_icon": {
       "count": 1,
       "lastUsed": "2026-03-02T04:26:53.916Z"
+    },
+    "Users/nitandatomoya/": {
+      "count": 1,
+      "lastUsed": "2026-03-02T13:22:20.030Z"
+    },
+    "Users/nitandatomoya/repository/github/Todome/apps/web/src/app/_api_bak/ics/route": {
+      "count": 1,
+      "lastUsed": "2026-03-02T13:34:08.163Z"
     }
   },
   "agents": {
     "general-purpose": {
-      "count": 54,
-      "lastUsed": "2026-03-02T09:05:39.714Z"
+      "count": 65,
+      "lastUsed": "2026-03-02T14:12:32.190Z"
     },
     "Explore": {
-      "count": 60,
-      "lastUsed": "2026-03-02T10:01:22.978Z"
+      "count": 68,
+      "lastUsed": "2026-03-02T14:09:06.548Z"
     },
     "Plan": {
-      "count": 9,
-      "lastUsed": "2026-03-02T09:12:51.967Z"
+      "count": 11,
+      "lastUsed": "2026-03-02T14:03:46.582Z"
     },
     "feature-dev:code-explorer": {
       "count": 2,
@@ -45,14 +53,14 @@
   },
   "hooks": {
     "session-init": {
-      "triggered": 40,
+      "triggered": 45,
       "blocked": 0,
-      "lastTriggered": "2026-03-02T08:58:20.503Z"
+      "lastTriggered": "2026-03-02T13:51:56.835Z"
     },
     "pretooluse-guard": {
-      "triggered": 198,
-      "blocked": 198,
-      "lastTriggered": "2026-03-02T10:03:08.332Z"
+      "triggered": 235,
+      "blocked": 235,
+      "lastTriggered": "2026-03-02T13:28:09.985Z"
     }
   }
 }

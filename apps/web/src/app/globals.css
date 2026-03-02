@@ -74,6 +74,26 @@
     border-radius: 3px;
   }
 
+  /* Overlay scrollbar — prevents scrollbar from consuming layout width (fixes Windows grid alignment) */
+  .scrollbar-overlay {
+    overflow-y: overlay;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .scrollbar-overlay::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-overlay::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-overlay::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 3px;
+  }
+
   /* Glass morphism utilities */
   .glass {
     background: var(--glass-bg);

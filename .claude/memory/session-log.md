@@ -661,3 +661,69 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-02T13:32:58Z
+
+- session_id: `BB23BAF6-CDC8-4FE5-8ED3-CEBEF2B0C749`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T13:21:52Z`
+- ended_at: `2026-03-02T13:32:58Z`
+- duration_minutes: 551
+- changes: 43
+
+### 変更ファイル
+- `apps/desktop/src-tauri/Cargo.toml`
+- `apps/desktop/src-tauri/src/lib.rs`
+- `packages/store/src/ui-store.ts`
+- `apps/web/src/components/editor/tiptap-editor.tsx`
+- `apps/web/src/components/settings/settings-view.tsx`
+- `apps/web/src/components/layout/bottom-nav.tsx`
+- `apps/web/src/components/layout/app-shell.tsx`
+- `apps/web/src/components/calendar/week-view.tsx`
+- `apps/web/src/components/todos/todo-detail.tsx`
+- `apps/web/src/components/calendar/event-detail.tsx`
+- `apps/web/src/components/calendar/month-view.tsx`
+- `apps/web/src/components/calendar/calendar-view.tsx`
+- `apps/web/src/components/calendar/day-events-panel.tsx`
+- `apps/web/src/components/todos/todo-view.tsx`
+- `apps/web/src/components/todos/todo-board.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-02T14:18:16Z
+
+- session_id: `75C44637-2E62-4AB5-B172-FB48E5CAFF69`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T13:51:56Z`
+- ended_at: `2026-03-02T14:18:16Z`
+- duration_minutes: 566
+- changes: 19
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/spicy-kindling-patterson.md`
+- `apps/web/src/lib/ics-parser.ts`
+- `apps/web/src/app/layout.tsx`
+- `apps/web/src/components/calendar/week-view.tsx`
+- `apps/web/src/components/calendar/external-event-detail.tsx`
+- `apps/web/src/components/calendar/month-view.tsx`
+- `packages/store/src/subscription-store.ts`
+- `apps/web/src/components/calendar/calendar-view.tsx`
+- `apps/web/src/components/settings/subscription-manager.tsx`
+- `apps/web/src/hooks/use-ics-sync.ts`
+- `apps/web/src/app/api/ics/route.ts`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
