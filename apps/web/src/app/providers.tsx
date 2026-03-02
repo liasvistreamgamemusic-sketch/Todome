@@ -23,7 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             staleTime: 60 * 1000,
             gcTime: 10 * 60 * 1000,
             retry: 1,
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: true,
           },
         },
       }),

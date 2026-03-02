@@ -31,7 +31,7 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.invalidateQueries({
+          queryClient.refetchQueries({
             queryKey: queryKeys.notes.all(userId),
           });
         },
@@ -45,7 +45,7 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.invalidateQueries({
+          queryClient.refetchQueries({
             queryKey: queryKeys.folders.all(userId),
           });
         },
@@ -59,7 +59,7 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.invalidateQueries({
+          queryClient.refetchQueries({
             queryKey: queryKeys.todos.all(userId),
           });
         },
@@ -73,12 +73,20 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.invalidateQueries({
+          queryClient.refetchQueries({
             queryKey: queryKeys.calendarEvents.all(userId),
           });
         },
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === 'SUBSCRIBED') {
+          console.debug('[realtime] subscribed to db-changes');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('[realtime] channel error:', err);
+        } else if (status === 'TIMED_OUT') {
+          console.warn('[realtime] subscription timed out');
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);

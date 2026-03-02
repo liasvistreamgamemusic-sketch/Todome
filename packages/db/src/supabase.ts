@@ -77,13 +77,24 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
 }
 
 const isBrowser = typeof window !== 'undefined';
+const isTauri = isBrowser && 'CORSFetch' in window;
 const url = SUPABASE_URL || 'https://placeholder.supabase.co';
 const key = SUPABASE_ANON_KEY || 'placeholder-key';
 
-// Browser: createBrowserClient stores auth tokens in cookies (syncs with middleware)
-// Server/SSR: createClient with no session persistence (middleware handles auth)
-export const supabase: SupabaseClient<Database> = isBrowser
-  ? (createBrowserClient<Database>(url, key) as unknown as SupabaseClient<Database>)
-  : createClient<Database>(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
+// Tauri: createClient with localStorage (cookies unreliable in macOS WKWebView)
+// Browser: createBrowserClient with cookie-based auth (SSR middleware compat)
+// Server: createClient with no persistence
+export const supabase: SupabaseClient<Database> = isTauri
+  ? createClient<Database>(url, key, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        storageKey: 'todome-auth',
+        storage: window.localStorage,
+      },
+    })
+  : isBrowser
+    ? (createBrowserClient<Database>(url, key) as unknown as SupabaseClient<Database>)
+    : createClient<Database>(url, key, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });

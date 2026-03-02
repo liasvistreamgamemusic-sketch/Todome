@@ -421,3 +421,120 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-01T13:21:01Z
+
+- session_id: `675ED7FE-6D52-4A9D-990E-4CF863F83DFD`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-01T12:36:58Z`
+- ended_at: `2026-03-01T13:21:01Z`
+- duration_minutes: 584
+- changes: 0
+- commits: 1
+
+### 変更ファイル
+- （なし）
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-01T15:20:58Z
+
+- session_id: `A6AF9FF3-DB8F-4551-B664-2E026274AAF7`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-01T15:18:34Z`
+- ended_at: `2026-03-01T15:20:58Z`
+- duration_minutes: 542
+- changes: 3
+
+### 変更ファイル
+- `apps/web/src/components/calendar/calendar-view.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-02T00:36:27Z
+
+- session_id: `A0601AB0-432C-41B3-9619-50CE9A04D9C6`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T00:30:19Z`
+- ended_at: `2026-03-02T00:36:27Z`
+- duration_minutes: 546
+- changes: 4
+
+### 変更ファイル
+- `apps/desktop/src-tauri/Cargo.toml`
+- `apps/desktop/src-tauri/src/lib.rs`
+- `apps/desktop/src-tauri/capabilities/default.json`
+- `apps/desktop/src-tauri/tauri.conf.json`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-02T01:20:53Z
+
+- session_id: `4F825EF6-816D-4A6D-AE89-A4F3BA83A0F9`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T01:12:53Z`
+- ended_at: `2026-03-02T01:20:53Z`
+- duration_minutes: 548
+- changes: 10
+- commits: 1
+
+### 変更ファイル
+- `apps/web/src/components/auth/login-form.tsx`
+- `apps/web/src/components/auth/signup-form.tsx`
+- `apps/web/src/app/(auth)/login/page.tsx`
+- `apps/web/src/components/auth/auth-guard.tsx`
+- `apps/desktop/src-tauri/tauri.conf.json`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-02T02:17:41Z
+
+- session_id: `A50CD6A7-8F42-4BD5-BF70-9A08AB790002`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T02:11:43Z`
+- ended_at: `2026-03-02T02:17:41Z`
+- duration_minutes: 545
+- changes: 4
+
+### 変更ファイル
+- `apps/web/src/components/layout/app-shell.tsx`
+- `apps/web/src/components/layout/bottom-nav.tsx`
+- `packages/store/src/ui-store.ts`
+- `apps/web/tailwind.config.ts`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
