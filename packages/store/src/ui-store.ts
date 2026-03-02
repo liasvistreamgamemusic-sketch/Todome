@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type ActiveSection = 'notes' | 'todos' | 'diary' | 'calendar' | 'settings';
 export type Theme = 'light' | 'dark' | 'system';
@@ -24,21 +25,44 @@ export type UiStoreState = {
   setCalendarWeekStart: (start: CalendarWeekStart) => void;
 };
 
-export const useUiStore = create<UiStoreState>()((set) => ({
-  // Initial state
-  activeSection: 'notes',
-  commandPaletteOpen: false,
-  theme: 'system',
-  fontSize: 'medium',
-  locale: 'ja',
-  calendarWeekStart: 1,
+export const useUiStore = create<UiStoreState>()(
+  persist(
+    (set) => ({
+      // Initial state
+      activeSection: 'notes',
+      commandPaletteOpen: false,
+      theme: 'system',
+      fontSize: 'medium',
+      locale: 'ja',
+      calendarWeekStart: 0,
 
-  // Actions
-  setActiveSection: (section) => set({ activeSection: section }),
-  toggleCommandPalette: () =>
-    set((s) => ({ commandPaletteOpen: !s.commandPaletteOpen })),
-  setTheme: (theme) => set({ theme }),
-  setFontSize: (fontSize) => set({ fontSize }),
-  setLocale: (locale) => set({ locale }),
-  setCalendarWeekStart: (start) => set({ calendarWeekStart: start }),
-}));
+      // Actions
+      setActiveSection: (section) => set({ activeSection: section }),
+      toggleCommandPalette: () =>
+        set((s) => ({ commandPaletteOpen: !s.commandPaletteOpen })),
+      setTheme: (theme) => set({ theme }),
+      setFontSize: (fontSize) => set({ fontSize }),
+      setLocale: (locale) => set({ locale }),
+      setCalendarWeekStart: (start) => set({ calendarWeekStart: start }),
+    }),
+    {
+      name: 'todome-ui-settings',
+      storage: createJSONStorage(() => {
+        if (typeof window === 'undefined') {
+          return {
+            getItem: () => null,
+            setItem: () => {},
+            removeItem: () => {},
+          };
+        }
+        return localStorage;
+      }),
+      partialize: (state) => ({
+        theme: state.theme,
+        fontSize: state.fontSize,
+        locale: state.locale,
+        calendarWeekStart: state.calendarWeekStart,
+      }),
+    },
+  ),
+);

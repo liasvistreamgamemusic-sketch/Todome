@@ -200,38 +200,6 @@ export const SettingsView = () => {
     [],
   );
 
-  // Persist UI store settings to localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const uiSettings = { theme: uiTheme, fontSize, locale, calendarWeekStart };
-      localStorage.setItem('todome-ui-settings', JSON.stringify(uiSettings));
-    } catch {
-      // Ignore storage errors
-    }
-  }, [uiTheme, fontSize, locale, calendarWeekStart]);
-
-  // Load UI settings from localStorage on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    try {
-      const stored = localStorage.getItem('todome-ui-settings');
-      if (stored) {
-        const parsed = JSON.parse(stored) as Record<string, unknown>;
-        if (parsed.theme) setUiTheme(parsed.theme as Theme);
-        if (parsed.fontSize) setFontSize(parsed.fontSize as FontSize);
-        if (parsed.locale) setLocale(parsed.locale as Locale);
-        if (typeof parsed.calendarWeekStart === 'number') {
-          setCalendarWeekStart(parsed.calendarWeekStart as CalendarWeekStart);
-        }
-      }
-    } catch {
-      // Ignore parse errors
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   // Load user email from Supabase
   useEffect(() => {
     const loadUser = async () => {

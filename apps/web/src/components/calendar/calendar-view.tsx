@@ -21,6 +21,7 @@ import { DayView } from './day-view';
 import { ListView } from './list-view';
 import { EventDetail } from './event-detail';
 import { ExternalEventDetail } from './external-event-detail';
+import { DayEventsPanel } from './day-events-panel';
 
 const VIEW_MODE_LABELS: Record<CalendarViewMode, string> = {
   month: '月',
@@ -49,6 +50,7 @@ export const CalendarView = () => {
   const [editEventId, setEditEventId] = useState<string | null>(null);
   const [externalEvent, setExternalEvent] = useState<ExternalCalendarEvent | null>(null);
   const [externalEventSub, setExternalEventSub] = useState<CalendarSubscription | undefined>(undefined);
+  const [dayEventsDate, setDayEventsDate] = useState<Date | null>(null);
 
   const allExternalEvents = useSubscriptionStore((s) => s.allExternalEvents);
   const { data: subscriptions = [] } = useCalendarSubscriptions();
@@ -107,6 +109,14 @@ export const CalendarView = () => {
   }, [selectEvent]);
 
   const router = useRouter();
+
+  const handleShowDayEvents = useCallback((date: Date) => {
+    setDayEventsDate(date);
+  }, []);
+
+  const handleCloseDayEvents = useCallback(() => {
+    setDayEventsDate(null);
+  }, []);
 
   const handleOpenDiary = useCallback((date: Date) => {
     router.push(`/diary?date=${format(date, 'yyyy-MM-dd')}`);
@@ -204,6 +214,8 @@ export const CalendarView = () => {
           <MonthView
             onCreateEvent={handleCreateEvent}
             onSelectEvent={handleSelectEvent}
+            onOpenDiary={handleOpenDiary}
+            onShowDayEvents={handleShowDayEvents}
           />
         )}
         {viewMode === 'week' && (
@@ -244,6 +256,16 @@ export const CalendarView = () => {
             setExternalEvent(null);
             setExternalEventSub(undefined);
           }}
+        />
+      )}
+
+      {/* Day events panel */}
+      {dayEventsDate && (
+        <DayEventsPanel
+          key={dayEventsDate.toISOString()}
+          date={dayEventsDate}
+          onClose={handleCloseDayEvents}
+          onSelectExternalEvent={handleSelectEvent}
         />
       )}
     </div>

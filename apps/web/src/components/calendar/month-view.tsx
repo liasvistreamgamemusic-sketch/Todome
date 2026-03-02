@@ -18,7 +18,8 @@ import {
 import { useCalendarStore, useUiStore, useSubscriptionStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
-import { useCalendarEvents, useTodos } from '@/hooks/queries';
+import { BookOpen } from 'lucide-react';
+import { useCalendarEvents, useTodos, useDiaries } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { isHoliday } from '@/lib/japanese-holidays';
@@ -39,12 +40,14 @@ type MergedEvent = {
 type Props = {
   onCreateEvent: (date: Date) => void;
   onSelectEvent: (event: { id: string }) => void;
+  onOpenDiary: (date: Date) => void;
+  onShowDayEvents: (date: Date) => void;
 };
 
 const DAY_LABELS_SUN: string[] = ['日', '月', '火', '水', '木', '金', '土'];
 const DAY_LABELS_MON: string[] = ['月', '火', '水', '木', '金', '土', '日'];
 
-export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
+export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDayEvents }: Props) => {
   const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
@@ -53,6 +56,14 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
   const { data: allTodos = [] } = useTodos();
+  const { data: diaries = [] } = useDiaries();
+  const diaryDates = useMemo(() => {
+    const set = new Set<string>();
+    for (const diary of diaries) {
+      if (!diary.is_deleted) set.add(diary.date);
+    }
+    return set;
+  }, [diaries]);
   const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
   const swipe = useSwipeNavigation(navigateMonthNext, navigateMonthPrev);
@@ -115,15 +126,9 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
         return;
       }
       selectDate(day);
+      onShowDayEvents(day);
     },
-    [selectDate, isMobile],
-  );
-
-  const handleDateDoubleClick = useCallback(
-    (day: Date) => {
-      onCreateEvent(day);
-    },
-    [onCreateEvent],
+    [selectDate, isMobile, onShowDayEvents],
   );
 
   const weekCount = calendarDays.length / 7;
@@ -177,7 +182,6 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
               key={dateKey}
               type="button"
               onClick={() => handleDateClick(day)}
-              onDoubleClick={() => handleDateDoubleClick(day)}
               className={clsx(
                 'flex flex-col gap-0.5 border-b border-r border-[var(--border)] p-1 text-left',
                 'transition-colors duration-100',
@@ -244,7 +248,21 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
                   </div>
                 ))}
                 {overflowCount > 0 && (
-                  <span className="text-[10px] text-text-tertiary pl-1">
+                  <span
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onShowDayEvents(day);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        onShowDayEvents(day);
+                      }
+                    }}
+                    className="text-[10px] text-text-tertiary pl-1 cursor-pointer hover:text-[var(--accent)] transition-colors"
+                  >
                     +{overflowCount} more
                   </span>
                 )}
@@ -264,6 +282,27 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
                       +{todoCount - 4}
                     </span>
                   )}
+                </div>
+              )}
+
+              {/* Diary indicator */}
+              {diaryDates.has(dateKey) && (
+                <div
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenDiary(day);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.stopPropagation();
+                      onOpenDiary(day);
+                    }
+                  }}
+                  className="flex items-center gap-0.5 pl-0.5 cursor-pointer hover:opacity-70 transition-opacity"
+                >
+                  <BookOpen className="h-3 w-3 text-[#7986CB]" />
                 </div>
               )}
             </button>

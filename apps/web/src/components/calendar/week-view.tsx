@@ -17,11 +17,11 @@ import {
   setHours,
   setMinutes,
 } from 'date-fns';
-import { CheckSquare } from 'lucide-react';
+import { BookOpen, CheckSquare } from 'lucide-react';
 import { useCalendarStore, useUiStore, useSubscriptionStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
-import { useCalendarEvents, useTodos } from '@/hooks/queries';
+import { useCalendarEvents, useTodos, useDiaries } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
@@ -58,6 +58,14 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
   const { data: allTodos = [] } = useTodos();
+  const { data: diaries = [] } = useDiaries();
+  const diaryDates = useMemo(() => {
+    const set = new Set<string>();
+    for (const diary of diaries) {
+      if (!diary.is_deleted) set.add(diary.date);
+    }
+    return set;
+  }, [diaries]);
   const navigateWeekPrev = useCalendarStore((s) => s.navigateWeekPrev);
   const navigateWeekNext = useCalendarStore((s) => s.navigateWeekNext);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -281,7 +289,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
         )}
 
         {/* Selected day time grid */}
-        <div ref={scrollRef} className="flex flex-1 overflow-y-auto">
+        <div ref={scrollRef} className="flex flex-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
           <div className="w-10 shrink-0">
             {hours.map((hour) => (
               <div
@@ -424,6 +432,15 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                     {holidayName}
                   </span>
                 )}
+                {diaryDates.has(format(day, 'yyyy-MM-dd')) && (
+                  <BookOpen
+                    className="mt-0.5 h-3 w-3 text-[#7986CB] cursor-pointer hover:opacity-70"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenDiary(day);
+                    }}
+                  />
+                )}
               </button>
             );
           })}
@@ -454,7 +471,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
       </div>
 
       {/* Time grid */}
-      <div ref={scrollRef} className="flex flex-1 overflow-y-auto">
+      <div ref={scrollRef} className="flex flex-1 overflow-y-auto" style={{ scrollbarGutter: 'stable' }}>
         <div className="w-14 shrink-0">
           {hours.map((hour) => (
             <div

@@ -34,6 +34,7 @@ type Props = {
   eventId: string | null;
   initialDate?: Date;
   onClose: () => void;
+  embedded?: boolean;
 };
 
 const PRESET_COLORS = [
@@ -106,7 +107,7 @@ const computeRemindAt = (
   }
 };
 
-export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
+export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }: Props) => {
   const { data: events } = useCalendarEvents();
   const { data: todos } = useTodos();
   const { data: notes } = useNotes();
@@ -351,11 +352,15 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+    <>
+      {!embedded && (
+        <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} aria-hidden="true" />
+      )}
       <div
         className={clsx(
-          'relative flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl',
-          'bg-bg-primary shadow-xl border border-[var(--border)]',
+          embedded
+            ? 'flex h-full w-full flex-col overflow-hidden bg-bg-primary'
+            : 'fixed inset-y-0 right-0 z-50 w-full md:max-w-md flex flex-col overflow-hidden bg-bg-primary border-l border-[var(--border)] shadow-xl animate-in slide-in-from-right duration-200',
         )}
       >
         {/* Header */}
@@ -757,6 +762,6 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };

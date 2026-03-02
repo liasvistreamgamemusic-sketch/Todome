@@ -81,11 +81,10 @@ export const TodoView = () => {
     [setViewMode],
   );
 
-  // Set desktop default to board view on mount
+  // Set default view: list for mobile, board for desktop
   useEffect(() => {
-    if (!isMobile && !hasUserChangedView.current) {
-      setViewMode('board');
-    }
+    if (hasUserChangedView.current) return;
+    setViewMode(isMobile ? 'list' : 'board');
   }, [isMobile, setViewMode]);
 
   const handleSortChange = useCallback(

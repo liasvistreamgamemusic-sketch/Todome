@@ -42,6 +42,8 @@ export const TiptapEditor = ({
 }: TiptapEditorProps) => {
   // Suppress onChange during programmatic content updates (e.g. remote sync)
   const suppressOnChangeRef = useRef(false);
+  // Store pending remote content to apply when editor loses focus
+  const latestContentRef = useRef<JSONContent | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -196,14 +198,20 @@ export const TiptapEditor = ({
   // Update content from outside (remote sync) without triggering onChange
   const handleContentUpdate = useCallback(
     (newContent: JSONContent | null) => {
-      if (editor && newContent) {
-        const currentContent = JSON.stringify(editor.getJSON());
-        const incomingContent = JSON.stringify(newContent);
-        if (currentContent !== incomingContent) {
-          suppressOnChangeRef.current = true;
-          editor.commands.setContent(newContent);
-          suppressOnChangeRef.current = false;
-        }
+      if (!editor || !newContent) return;
+
+      // If editor is focused, defer the update to prevent IME/input disruption
+      if (editor.isFocused) {
+        latestContentRef.current = newContent;
+        return;
+      }
+
+      const currentContent = JSON.stringify(editor.getJSON());
+      const incomingContent = JSON.stringify(newContent);
+      if (currentContent !== incomingContent) {
+        suppressOnChangeRef.current = true;
+        editor.commands.setContent(newContent);
+        suppressOnChangeRef.current = false;
       }
     },
     [editor],
@@ -212,6 +220,30 @@ export const TiptapEditor = ({
   useEffect(() => {
     handleContentUpdate(content);
   }, [content, handleContentUpdate]);
+
+  // Apply deferred remote content when editor loses focus
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleBlur = () => {
+      const pending = latestContentRef.current;
+      if (!pending) return;
+      latestContentRef.current = null;
+
+      const currentContent = JSON.stringify(editor.getJSON());
+      const incomingContent = JSON.stringify(pending);
+      if (currentContent !== incomingContent) {
+        suppressOnChangeRef.current = true;
+        editor.commands.setContent(pending);
+        suppressOnChangeRef.current = false;
+      }
+    };
+
+    editor.on('blur', handleBlur);
+    return () => {
+      editor.off('blur', handleBlur);
+    };
+  }, [editor]);
 
   if (!editor) {
     return (

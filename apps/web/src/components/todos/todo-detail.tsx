@@ -221,14 +221,14 @@ export const TodoDetail = () => {
     <>
       {isMobile && (
         <div
-          className="fixed inset-0 z-30 bg-black/30"
+          className="fixed inset-0 z-40 bg-black/30"
           onClick={handleClose}
           aria-hidden="true"
         />
       )}
     <div
       className={clsx(
-        'fixed inset-y-0 right-0 z-40 w-full md:max-w-md',
+        'fixed inset-y-0 right-0 z-50 w-full md:max-w-md',
         'bg-bg-primary border-l border-[var(--border)]',
         'shadow-xl overflow-y-auto',
         'animate-in slide-in-from-right duration-200',
