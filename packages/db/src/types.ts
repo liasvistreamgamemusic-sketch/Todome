@@ -128,6 +128,7 @@ export interface CalendarEvent {
   repeat_rule: string | null;
   repeat_parent_id: string | null;
   todo_ids: string[];
+  note_ids: string[];
   is_deleted: boolean;
   created_at: string;
   updated_at: string;
@@ -227,6 +228,7 @@ export interface CreateCalendarEventInput {
   repeat_rule?: string | null;
   repeat_parent_id?: string | null;
   todo_ids?: string[];
+  note_ids?: string[];
 }
 
 export interface UpdateCalendarEventInput {
@@ -242,6 +244,7 @@ export interface UpdateCalendarEventInput {
   repeat_rule?: string | null;
   repeat_parent_id?: string | null;
   todo_ids?: string[];
+  note_ids?: string[];
   is_deleted?: boolean;
 }
 

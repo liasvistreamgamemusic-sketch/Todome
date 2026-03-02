@@ -10,7 +10,6 @@ import {
   isToday,
   format,
   parseISO,
-  differenceInMinutes,
   setHours,
   setMinutes,
 } from 'date-fns';
@@ -22,6 +21,7 @@ import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
+import { computeEventLayouts } from '@/lib/event-layout';
 
 type Props = {
   onCreateEvent: (date: Date) => void;
@@ -115,25 +115,9 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
     return () => clearInterval(timer);
   }, [hourHeight]);
 
-  const getEventPosition = useCallback(
-    (event: CalendarEvent) => {
-      const eventStart = parseISO(event.start_at);
-      const eventEnd = parseISO(event.end_at);
-      const dayS = startOfDay(selectedDate);
-      const dayE = endOfDay(selectedDate);
-
-      const clampedStart = eventStart < dayS ? dayS : eventStart;
-      const clampedEnd = eventEnd > dayE ? dayE : eventEnd;
-
-      const topMinutes = differenceInMinutes(clampedStart, dayS);
-      const durationMinutes = differenceInMinutes(clampedEnd, clampedStart);
-
-      const top = (topMinutes / 60) * hourHeight;
-      const height = Math.max((durationMinutes / 60) * hourHeight, 20);
-
-      return { top: `${top}px`, height: `${height}px` };
-    },
-    [selectedDate, hourHeight],
+  const eventLayouts = useMemo(
+    () => computeEventLayouts(timedEvents, selectedDate, hourHeight),
+    [timedEvents, selectedDate, hourHeight],
   );
 
   const handleTimeSlotClick = useCallback(
@@ -247,24 +231,27 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
           ))}
 
           {/* 30-minute dividers */}
-          {hours.map((hour) => (
+          {hours.map((hour, idx) => (
             <div
               key={`half-${hour.toISOString()}`}
               className="absolute left-0 right-0 border-b border-dashed border-[var(--border)]/30 pointer-events-none"
-              style={{ top: `${(hours.indexOf(hour)) * hourHeight + hourHeight / 2}px` }}
+              style={{ top: `${idx * hourHeight + hourHeight / 2}px` }}
             />
           ))}
 
           {/* Timed events */}
           {timedEvents.map((event) => {
-            const pos = getEventPosition(event);
+            const layout = eventLayouts.get(event.id);
+            if (!layout) return null;
             return (
               <CalendarEventBlock
                 key={event.id}
                 event={event}
                 positioned
-                top={pos.top}
-                height={pos.height}
+                top={`${layout.top}px`}
+                height={`${layout.height}px`}
+                column={layout.column}
+                totalColumns={layout.totalColumns}
                 onClick={onSelectEvent}
               />
             );

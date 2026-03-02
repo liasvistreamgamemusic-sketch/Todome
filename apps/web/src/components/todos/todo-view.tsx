@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { clsx } from 'clsx';
 import {
   List,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useTodoStore } from '@todome/store/src/todo-store';
 import type { TodoViewMode, TodoSortBy, TodoGroupBy } from '@todome/store/src/todo-store';
+import { useIsMobile } from '@todome/hooks';
 import { TodoQuickAdd } from './todo-quick-add';
 import { TodoList } from './todo-list';
 import { TodoBoard } from './todo-board';
@@ -65,16 +66,27 @@ export const TodoView = () => {
   const toggleShowCompleted = useTodoStore((s) => s.toggleShowCompleted);
   const selectedTodoId = useTodoStore((s) => s.selectedTodoId);
 
+  const isMobile = useIsMobile();
+  const hasUserChangedView = useRef(false);
+
   const [showFilters, setShowFilters] = useState(false);
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showGroupMenu, setShowGroupMenu] = useState(false);
 
   const handleViewModeChange = useCallback(
     (mode: TodoViewMode) => {
+      hasUserChangedView.current = true;
       setViewMode(mode);
     },
     [setViewMode],
   );
+
+  // Set desktop default to board view on mount
+  useEffect(() => {
+    if (!isMobile && !hasUserChangedView.current) {
+      setViewMode('board');
+    }
+  }, [isMobile, setViewMode]);
 
   const handleSortChange = useCallback(
     (sort: TodoSortBy) => {

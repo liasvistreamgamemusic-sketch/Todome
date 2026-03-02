@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { format, parseISO, addHours, addMinutes } from 'date-fns';
 import {
@@ -11,6 +11,7 @@ import {
   Repeat,
   Link2,
   Palette,
+  FileText,
 } from 'lucide-react';
 import type { CalendarEvent } from '@todome/db';
 import { useCalendarStore } from '@todome/store';
@@ -25,6 +26,7 @@ import {
   useUpdateCalendarEvent,
   useDeleteCalendarEvent,
   useTodos,
+  useNotes,
   useUserId,
 } from '@/hooks/queries';
 
@@ -85,6 +87,7 @@ type FormState = {
   repeatCount: number;
   repeatUntil: string;
   linkedTodoIds: string[];
+  linkedNoteIds: string[];
 };
 
 const computeRemindAt = (
@@ -106,6 +109,7 @@ const computeRemindAt = (
 export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
   const { data: events } = useCalendarEvents();
   const { data: todos } = useTodos();
+  const { data: notes } = useNotes();
   const createCalendarEvent = useCreateCalendarEvent();
   const updateCalendarEvent = useUpdateCalendarEvent();
   const deleteCalendarEvent = useDeleteCalendarEvent();
@@ -144,6 +148,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
         repeatCount: 10,
         repeatUntil: format(addHours(new Date(), 24 * 365), 'yyyy-MM-dd'),
         linkedTodoIds: existingEvent.todo_ids,
+        linkedNoteIds: existingEvent.note_ids ?? [],
       };
     }
     return {
@@ -164,14 +169,48 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
       repeatCount: 10,
       repeatUntil: format(addHours(new Date(), 24 * 365), 'yyyy-MM-dd'),
       linkedTodoIds: [],
+      linkedNoteIds: [],
     };
   });
 
+  // Sync form when existingEvent becomes available (TanStack Query data may load after mount)
+  useEffect(() => {
+    if (!existingEvent) return;
+    const start = parseISO(existingEvent.start_at);
+    const end = parseISO(existingEvent.end_at);
+    setForm({
+      title: existingEvent.title,
+      startDate: format(start, 'yyyy-MM-dd'),
+      startTime: format(start, 'HH:mm'),
+      endDate: format(end, 'yyyy-MM-dd'),
+      endTime: format(end, 'HH:mm'),
+      isAllDay: existingEvent.is_all_day,
+      location: existingEvent.location ?? '',
+      description: existingEvent.description ?? '',
+      color: existingEvent.color,
+      reminder: null,
+      repeat: existingEvent.repeat_rule ? 'custom' : 'none',
+      customWeekdays: [false, false, false, false, false, false, false],
+      customDayOfMonth: 1,
+      repeatEndType: 'never',
+      repeatCount: 10,
+      repeatUntil: format(addHours(new Date(), 24 * 365), 'yyyy-MM-dd'),
+      linkedTodoIds: existingEvent.todo_ids,
+      linkedNoteIds: existingEvent.note_ids ?? [],
+    });
+  }, [existingEvent]);
+
   const [showTodoSelector, setShowTodoSelector] = useState(false);
+  const [showNoteSelector, setShowNoteSelector] = useState(false);
 
   const availableTodos = useMemo(
     () => (todos ?? []).filter((t) => !t.is_deleted && t.status !== 'cancelled'),
     [todos],
+  );
+
+  const availableNotes = useMemo(
+    () => (notes ?? []).filter((n) => !n.is_deleted && !n.is_archived),
+    [notes],
   );
 
   const updateField = useCallback(
@@ -237,6 +276,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
           remind_at: remindAt,
           repeat_rule: repeatRule,
           todo_ids: form.linkedTodoIds,
+          note_ids: form.linkedNoteIds,
           updated_at: now,
         },
       });
@@ -256,6 +296,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
         repeat_rule: repeatRule,
         repeat_parent_id: null,
         todo_ids: form.linkedTodoIds,
+        note_ids: form.linkedNoteIds,
         is_deleted: false,
         created_at: now,
         updated_at: now,
@@ -292,6 +333,18 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
           ? prev.linkedTodoIds.filter((id) => id !== todoId)
           : [...prev.linkedTodoIds, todoId];
         return { ...prev, linkedTodoIds: linked };
+      });
+    },
+    [],
+  );
+
+  const toggleNote = useCallback(
+    (noteId: string) => {
+      setForm((prev) => {
+        const linked = prev.linkedNoteIds.includes(noteId)
+          ? prev.linkedNoteIds.filter((id) => id !== noteId)
+          : [...prev.linkedNoteIds, noteId];
+        return { ...prev, linkedNoteIds: linked };
       });
     },
     [],
@@ -610,6 +663,66 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
                       label={todo.title}
                       checked={form.linkedTodoIds.includes(todo.id)}
                       onChange={() => toggleTodo(todo.id)}
+                      wrapperClassName="py-0.5"
+                    />
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Related Notes */}
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-text-secondary">
+              <FileText className="mr-1 inline h-3.5 w-3.5" />
+              関連メモ
+            </label>
+            {form.linkedNoteIds.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {form.linkedNoteIds.map((id) => {
+                  const note = (notes ?? []).find((n) => n.id === id);
+                  return (
+                    <span
+                      key={id}
+                      className="inline-flex items-center gap-1 rounded-full bg-bg-tertiary px-2 py-0.5 text-xs text-text-secondary"
+                    >
+                      {note?.title ?? id}
+                      <button
+                        type="button"
+                        onClick={() => toggleNote(id)}
+                        className="hover:text-text-primary transition"
+                        aria-label="削除"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowNoteSelector((prev) => !prev)}
+              className={clsx(
+                'text-xs text-[var(--accent)] hover:underline',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
+              )}
+            >
+              {showNoteSelector ? '閉じる' : 'メモを選択'}
+            </button>
+            {showNoteSelector && (
+              <div className="max-h-40 overflow-y-auto rounded-lg border border-[var(--border)] p-2 space-y-1">
+                {availableNotes.length === 0 ? (
+                  <p className="text-xs text-text-tertiary py-2 text-center">
+                    メモがありません
+                  </p>
+                ) : (
+                  availableNotes.map((note) => (
+                    <Checkbox
+                      key={note.id}
+                      label={note.title || '無題'}
+                      checked={form.linkedNoteIds.includes(note.id)}
+                      onChange={() => toggleNote(note.id)}
                       wrapperClassName="py-0.5"
                     />
                   ))

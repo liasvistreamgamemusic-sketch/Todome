@@ -95,6 +95,7 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
         repeat_rule: null,
         repeat_parent_id: null,
         todo_ids: [],
+        note_ids: [],
         is_deleted: false,
         created_at: now,
         updated_at: now,

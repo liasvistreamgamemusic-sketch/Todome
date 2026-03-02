@@ -13,7 +13,6 @@ import {
   isToday,
   format,
   parseISO,
-  differenceInMinutes,
   addHours,
   setHours,
   setMinutes,
@@ -26,6 +25,7 @@ import { useIsMobile } from '@todome/hooks';
 import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
+import { computeEventLayouts } from '@/lib/event-layout';
 
 type Props = {
   onCreateEvent: (date: Date) => void;
@@ -168,26 +168,23 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
     return () => clearInterval(timer);
   }, [hourHeight]);
 
-  const getEventPosition = useCallback(
-    (event: CalendarEvent, day: Date) => {
-      const eventStart = parseISO(event.start_at);
-      const eventEnd = parseISO(event.end_at);
-      const dayS = startOfDay(day);
-      const dayE = endOfDay(day);
+  // Pre-compute overlap layouts for each day (desktop)
+  const dayLayouts = useMemo(() => {
+    if (isMobile) return new Map<string, Map<string, import('@/lib/event-layout').EventLayout>>();
+    const map = new Map<string, Map<string, import('@/lib/event-layout').EventLayout>>();
+    for (const day of weekDays) {
+      const dateKey = format(day, 'yyyy-MM-dd');
+      const dayTimed = timedEvents.get(dateKey) ?? [];
+      map.set(dateKey, computeEventLayouts(dayTimed, day, hourHeight));
+    }
+    return map;
+  }, [isMobile, weekDays, timedEvents, hourHeight]);
 
-      const clampedStart = eventStart < dayS ? dayS : eventStart;
-      const clampedEnd = eventEnd > dayE ? dayE : eventEnd;
-
-      const topMinutes = differenceInMinutes(clampedStart, dayS);
-      const durationMinutes = differenceInMinutes(clampedEnd, clampedStart);
-
-      const top = (topMinutes / 60) * hourHeight;
-      const height = Math.max((durationMinutes / 60) * hourHeight, 20);
-
-      return { top: `${top}px`, height: `${height}px` };
-    },
-    [hourHeight],
-  );
+  // Mobile: layout for selected day
+  const mobileDayLayout = useMemo(() => {
+    if (!isMobile) return new Map<string, import('@/lib/event-layout').EventLayout>();
+    return computeEventLayouts(selectedDayTimed, selectedDate, hourHeight);
+  }, [isMobile, selectedDayTimed, selectedDate, hourHeight]);
 
   const handleTimeSlotClick = useCallback(
     (day: Date, hour: number) => {
@@ -305,14 +302,17 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
 
             {/* Timed events */}
             {selectedDayTimed.map((event) => {
-              const pos = getEventPosition(event, selectedDate);
+              const layout = mobileDayLayout.get(event.id);
+              if (!layout) return null;
               return (
                 <CalendarEventBlock
                   key={event.id}
                   event={event}
                   positioned
-                  top={pos.top}
-                  height={pos.height}
+                  top={`${layout.top}px`}
+                  height={`${layout.height}px`}
+                  column={layout.column}
+                  totalColumns={layout.totalColumns}
                   onClick={onSelectEvent}
                 />
               );
@@ -437,7 +437,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
           {hours.map((hour) => (
             <div
               key={hour.toISOString()}
-              className="flex h-[60px] items-start justify-end pr-2 pt-[-6px]"
+              className="flex items-start justify-end pr-2"
               style={{ height: `${hourHeight}px` }}
             >
               <span className="text-[10px] text-text-tertiary -translate-y-2">
@@ -477,14 +477,17 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                 ))}
 
                 {dayTimed.map((event) => {
-                  const pos = getEventPosition(event, day);
+                  const layout = dayLayouts.get(dateKey)?.get(event.id);
+                  if (!layout) return null;
                   return (
                     <CalendarEventBlock
                       key={event.id}
                       event={event}
                       positioned
-                      top={pos.top}
-                      height={pos.height}
+                      top={`${layout.top}px`}
+                      height={`${layout.height}px`}
+                      column={layout.column}
+                      totalColumns={layout.totalColumns}
                       onClick={onSelectEvent}
                     />
                   );

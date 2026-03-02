@@ -4,13 +4,13 @@ import React, { useCallback } from 'react';
 import { clsx } from 'clsx';
 import { Calendar } from 'lucide-react';
 import { format, isPast, isToday } from 'date-fns';
+import { useDraggable } from '@dnd-kit/core';
 import { Badge } from '@todome/ui/src/badge';
 import type { Todo } from '@todome/store/src/types';
 
 type Props = {
   todo: Todo;
   onSelect: (id: string) => void;
-  onDragStart: (e: React.DragEvent, todoId: string) => void;
 };
 
 const PRIORITY_BAR_COLORS: Record<number, string> = {
@@ -31,19 +31,20 @@ const getDueDateDisplay = (
   return { label: format(date, 'M/d'), style: 'text-text-tertiary' };
 };
 
-const TodoBoardCardInner = ({ todo, onSelect, onDragStart }: Props) => {
+const TodoBoardCardInner = ({ todo, onSelect }: Props) => {
   const dueInfo = getDueDateDisplay(todo.due_date);
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: todo.id,
+  });
+
+  const style = transform
+    ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+    : undefined;
 
   const handleClick = useCallback(() => {
     onSelect(todo.id);
   }, [onSelect, todo.id]);
-
-  const handleDragStart = useCallback(
-    (e: React.DragEvent) => {
-      onDragStart(e, todo.id);
-    },
-    [onDragStart, todo.id],
-  );
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -57,37 +58,37 @@ const TodoBoardCardInner = ({ todo, onSelect, onDragStart }: Props) => {
 
   return (
     <div
-      draggable
-      onDragStart={handleDragStart}
+      ref={setNodeRef}
+      style={style}
+      {...listeners}
+      {...attributes}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       role="button"
       tabIndex={0}
       className={clsx(
-        'relative flex overflow-hidden rounded-lg border border-[var(--border)]',
+        'overflow-hidden rounded-lg border border-[var(--border)]',
         'bg-bg-primary hover:bg-bg-secondary',
         'cursor-grab active:cursor-grabbing',
         'transition-colors duration-150',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
+        isDragging && 'opacity-50',
       )}
     >
-      <span
-        className={clsx(
-          'w-1 flex-shrink-0',
-          PRIORITY_BAR_COLORS[todo.priority],
-        )}
-      />
-      <div className="flex-1 p-3 min-w-0">
-        <p
-          className={clsx(
-            'text-sm font-medium truncate',
-            todo.status === 'completed' || todo.status === 'cancelled'
-              ? 'line-through text-text-tertiary'
-              : 'text-text-primary',
-          )}
-        >
-          {todo.title}
-        </p>
+      <div className="p-3 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className={clsx('h-2 w-2 rounded-full flex-shrink-0', PRIORITY_BAR_COLORS[todo.priority])} />
+          <p
+            className={clsx(
+              'text-sm font-medium truncate',
+              todo.status === 'completed' || todo.status === 'cancelled'
+                ? 'line-through text-text-tertiary'
+                : 'text-text-primary',
+            )}
+          >
+            {todo.title}
+          </p>
+        </div>
 
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           {dueInfo && (

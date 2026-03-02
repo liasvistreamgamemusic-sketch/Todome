@@ -216,6 +216,7 @@ export const CalendarView = () => {
       {/* Event detail modal */}
       {showEventDetail && (
         <EventDetail
+          key={editEventId ?? 'new'}
           eventId={editEventId}
           initialDate={eventDetailInitialDate}
           onClose={handleCloseEventDetail}
