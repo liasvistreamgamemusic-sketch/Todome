@@ -167,12 +167,20 @@ export const SubscriptionManager = () => {
               <span className="text-sm font-medium text-text-primary truncate">
                 {sub.name}
               </span>
+              <span className="text-[10px] text-text-tertiary truncate" title={sub.url}>
+                {sub.url}
+              </span>
               <span className="text-[10px] text-text-tertiary truncate">
                 {sub.last_synced_at
                   ? `最終同期: ${new Date(sub.last_synced_at).toLocaleString('ja-JP')}`
                   : '未同期'}
                 {status === 'syncing' && ' (同期中...)'}
               </span>
+              {sub.provider === 'outlook' && (
+                <span className="text-[10px] text-amber-600 dark:text-amber-400">
+                  Outlookの共有設定により予定名が非表示の場合があります
+                </span>
+              )}
               {sub.error_message && (
                 <span className="flex items-center gap-1 text-[10px] text-[#D32F2F]">
                   <AlertCircle className="h-3 w-3" />

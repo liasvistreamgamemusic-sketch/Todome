@@ -187,6 +187,21 @@ export function detectProvider(url: string): CalendarProvider {
   }
 }
 
+/** Known Outlook privacy-placeholder summaries. */
+const OUTLOOK_PLACEHOLDER_TITLES = new Set([
+  '仮の予定',
+  '空き時間',
+  '予定あり',
+  'Tentative',
+  'Free',
+  'Busy',
+]);
+
+/** Check whether a title is an Outlook free/busy placeholder. */
+export function isOutlookPlaceholderTitle(title: string): boolean {
+  return OUTLOOK_PLACEHOLDER_TITLES.has(title.trim());
+}
+
 /**
  * Infer subscription name from ICS data or URL.
  */

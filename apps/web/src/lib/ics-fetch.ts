@@ -3,9 +3,18 @@ export type IcsFetchResult = {
   etag: string | null;
 } | null; // null = 304 Not Modified
 
+const FETCH_TIMEOUT = 15_000; // 15s – matches server proxy
+
 /** Normalize webcal:// (common in Outlook) to https:// */
 function normalizeIcsUrl(url: string): string {
   return url.replace(/^webcal:\/\//i, 'https://');
+}
+
+/** Detect Tauri desktop via __TAURI_INTERNALS__ (used by cors-fetch plugin). */
+function isTauriEnv(): boolean {
+  return (
+    typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+  );
 }
 
 export async function fetchIcs(
@@ -13,10 +22,8 @@ export async function fetchIcs(
   etag: string | null,
 ): Promise<IcsFetchResult> {
   const normalizedUrl = normalizeIcsUrl(url);
-  const isTauri =
-    typeof window !== 'undefined' && '__TAURI__' in window;
 
-  if (isTauri) {
+  if (isTauriEnv()) {
     return fetchIcsTauri(normalizedUrl, etag);
   }
 
@@ -50,17 +57,47 @@ async function fetchIcsTauri(
   url: string,
   etag: string | null,
 ): Promise<IcsFetchResult> {
-  // Tauri desktop has no CORS restrictions, so use native fetch directly
   const headers: Record<string, string> = {
     'User-Agent': 'Todome/1.0 (Calendar Subscription)',
     Accept: 'text/calendar, text/plain;q=0.9, */*;q=0.1',
   };
   if (etag) headers['If-None-Match'] = etag;
 
-  const response = await fetch(url, { headers });
-  if (response.status === 304) return null;
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
-  const body = await response.text();
-  return { body, etag: response.headers.get('etag') };
+  try {
+    const response = await fetch(url, {
+      headers,
+      signal: controller.signal,
+      redirect: 'follow',
+    });
+
+    clearTimeout(timeout);
+
+    if (response.status === 304) return null;
+    if (!response.ok) {
+      throw new Error(
+        `カレンダーサーバーがエラーを返しました (HTTP ${response.status})`,
+      );
+    }
+
+    const body = await response.text();
+    return { body, etag: response.headers.get('etag') };
+  } catch (err) {
+    clearTimeout(timeout);
+
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      throw new Error('カレンダーの取得がタイムアウトしました');
+    }
+    if (
+      err instanceof Error &&
+      err.message.startsWith('カレンダー')
+    ) {
+      throw err;
+    }
+
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(`カレンダーの取得に失敗しました: ${detail}`);
+  }
 }
