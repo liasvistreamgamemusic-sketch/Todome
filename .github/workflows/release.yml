@@ -61,10 +61,11 @@ jobs:
           echo "tag=v$VERSION" >> $GITHUB_OUTPUT
 
   # ─────────────────────────────────────────────────────────────────────────────
-  # Job 2: Build Tauri for macOS
+  # Job 2: Build Tauri for macOS (disabled — requires Apple Developer certificate)
   # ─────────────────────────────────────────────────────────────────────────────
   build-macos:
     name: Build Desktop (macOS)
+    if: false # Disabled: Apple code signing required for macOS auto-updater
     runs-on: macos-latest
     needs: [version]
     steps:
@@ -223,18 +224,12 @@ jobs:
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [version, build-macos, build-windows]
+    needs: [version, build-windows]
     permissions:
       contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-artifacts
-          path: artifacts/macos
 
       - name: Download Windows artifacts
         uses: actions/download-artifact@v4
@@ -247,10 +242,8 @@ jobs:
           echo "=== Before flatten ==="
           find artifacts -type f
 
-          # Flatten nested subdirectories into artifacts/macos/ and artifacts/windows/
-          find artifacts/macos -mindepth 2 -type f -exec mv {} artifacts/macos/ \;
+          # Flatten nested subdirectories
           find artifacts/windows -mindepth 2 -type f -exec mv {} artifacts/windows/ \;
-          find artifacts/macos -mindepth 1 -type d -empty -delete 2>/dev/null || true
           find artifacts/windows -mindepth 1 -type d -empty -delete 2>/dev/null || true
 
           echo "=== After flatten ==="
@@ -264,17 +257,8 @@ jobs:
           REPO="${{ github.repository }}"
           BASE_URL="https://github.com/$REPO/releases/download/$TAG"
 
-          MAC_SIG=$(cat artifacts/macos/*.app.tar.gz.sig 2>/dev/null || echo "")
           WIN_SIG=$(cat artifacts/windows/*.exe.sig 2>/dev/null || cat artifacts/windows/*.msi.sig 2>/dev/null || echo "")
-
-          MAC_FILE=$(ls artifacts/macos/*.app.tar.gz 2>/dev/null | head -1 | xargs basename 2>/dev/null || echo "")
           WIN_FILE=$(ls artifacts/windows/*.exe 2>/dev/null | head -1 | xargs basename 2>/dev/null || ls artifacts/windows/*.msi 2>/dev/null | head -1 | xargs basename 2>/dev/null || echo "")
-
-          # Validate: macOS must have both signature and binary for updater to work
-          if [ -z "$MAC_SIG" ] || [ -z "$MAC_FILE" ]; then
-            echo "::error::macOS updater artifacts incomplete (sig='${MAC_SIG:0:20}...' file='$MAC_FILE'). Ensure TAURI_SIGNING_PRIVATE_KEY is set."
-            exit 1
-          fi
 
           cat > artifacts/latest.json << EOF
           {
@@ -282,10 +266,6 @@ jobs:
             "notes": "See https://github.com/$REPO/releases/tag/$TAG for details.",
             "pub_date": "$RELEASE_DATE",
             "platforms": {
-              "darwin-universal": {
-                "signature": "$MAC_SIG",
-                "url": "$BASE_URL/$MAC_FILE"
-              },
               "windows-x86_64": {
                 "signature": "$WIN_SIG",
                 "url": "$BASE_URL/$WIN_FILE"
@@ -306,15 +286,12 @@ jobs:
             ## Todome ${{ needs.version.outputs.version }}
 
             ### Downloads
-            - **macOS**: `.dmg` ファイルをダウンロード（Intel/Apple Silicon両対応ユニバーサルバイナリ）
             - **Windows**: `.exe` ファイルをダウンロード（NSISインストーラー）
+            - **Web**: https://todome.vercel.app からブラウザでも利用可能
 
             ### 自動更新
             既存インストール済みの場合、アプリ起動時に自動で更新通知が届きます。
           files: |
-            artifacts/macos/*.dmg
-            artifacts/macos/*.app.tar.gz
-            artifacts/macos/*.app.tar.gz.sig
             artifacts/windows/*.exe
             artifacts/windows/*.exe.sig
             artifacts/windows/*.msi
