@@ -48,8 +48,10 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const folderMenuRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevNoteIdRef = useRef<string>(noteId);
-  // Track the updated_at we last saved to detect remote changes
-  const lastSavedAtRef = useRef<string | null>(null);
+  // Track the updated_at we last wrote to distinguish our saves from remote changes
+  const lastLocalSaveAtRef = useRef<string | null>(null);
+  // Track the last updated_at we synced from to detect new remote versions
+  const lastSyncedAtRef = useRef<string | null>(null);
 
   // Check if a note is empty (no title and no content)
   const isNoteEmpty = useCallback((n: Note | null): boolean => {
@@ -70,32 +72,34 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
     [allNotes, isNoteEmpty, purgeNoteMutation],
   );
 
-  // Sync local state when noteId changes; purge previous note if empty
-  // Accept remote data only when switching notes or when remote is newer
+  // Sync local state when noteId changes or remote data arrives
   useEffect(() => {
     if (prevNoteIdRef.current !== noteId) {
       purgeAndPersist(prevNoteIdRef.current);
       prevNoteIdRef.current = noteId;
-      lastSavedAtRef.current = null;
+      lastLocalSaveAtRef.current = null;
+      lastSyncedAtRef.current = null;
     }
     if (!note) return;
 
-    const isNoteSwitch = lastSavedAtRef.current === null;
-    const remoteIsNewer =
-      lastSavedAtRef.current !== null &&
-      note.updated_at > lastSavedAtRef.current;
+    // Skip if we already synced this exact version
+    if (note.updated_at === lastSyncedAtRef.current) return;
 
-    if (isNoteSwitch || remoteIsNewer) {
-      // Cancel any pending local save — remote is authoritative
-      if (remoteIsNewer && saveTimerRef.current) {
-        clearTimeout(saveTimerRef.current);
-        saveTimerRef.current = null;
-      }
-      setTitle(note.title);
-      setTags(note.tags);
-      lastSavedAtRef.current = note.updated_at;
-      setSaveStatus('saved');
+    // Skip echo-back from our own save (our save timestamp matches)
+    if (note.updated_at === lastLocalSaveAtRef.current) {
+      lastSyncedAtRef.current = note.updated_at;
+      return;
     }
+
+    // Remote change or initial load — accept it
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    setTitle(note.title);
+    setTags(note.tags);
+    lastSyncedAtRef.current = note.updated_at;
+    setSaveStatus('saved');
   }, [noteId, note, purgeAndPersist]);
 
   // Purge on unmount (when navigating away from notes page)
@@ -130,7 +134,7 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
       saveTimerRef.current = setTimeout(() => {
         const now = new Date().toISOString();
         const fullPatch = { ...patch, updated_at: now };
-        lastSavedAtRef.current = now;
+        lastLocalSaveAtRef.current = now;
         updateNoteMutation.mutate(
           { id: noteId, patch: fullPatch },
           {
