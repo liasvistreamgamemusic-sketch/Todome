@@ -605,3 +605,59 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-02T05:48:47Z
+
+- session_id: `CFACC671-4FC3-4D1C-8FB7-BE14C2A619F8`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T05:25:40Z`
+- ended_at: `2026-03-02T05:48:47Z`
+- duration_minutes: 563
+- changes: 20
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/encapsulated-gathering-wirth.md`
+- `supabase/migrations/005_calendar_subscriptions.sql`
+- `packages/db/src/types.ts`
+- `packages/db/src/repository.ts`
+- `packages/db/src/index.ts`
+- `packages/store/src/subscription-store.ts`
+- `packages/store/src/types.ts`
+- `packages/store/src/index.ts`
+- `apps/web/src/hooks/queries/use-calendar-subscriptions.ts`
+- `apps/web/src/hooks/queries/keys.ts`
+- `apps/web/src/hooks/queries/use-realtime.ts`
+- `apps/web/src/hooks/queries/index.ts`
+- `apps/web/src/app/api/ics/route.ts`
+- `apps/web/src/lib/ics-fetch.ts`
+- `apps/web/src/lib/ics-parser.ts`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-02T09:05:53Z
+
+- session_id: `F25865FA-C718-40A4-9A64-8C37BA2B7146`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T08:58:20Z`
+- ended_at: `2026-03-02T09:05:53Z`
+- duration_minutes: 547
+- changes: 0
+
+### 変更ファイル
+- （なし）
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

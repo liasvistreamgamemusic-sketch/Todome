@@ -6,11 +6,13 @@ import { useState } from 'react';
 import { CommandPaletteProvider } from '@/components/command-palette/command-palette-provider';
 import { KeyboardShortcuts } from '@/components/shortcuts/keyboard-shortcuts';
 
-// Tauri: cors-fetch plugin proxies ALL fetch by default, which breaks Next.js
-// internal RSC flight requests. Restrict it to only proxy Supabase API calls.
+// Tauri: cors-fetch plugin proxies ALL https:// fetch by default, which breaks
+// Next.js internal navigation. Exclude Tauri's own origin (tauri.localhost and
+// localhost) so internal requests use native fetch, while external URLs
+// (Supabase API, ICS calendar feeds, etc.) are proxied through Rust's reqwest.
 if (typeof window !== 'undefined' && 'CORSFetch' in window) {
-  (window as unknown as { CORSFetch: { config: (opts: { include: RegExp[] }) => void } }).CORSFetch.config({
-    include: [/supabase\.co/],
+  (window as unknown as { CORSFetch: { config: (opts: { exclude: RegExp[] }) => void } }).CORSFetch.config({
+    exclude: [/tauri\.localhost/, /^https?:\/\/localhost[:/]/],
   });
 }
 

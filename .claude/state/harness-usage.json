@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-03-02T05:24:55.145Z",
+  "updatedAt": "2026-03-02T10:03:08.333Z",
   "skills": {
     "commit": {
       "count": 1,
@@ -23,16 +23,16 @@
   },
   "agents": {
     "general-purpose": {
-      "count": 46,
-      "lastUsed": "2026-03-02T05:16:25.281Z"
+      "count": 54,
+      "lastUsed": "2026-03-02T09:05:39.714Z"
     },
     "Explore": {
-      "count": 52,
-      "lastUsed": "2026-03-02T04:54:25.155Z"
+      "count": 60,
+      "lastUsed": "2026-03-02T10:01:22.978Z"
     },
     "Plan": {
-      "count": 7,
-      "lastUsed": "2026-03-02T04:57:53.001Z"
+      "count": 9,
+      "lastUsed": "2026-03-02T09:12:51.967Z"
     },
     "feature-dev:code-explorer": {
       "count": 2,
@@ -45,14 +45,14 @@
   },
   "hooks": {
     "session-init": {
-      "triggered": 37,
+      "triggered": 40,
       "blocked": 0,
-      "lastTriggered": "2026-03-02T05:24:42.150Z"
+      "lastTriggered": "2026-03-02T08:58:20.503Z"
     },
     "pretooluse-guard": {
-      "triggered": 189,
-      "blocked": 189,
-      "lastTriggered": "2026-03-02T05:07:08.701Z"
+      "triggered": 198,
+      "blocked": 198,
+      "lastTriggered": "2026-03-02T10:03:08.332Z"
     }
   }
 }
