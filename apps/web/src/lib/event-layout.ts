@@ -1,5 +1,11 @@
 import { parseISO, startOfDay, endOfDay, differenceInMinutes } from 'date-fns';
-import type { CalendarEvent } from '@todome/store';
+
+/** Minimal event shape required for layout computation. */
+export type LayoutEvent = {
+  id: string;
+  start_at: string;
+  end_at: string;
+};
 
 export type EventLayout = {
   top: number;
@@ -13,7 +19,7 @@ export type EventLayout = {
  * Uses a greedy column-packing algorithm (same approach as Google Calendar).
  */
 export function computeEventLayouts(
-  events: CalendarEvent[],
+  events: LayoutEvent[],
   day: Date,
   hourHeight: number,
 ): Map<string, EventLayout> {

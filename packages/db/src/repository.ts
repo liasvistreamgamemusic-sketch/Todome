@@ -10,6 +10,7 @@ import type {
   Folder,
   Todo,
   CalendarEvent,
+  CalendarSubscription,
   Diary,
 } from './types';
 
@@ -217,6 +218,52 @@ export async function updateDiary(
 export async function deleteDiary(id: string): Promise<void> {
   const { error } = await supabase
     .from('diaries')
+    .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Calendar Subscriptions
+// ---------------------------------------------------------------------------
+
+export async function loadCalendarSubscriptions(
+  userId: string,
+): Promise<CalendarSubscription[]> {
+  const { data, error } = await supabase
+    .from('calendar_subscriptions')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_deleted', false)
+    .order('created_at');
+
+  if (error) throw error;
+  return data as CalendarSubscription[];
+}
+
+export async function createCalendarSubscription(
+  sub: CalendarSubscription,
+): Promise<void> {
+  const { error } = await supabase
+    .from('calendar_subscriptions')
+    .insert(sub as never);
+  if (error) throw error;
+}
+
+export async function updateCalendarSubscription(
+  id: string,
+  patch: Partial<CalendarSubscription>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('calendar_subscriptions')
+    .update(patch as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteCalendarSubscription(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('calendar_subscriptions')
     .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
     .eq('id', id);
   if (error) throw error;

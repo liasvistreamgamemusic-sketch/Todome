@@ -3,16 +3,28 @@
 import { memo, useCallback } from 'react';
 import { clsx } from 'clsx';
 import { format, parseISO } from 'date-fns';
-import type { CalendarEvent } from '@todome/store';
+import type { CalendarProvider } from '@todome/db';
+import { ProviderIcon } from './provider-icon';
+
+type EventLike = {
+  id: string;
+  title: string;
+  start_at: string;
+  end_at: string;
+  is_all_day: boolean;
+  color: string | null;
+};
 
 type Props = {
-  event: CalendarEvent;
+  event: EventLike;
   height?: string;
   top?: string;
   positioned?: boolean;
   column?: number;
   totalColumns?: number;
-  onClick?: (event: CalendarEvent) => void;
+  onClick?: (event: EventLike) => void;
+  /** If external, show provider icon */
+  provider?: CalendarProvider;
 };
 
 const EVENT_COLORS: Record<string, { bg: string; border: string; text: string }> = {
@@ -41,6 +53,7 @@ export const CalendarEventBlock = memo(function CalendarEventBlock({
   column = 0,
   totalColumns = 1,
   onClick,
+  provider,
 }: Props) {
   const colorClasses = getColorClasses(event.color);
 
@@ -79,8 +92,9 @@ export const CalendarEventBlock = memo(function CalendarEventBlock({
         positioned ? ['absolute z-10 border', colorClasses.border] : 'w-full',
       )}
     >
-      <p className={clsx('truncate font-medium leading-tight', colorClasses.text)}>
-        {event.title}
+      <p className={clsx('truncate font-medium leading-tight flex items-center gap-1', colorClasses.text)}>
+        {provider && <ProviderIcon provider={provider} size={10} className="shrink-0" />}
+        <span className="truncate">{event.title}</span>
       </p>
       {startTime && endTime && (
         <p className={clsx('truncate text-[10px] leading-tight opacity-70', colorClasses.text)}>

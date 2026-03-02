@@ -19,6 +19,7 @@ import { clsx } from 'clsx';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
 import { exportToJSON, exportToMarkdown } from './export-data';
+import { SubscriptionManager } from './subscription-manager';
 
 type SettingsSectionProps = {
   title: string;
@@ -378,6 +379,7 @@ export const SettingsView = () => {
               options={WEEK_START_OPTIONS}
             />
           </SettingsRow>
+          <SubscriptionManager />
         </SettingsSection>
 
         {/* Data */}

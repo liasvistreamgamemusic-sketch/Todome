@@ -12,19 +12,33 @@ import {
   parseISO,
 } from 'date-fns';
 import { MapPin, Clock } from 'lucide-react';
-import { useCalendarStore } from '@todome/store';
+import { useCalendarStore, useSubscriptionStore } from '@todome/store';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import type { CalendarEvent, Todo } from '@todome/store';
+import type { CalendarProvider } from '@todome/db';
 import { useCalendarEvents, useTodos } from '@/hooks/queries';
 import { isHoliday } from '@/lib/japanese-holidays';
+import { ProviderIcon } from './provider-icon';
+
+/** Unified event shape for list view. */
+type MergedEvent = {
+  id: string;
+  title: string;
+  start_at: string;
+  end_at: string;
+  is_all_day: boolean;
+  color: string | null;
+  location?: string | null;
+  provider?: CalendarProvider;
+};
 
 type Props = {
-  onSelectEvent: (event: CalendarEvent) => void;
+  onSelectEvent: (event: { id: string }) => void;
 };
 
 type ListItem = {
   type: 'event';
-  event: CalendarEvent;
+  event: MergedEvent;
   sortKey: string;
 } | {
   type: 'todo';
@@ -38,6 +52,8 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 export const ListView = ({ onSelectEvent }: Props) => {
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
+  const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
+  const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
   const { data: allTodos = [] } = useTodos();
   const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
@@ -47,12 +63,22 @@ export const ListView = ({ onSelectEvent }: Props) => {
     const rangeStart = startOfDay(selectedDate);
     const rangeEnd = endOfDay(addDays(selectedDate, DAYS_AHEAD - 1));
 
-    const activeEvents = events.filter((e: CalendarEvent) => {
-      if (e.is_deleted) return false;
+    const activeLocal: MergedEvent[] = events
+      .filter((e: CalendarEvent) => {
+        if (e.is_deleted) return false;
+        const eventStart = parseISO(e.start_at);
+        const eventEnd = parseISO(e.end_at);
+        return eventStart <= rangeEnd && eventEnd >= rangeStart;
+      })
+      .map((e) => ({ ...e, provider: undefined }));
+
+    const activeExternal: MergedEvent[] = externalEvents.filter((e) => {
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
       return eventStart <= rangeEnd && eventEnd >= rangeStart;
     });
+
+    const allActiveEvents = [...activeLocal, ...activeExternal];
 
     const activeTodos = allTodos.filter(
       (t: Todo) =>
@@ -65,7 +91,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
     const groups = new Map<string, ListItem[]>();
 
     // Add events
-    for (const event of activeEvents) {
+    for (const event of allActiveEvents) {
       const dateKey = format(parseISO(event.start_at), 'yyyy-MM-dd');
       const items = groups.get(dateKey) ?? [];
       items.push({
@@ -105,7 +131,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
     );
 
     return sortedEntries;
-  }, [selectedDate, events, allTodos]);
+  }, [selectedDate, events, externalEvents, allTodos]);
 
   if (groupedItems.length === 0) {
     return (
@@ -185,8 +211,8 @@ const EventListItem = ({
   event,
   onClick,
 }: {
-  event: CalendarEvent;
-  onClick: (event: CalendarEvent) => void;
+  event: MergedEvent;
+  onClick: (event: { id: string }) => void;
 }) => {
   const timeText = event.is_all_day
     ? '終日'
@@ -210,7 +236,8 @@ const EventListItem = ({
         />
 
         <div className="flex flex-1 flex-col gap-0.5 min-w-0">
-          <span className="text-sm font-medium text-text-primary truncate">
+          <span className="text-sm font-medium text-text-primary truncate flex items-center gap-1">
+            {event.provider && <ProviderIcon provider={event.provider} size={12} className="shrink-0" />}
             {event.title}
           </span>
           <div className="flex items-center gap-3 text-xs text-text-secondary">

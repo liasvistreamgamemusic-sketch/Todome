@@ -17,9 +17,10 @@ import {
   setHours,
   setMinutes,
 } from 'date-fns';
-import { BookOpen, CheckSquare } from 'lucide-react';
-import { useCalendarStore, useUiStore } from '@todome/store';
+import { CheckSquare } from 'lucide-react';
+import { useCalendarStore, useUiStore, useSubscriptionStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
+import type { CalendarProvider } from '@todome/db';
 import { useCalendarEvents, useTodos } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { CalendarEventBlock } from './calendar-event-block';
@@ -27,9 +28,21 @@ import { isHoliday } from '@/lib/japanese-holidays';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { computeEventLayouts } from '@/lib/event-layout';
 
+/** Unified event shape for rendering both local and external events. */
+type MergedEvent = {
+  id: string;
+  title: string;
+  start_at: string;
+  end_at: string;
+  is_all_day: boolean;
+  color: string | null;
+  is_deleted?: boolean;
+  provider?: CalendarProvider;
+};
+
 type Props = {
   onCreateEvent: (date: Date) => void;
-  onSelectEvent: (event: CalendarEvent) => void;
+  onSelectEvent: (event: { id: string }) => void;
   onOpenDiary: (date: Date) => void;
 };
 
@@ -40,6 +53,8 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
   const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
+  const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
+  const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
   const { data: allTodos = [] } = useTodos();
@@ -65,17 +80,23 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
     });
   }, []);
 
-  const activeEvents = useMemo(
-    () => events.filter((e: CalendarEvent) => !e.is_deleted),
-    [events],
-  );
+  const activeEvents = useMemo<MergedEvent[]>(() => {
+    const local: MergedEvent[] = events
+      .filter((e: CalendarEvent) => !e.is_deleted)
+      .map((e) => ({ ...e, provider: undefined }));
+    const external: MergedEvent[] = externalEvents.map((e) => ({
+      ...e,
+      is_deleted: false,
+    }));
+    return [...local, ...external];
+  }, [events, externalEvents]);
 
   // For mobile: events for selected day only
   const selectedDayAllDay = useMemo(() => {
     if (!isMobile) return [];
     const dayS = startOfDay(selectedDate);
     const dayE = endOfDay(selectedDate);
-    return activeEvents.filter((e: CalendarEvent) => {
+    return activeEvents.filter((e) => {
       if (!e.is_all_day) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
@@ -87,7 +108,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
     if (!isMobile) return [];
     const dayS = startOfDay(selectedDate);
     const dayE = endOfDay(selectedDate);
-    return activeEvents.filter((e: CalendarEvent) => {
+    return activeEvents.filter((e) => {
       if (e.is_all_day) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
@@ -110,13 +131,13 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
 
   // For desktop: all-day events by day
   const allDayEvents = useMemo(() => {
-    if (isMobile) return new Map<string, CalendarEvent[]>();
-    const map = new Map<string, CalendarEvent[]>();
+    if (isMobile) return new Map<string, MergedEvent[]>();
+    const map = new Map<string, MergedEvent[]>();
     for (const day of weekDays) {
       const dateKey = format(day, 'yyyy-MM-dd');
       map.set(
         dateKey,
-        activeEvents.filter((e: CalendarEvent) => {
+        activeEvents.filter((e) => {
           if (!e.is_all_day) return false;
           const eventStart = parseISO(e.start_at);
           const eventEnd = parseISO(e.end_at);
@@ -129,15 +150,15 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
 
   // For desktop: timed events by day
   const timedEvents = useMemo(() => {
-    if (isMobile) return new Map<string, CalendarEvent[]>();
-    const map = new Map<string, CalendarEvent[]>();
+    if (isMobile) return new Map<string, MergedEvent[]>();
+    const map = new Map<string, MergedEvent[]>();
     for (const day of weekDays) {
       const dateKey = format(day, 'yyyy-MM-dd');
       const dayS = startOfDay(day);
       const dayE = endOfDay(day);
       map.set(
         dateKey,
-        activeEvents.filter((e: CalendarEvent) => {
+        activeEvents.filter((e) => {
           if (e.is_all_day) return false;
           const eventStart = parseISO(e.start_at);
           const eventEnd = parseISO(e.end_at);
@@ -253,7 +274,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
             <span className="shrink-0 pt-1 text-[10px] text-text-tertiary">終日</span>
             <div className="flex flex-1 flex-wrap gap-1">
               {selectedDayAllDay.map((event) => (
-                <CalendarEventBlock key={event.id} event={event} onClick={onSelectEvent} />
+                <CalendarEventBlock key={event.id} event={event} onClick={onSelectEvent} provider={event.provider} />
               ))}
             </div>
           </div>
@@ -314,6 +335,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                   column={layout.column}
                   totalColumns={layout.totalColumns}
                   onClick={onSelectEvent}
+                  provider={event.provider}
                 />
               );
             })}
@@ -423,7 +445,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                 className="flex flex-col gap-px border-r border-[var(--border)] p-0.5 min-h-[28px]"
               >
                 {dayAllDay.map((event) => (
-                  <CalendarEventBlock key={event.id} event={event} onClick={onSelectEvent} />
+                  <CalendarEventBlock key={event.id} event={event} onClick={onSelectEvent} provider={event.provider} />
                 ))}
               </div>
             );
@@ -489,6 +511,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                       column={layout.column}
                       totalColumns={layout.totalColumns}
                       onClick={onSelectEvent}
+                      provider={event.provider}
                     />
                   );
                 })}

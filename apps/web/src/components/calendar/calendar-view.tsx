@@ -8,17 +8,19 @@ import {
   ChevronLeft,
   ChevronRight,
   Plus,
-  Calendar as CalendarIcon,
 } from 'lucide-react';
-import { useCalendarStore } from '@todome/store';
-import type { CalendarViewMode, CalendarEvent } from '@todome/store';
+import { useCalendarStore, useSubscriptionStore } from '@todome/store';
+import type { CalendarViewMode } from '@todome/store';
+import type { ExternalCalendarEvent, CalendarSubscription } from '@todome/db';
 import { Button } from '@todome/ui';
 import { IconButton } from '@todome/ui';
+import { useCalendarSubscriptions } from '@/hooks/queries';
 import { MonthView } from './month-view';
 import { WeekView } from './week-view';
 import { DayView } from './day-view';
 import { ListView } from './list-view';
 import { EventDetail } from './event-detail';
+import { ExternalEventDetail } from './external-event-detail';
 
 const VIEW_MODE_LABELS: Record<CalendarViewMode, string> = {
   month: '月',
@@ -35,7 +37,6 @@ export const CalendarView = () => {
   const setViewMode = useCalendarStore((s) => s.setViewMode);
   const selectDate = useCalendarStore((s) => s.selectDate);
   const selectEvent = useCalendarStore((s) => s.selectEvent);
-  const selectedEventId = useCalendarStore((s) => s.selectedEventId);
   const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
   const navigateWeekPrev = useCalendarStore((s) => s.navigateWeekPrev);
@@ -46,6 +47,11 @@ export const CalendarView = () => {
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [eventDetailInitialDate, setEventDetailInitialDate] = useState<Date | undefined>(undefined);
   const [editEventId, setEditEventId] = useState<string | null>(null);
+  const [externalEvent, setExternalEvent] = useState<ExternalCalendarEvent | null>(null);
+  const [externalEventSub, setExternalEventSub] = useState<CalendarSubscription | undefined>(undefined);
+
+  const allExternalEvents = useSubscriptionStore((s) => s.allExternalEvents);
+  const { data: subscriptions = [] } = useCalendarSubscriptions();
 
   const effectiveViewMode = viewMode;
 
@@ -77,12 +83,21 @@ export const CalendarView = () => {
     setShowEventDetail(true);
   }, []);
 
-  const handleSelectEvent = useCallback((event: CalendarEvent) => {
+  const handleSelectEvent = useCallback((event: { id: string }) => {
+    // Check if this is an external event
+    const external = allExternalEvents().find((e) => e.id === event.id);
+    if (external) {
+      const sub = subscriptions.find((s) => s.id === external.subscription_id);
+      setExternalEvent(external);
+      setExternalEventSub(sub ?? undefined);
+      return;
+    }
+    // Local event
     setEditEventId(event.id);
     setEventDetailInitialDate(undefined);
     setShowEventDetail(true);
     selectEvent(event.id);
-  }, [selectEvent]);
+  }, [selectEvent, allExternalEvents, subscriptions]);
 
   const handleCloseEventDetail = useCallback(() => {
     setShowEventDetail(false);
@@ -220,6 +235,17 @@ export const CalendarView = () => {
         />
       )}
 
+      {/* External event detail modal */}
+      {externalEvent && (
+        <ExternalEventDetail
+          event={externalEvent}
+          subscription={externalEventSub}
+          onClose={() => {
+            setExternalEvent(null);
+            setExternalEventSub(undefined);
+          }}
+        />
+      )}
     </div>
   );
 };

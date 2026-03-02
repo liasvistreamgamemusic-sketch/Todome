@@ -14,4 +14,7 @@ export const queryKeys = {
   diaries: {
     all: (userId: string) => ['diaries', userId] as const,
   },
+  calendarSubscriptions: {
+    all: (userId: string) => ['calendarSubscriptions', userId] as const,
+  },
 } as const;

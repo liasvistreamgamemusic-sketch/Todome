@@ -14,8 +14,9 @@ import {
   setMinutes,
 } from 'date-fns';
 import { BookOpen, CheckSquare } from 'lucide-react';
-import { useCalendarStore } from '@todome/store';
+import { useCalendarStore, useSubscriptionStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
+import type { CalendarProvider } from '@todome/db';
 import { useCalendarEvents, useTodos } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
@@ -23,9 +24,22 @@ import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
 import { computeEventLayouts } from '@/lib/event-layout';
 
+/** Unified event shape for rendering both local and external events. */
+type MergedEvent = {
+  id: string;
+  title: string;
+  start_at: string;
+  end_at: string;
+  is_all_day: boolean;
+  color: string | null;
+  is_deleted?: boolean;
+  location?: string | null;
+  provider?: CalendarProvider;
+};
+
 type Props = {
   onCreateEvent: (date: Date) => void;
-  onSelectEvent: (event: CalendarEvent) => void;
+  onSelectEvent: (event: { id: string }) => void;
   onOpenDiary: (date: Date) => void;
 };
 
@@ -37,6 +51,8 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   const hourHeight = isMobile ? 48 : 60;
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
+  const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
+  const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
   const { data: allTodos = [] } = useTodos();
   const selectDate = useCalendarStore((s) => s.selectDate);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -53,15 +69,21 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
     });
   }, []);
 
-  const activeEvents = useMemo(
-    () => events.filter((e: CalendarEvent) => !e.is_deleted),
-    [events],
-  );
+  const activeEvents = useMemo<MergedEvent[]>(() => {
+    const local: MergedEvent[] = events
+      .filter((e: CalendarEvent) => !e.is_deleted)
+      .map((e) => ({ ...e, provider: undefined }));
+    const external: MergedEvent[] = externalEvents.map((e) => ({
+      ...e,
+      is_deleted: false,
+    }));
+    return [...local, ...external];
+  }, [events, externalEvents]);
 
   const allDayEvents = useMemo(() => {
     const dayS = startOfDay(selectedDate);
     const dayE = endOfDay(selectedDate);
-    return activeEvents.filter((e: CalendarEvent) => {
+    return activeEvents.filter((e) => {
       if (!e.is_all_day) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
@@ -72,7 +94,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   const timedEvents = useMemo(() => {
     const dayS = startOfDay(selectedDate);
     const dayE = endOfDay(selectedDate);
-    return activeEvents.filter((e: CalendarEvent) => {
+    return activeEvents.filter((e) => {
       if (e.is_all_day) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
@@ -189,6 +211,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
                 key={event.id}
                 event={event}
                 onClick={onSelectEvent}
+                provider={event.provider}
               />
             ))}
           </div>
@@ -253,6 +276,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
                 column={layout.column}
                 totalColumns={layout.totalColumns}
                 onClick={onSelectEvent}
+                provider={event.provider}
               />
             );
           })}

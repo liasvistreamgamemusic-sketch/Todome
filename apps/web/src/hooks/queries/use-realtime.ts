@@ -92,6 +92,20 @@ export function useRealtimeSync(): void {
           });
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'calendar_subscriptions',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          queryClient.refetchQueries({
+            queryKey: queryKeys.calendarSubscriptions.all(userId),
+          });
+        },
+      )
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           console.debug('[realtime] subscribed to db-changes');

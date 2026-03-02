@@ -15,16 +15,30 @@ import {
   format,
   parseISO,
 } from 'date-fns';
-import { useCalendarStore, useUiStore } from '@todome/store';
+import { useCalendarStore, useUiStore, useSubscriptionStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
+import type { CalendarProvider } from '@todome/db';
 import { useCalendarEvents, useTodos } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { isHoliday } from '@/lib/japanese-holidays';
+import { ProviderIcon } from './provider-icon';
+
+/** Unified event shape for rendering both local and external events. */
+type MergedEvent = {
+  id: string;
+  title: string;
+  start_at: string;
+  end_at: string;
+  is_all_day: boolean;
+  color: string | null;
+  is_deleted?: boolean;
+  provider?: CalendarProvider;
+};
 
 type Props = {
   onCreateEvent: (date: Date) => void;
-  onSelectEvent: (event: CalendarEvent) => void;
+  onSelectEvent: (event: { id: string }) => void;
 };
 
 const DAY_LABELS_SUN: string[] = ['日', '月', '火', '水', '木', '金', '土'];
@@ -34,6 +48,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
   const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
+  const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
+  const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
   const { data: allTodos = [] } = useTodos();
@@ -54,10 +70,17 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
   }, [selectedDate, weekStart]);
 
   const eventsByDate = useMemo(() => {
-    const map = new Map<string, CalendarEvent[]>();
-    const activeEvents = events.filter((e: CalendarEvent) => !e.is_deleted);
+    const map = new Map<string, MergedEvent[]>();
+    const activeLocal: MergedEvent[] = events
+      .filter((e: CalendarEvent) => !e.is_deleted)
+      .map((e) => ({ ...e, provider: undefined }));
+    const activeExternal: MergedEvent[] = externalEvents.map((e) => ({
+      ...e,
+      is_deleted: false,
+    }));
+    const allEvents = [...activeLocal, ...activeExternal];
 
-    for (const event of activeEvents) {
+    for (const event of allEvents) {
       const dateKey = format(parseISO(event.start_at), 'yyyy-MM-dd');
       const existing = map.get(dateKey);
       if (existing) {
@@ -67,7 +90,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
       }
     }
     return map;
-  }, [events]);
+  }, [events, externalEvents]);
 
   const todosWithDueDate = useMemo(() => {
     const map = new Map<string, number>();
@@ -205,15 +228,19 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
                     className={clsx(
                       'truncate rounded px-1 py-px text-[10px] leading-tight',
                       'cursor-pointer hover:opacity-80 transition-opacity',
+                      'flex items-center gap-0.5',
                     )}
                     style={{
                       backgroundColor: `${event.color ?? 'var(--accent)'}20`,
                       color: event.color ?? 'var(--accent)',
                     }}
                   >
-                    {event.is_all_day
-                      ? event.title
-                      : `${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}
+                    {event.provider && <ProviderIcon provider={event.provider} size={8} className="shrink-0" />}
+                    <span className="truncate">
+                      {event.is_all_day
+                        ? event.title
+                        : `${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}
+                    </span>
                   </div>
                 ))}
                 {overflowCount > 0 && (

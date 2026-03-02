@@ -249,6 +249,70 @@ export interface UpdateCalendarEventInput {
 }
 
 // ---------------------------------------------------------------------------
+// Calendar Subscription (ICS/iCal)
+// ---------------------------------------------------------------------------
+
+export const CALENDAR_PROVIDERS = ['google', 'outlook', 'apple', 'other'] as const;
+export type CalendarProvider = (typeof CALENDAR_PROVIDERS)[number];
+
+export interface CalendarSubscription {
+  id: string;
+  user_id: string;
+  name: string;
+  url: string;
+  color: string;
+  provider: CalendarProvider;
+  is_enabled: boolean;
+  last_synced_at: string | null;
+  etag: string | null;
+  error_message: string | null;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateCalendarSubscriptionInput {
+  name: string;
+  url: string;
+  color?: string;
+  provider?: CalendarProvider;
+  is_enabled?: boolean;
+}
+
+export interface UpdateCalendarSubscriptionInput {
+  name?: string;
+  url?: string;
+  color?: string;
+  provider?: CalendarProvider;
+  is_enabled?: boolean;
+  last_synced_at?: string | null;
+  etag?: string | null;
+  error_message?: string | null;
+  is_deleted?: boolean;
+}
+
+/** Read-only event parsed from an ICS subscription (client-side only). */
+export interface ExternalCalendarEvent {
+  /** Deterministic ID: `${subscriptionId}:${ics_uid}` */
+  id: string;
+  subscription_id: string;
+  title: string;
+  description: string | null;
+  start_at: string;
+  end_at: string;
+  is_all_day: boolean;
+  location: string | null;
+  color: string;
+  provider: CalendarProvider;
+  ics_uid: string;
+}
+
+/** Discriminated union for rendering both local and external events. */
+export type DisplayEvent =
+  | { source: 'local'; event: CalendarEvent }
+  | { source: 'external'; event: ExternalCalendarEvent };
+
+// ---------------------------------------------------------------------------
 // Diary
 // ---------------------------------------------------------------------------
 

@@ -34,4 +34,11 @@ export {
   useDeleteDiary,
 } from './use-diaries';
 
+export {
+  useCalendarSubscriptions,
+  useCreateCalendarSubscription,
+  useUpdateCalendarSubscription,
+  useDeleteCalendarSubscription,
+} from './use-calendar-subscriptions';
+
 export { useRealtimeSync } from './use-realtime';

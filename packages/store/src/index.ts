@@ -11,6 +11,9 @@ export type {
   DiaryWeather,
   DiaryRating,
   TodoRemindRepeat,
+  CalendarSubscription,
+  CalendarProvider,
+  DisplayEvent,
 } from './types';
 
 // Note store
@@ -36,6 +39,14 @@ export type {
 // Diary store
 export { useDiaryStore } from './diary-store';
 export type { DiaryStoreState } from './diary-store';
+
+// Subscription store
+export { useSubscriptionStore } from './subscription-store';
+export type {
+  ExternalCalendarEvent,
+  SubscriptionStoreState,
+  SubscriptionSyncStatus,
+} from './subscription-store';
 
 // UI store
 export { useUiStore } from './ui-store';
