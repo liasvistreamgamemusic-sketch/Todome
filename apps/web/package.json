@@ -45,7 +45,6 @@
     "@tiptap/extension-mathematics": "^2.11.0",
     "lowlight": "^3.2.0",
     "katex": "^0.16.0",
-    "dexie": "^4.0.0",
     "lucide-react": "^0.469.0",
     "clsx": "^2.1.0",
     "date-fns": "^4.1.0",

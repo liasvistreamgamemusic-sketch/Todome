@@ -13,7 +13,8 @@ import {
   PanelLeftClose,
 } from 'lucide-react';
 import { useUiStore } from '@todome/store';
-import { useNoteStore } from '@todome/store';
+import { useFolders } from '@/hooks/queries';
+import type { Folder } from '@todome/db';
 import { clsx } from 'clsx';
 
 type NavItem = {
@@ -61,7 +62,7 @@ export const Sidebar = () => {
   const sidebarOpen = useUiStore((s) => s.sidebarOpen);
   const toggleSidebar = useUiStore((s) => s.toggleSidebar);
   const toggleCommandPalette = useUiStore((s) => s.toggleCommandPalette);
-  const folders = useNoteStore((s) => s.folders);
+  const { data: folders = [] } = useFolders();
 
   const handleSearchFocus = useCallback(() => {
     toggleCommandPalette();
@@ -130,9 +131,9 @@ export const Sidebar = () => {
                   {href === '/notes' && isActive && folders.length > 0 && (
                     <ul className="mt-0.5 space-y-0.5">
                       {folders
-                        .filter((f) => f.parent_id === null)
-                        .sort((a, b) => a.sort_order - b.sort_order)
-                        .map((folder) => (
+                        .filter((f: Folder) => f.parent_id === null)
+                        .sort((a: Folder, b: Folder) => a.sort_order - b.sort_order)
+                        .map((folder: Folder) => (
                           <li key={folder.id}>
                             <FolderTreeItem
                               id={folder.id}

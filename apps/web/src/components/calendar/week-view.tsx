@@ -19,8 +19,9 @@ import {
   setMinutes,
 } from 'date-fns';
 import { BookOpen, CheckSquare } from 'lucide-react';
-import { useCalendarStore, useUiStore, useTodoStore } from '@todome/store';
+import { useCalendarStore, useUiStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
+import { useCalendarEvents, useTodos } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
@@ -38,10 +39,10 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) => {
   const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
-  const events = useCalendarStore((s) => s.events);
+  const { data: events = [] } = useCalendarEvents();
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
-  const todos = useTodoStore((s) => s.todos);
+  const { data: allTodos = [] } = useTodos();
   const navigateWeekPrev = useCalendarStore((s) => s.navigateWeekPrev);
   const navigateWeekNext = useCalendarStore((s) => s.navigateWeekNext);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -65,7 +66,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
   }, []);
 
   const activeEvents = useMemo(
-    () => events.filter((e) => !e.is_deleted),
+    () => events.filter((e: CalendarEvent) => !e.is_deleted),
     [events],
   );
 
@@ -74,7 +75,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
     if (!isMobile) return [];
     const dayS = startOfDay(selectedDate);
     const dayE = endOfDay(selectedDate);
-    return activeEvents.filter((e) => {
+    return activeEvents.filter((e: CalendarEvent) => {
       if (!e.is_all_day) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
@@ -86,7 +87,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
     if (!isMobile) return [];
     const dayS = startOfDay(selectedDate);
     const dayE = endOfDay(selectedDate);
-    return activeEvents.filter((e) => {
+    return activeEvents.filter((e: CalendarEvent) => {
       if (e.is_all_day) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
@@ -98,14 +99,14 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
   const dueTodos = useMemo(() => {
     if (!isMobile) return [];
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
-    return todos.filter(
-      (t) =>
+    return allTodos.filter(
+      (t: Todo) =>
         !t.is_deleted &&
         t.due_date === dateKey &&
         t.status !== 'completed' &&
         t.status !== 'cancelled',
     );
-  }, [isMobile, selectedDate, todos]);
+  }, [isMobile, selectedDate, allTodos]);
 
   // For desktop: all-day events by day
   const allDayEvents = useMemo(() => {
@@ -115,7 +116,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
       const dateKey = format(day, 'yyyy-MM-dd');
       map.set(
         dateKey,
-        activeEvents.filter((e) => {
+        activeEvents.filter((e: CalendarEvent) => {
           if (!e.is_all_day) return false;
           const eventStart = parseISO(e.start_at);
           const eventEnd = parseISO(e.end_at);
@@ -136,7 +137,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
       const dayE = endOfDay(day);
       map.set(
         dateKey,
-        activeEvents.filter((e) => {
+        activeEvents.filter((e: CalendarEvent) => {
           if (e.is_all_day) return false;
           const eventStart = parseISO(e.start_at);
           const eventEnd = parseISO(e.end_at);

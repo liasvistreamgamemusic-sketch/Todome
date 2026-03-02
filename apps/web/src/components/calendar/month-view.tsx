@@ -15,8 +15,9 @@ import {
   format,
   parseISO,
 } from 'date-fns';
-import { useCalendarStore, useUiStore, useTodoStore } from '@todome/store';
-import type { CalendarEvent } from '@todome/store';
+import { useCalendarStore, useUiStore } from '@todome/store';
+import type { CalendarEvent, Todo } from '@todome/store';
+import { useCalendarEvents, useTodos } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { isHoliday } from '@/lib/japanese-holidays';
@@ -32,10 +33,10 @@ const DAY_LABELS_MON: string[] = ['月', '火', '水', '木', '金', '土', '日
 export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
   const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
-  const events = useCalendarStore((s) => s.events);
+  const { data: events = [] } = useCalendarEvents();
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
-  const todos = useTodoStore((s) => s.todos);
+  const { data: allTodos = [] } = useTodos();
   const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
   const swipe = useSwipeNavigation(navigateMonthNext, navigateMonthPrev);
@@ -54,7 +55,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
 
   const eventsByDate = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
-    const activeEvents = events.filter((e) => !e.is_deleted);
+    const activeEvents = events.filter((e: CalendarEvent) => !e.is_deleted);
 
     for (const event of activeEvents) {
       const dateKey = format(parseISO(event.start_at), 'yyyy-MM-dd');
@@ -70,8 +71,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
 
   const todosWithDueDate = useMemo(() => {
     const map = new Map<string, number>();
-    const activeTodos = todos.filter(
-      (t) => !t.is_deleted && t.due_date && t.status !== 'completed' && t.status !== 'cancelled',
+    const activeTodos = allTodos.filter(
+      (t: Todo) => !t.is_deleted && t.due_date && t.status !== 'completed' && t.status !== 'cancelled',
     );
     for (const todo of activeTodos) {
       if (todo.due_date) {
@@ -80,7 +81,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent }: Props) => {
       }
     }
     return map;
-  }, [todos]);
+  }, [allTodos]);
 
   const handleDateClick = useCallback(
     (day: Date) => {

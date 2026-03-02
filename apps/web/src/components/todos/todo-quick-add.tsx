@@ -4,9 +4,9 @@ import React, { useState, useCallback, useRef } from 'react';
 import { clsx } from 'clsx';
 import { Plus, Calendar } from 'lucide-react';
 import { addDays, startOfDay } from 'date-fns';
+import type { TodoPriority } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
-import type { TodoPriority } from '@todome/store/src/types';
-import { createTodo, supabase } from '@todome/db';
+import { useTodos, useCreateTodo, useUserId } from '@/hooks/queries';
 
 const PRIORITY_DOTS: { value: TodoPriority; color: string; label: string }[] = [
   { value: 1, color: 'bg-[#388E3C]', label: '低' },
@@ -36,30 +36,30 @@ const DUE_DATE_SHORTCUTS: DueDateShortcut[] = [
 ];
 
 export const TodoQuickAdd = () => {
-  const addTodo = useTodoStore((s) => s.addTodo);
   const setFilterStatus = useTodoStore((s) => s.setFilterStatus);
-  const todos = useTodoStore((s) => s.todos);
+  const { data: todos } = useTodos();
+  const createTodo = useCreateTodo();
+  const userId = useUserId();
+
   const [title, setTitle] = useState('');
   const [priority, setPriority] = useState<TodoPriority>(2);
   const [dueDate, setDueDate] = useState<string | null>(null);
   const [showOptions, setShowOptions] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = useCallback(async () => {
+  const handleSubmit = useCallback(() => {
     const trimmedTitle = title.trim();
-    if (!trimmedTitle) return;
+    if (!trimmedTitle || !userId) return;
 
     const now = new Date().toISOString();
-    const maxOrder = todos.reduce(
+    const maxOrder = (todos ?? []).reduce(
       (max, t) => Math.max(max, t.sort_order),
       0,
     );
 
-    const { data: { user } } = await supabase.auth.getUser();
-
     const todo = {
       id: crypto.randomUUID(),
-      user_id: user?.id ?? '',
+      user_id: userId,
       title: trimmedTitle,
       detail: null,
       priority,
@@ -76,8 +76,7 @@ export const TodoQuickAdd = () => {
       updated_at: now,
     };
 
-    addTodo(todo);
-    createTodo(todo).catch(console.error);
+    createTodo.mutate(todo);
     setFilterStatus('all');
 
     setTitle('');
@@ -85,7 +84,7 @@ export const TodoQuickAdd = () => {
     setDueDate(null);
     setShowOptions(false);
     inputRef.current?.focus();
-  }, [title, priority, dueDate, addTodo, setFilterStatus, todos]);
+  }, [title, priority, dueDate, setFilterStatus, todos, createTodo, userId]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

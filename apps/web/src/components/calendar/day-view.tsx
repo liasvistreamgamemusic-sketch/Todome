@@ -15,8 +15,9 @@ import {
   setMinutes,
 } from 'date-fns';
 import { BookOpen, CheckSquare } from 'lucide-react';
-import { useCalendarStore, useTodoStore } from '@todome/store';
+import { useCalendarStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
+import { useCalendarEvents, useTodos } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { CalendarEventBlock } from './calendar-event-block';
@@ -35,8 +36,8 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   const isMobile = useIsMobile();
   const hourHeight = isMobile ? 48 : 60;
   const selectedDate = useCalendarStore((s) => s.selectedDate);
-  const events = useCalendarStore((s) => s.events);
-  const todos = useTodoStore((s) => s.todos);
+  const { data: events = [] } = useCalendarEvents();
+  const { data: allTodos = [] } = useTodos();
   const selectDate = useCalendarStore((s) => s.selectDate);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentTimeTop, setCurrentTimeTop] = useState(0);
@@ -53,14 +54,14 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   }, []);
 
   const activeEvents = useMemo(
-    () => events.filter((e) => !e.is_deleted),
+    () => events.filter((e: CalendarEvent) => !e.is_deleted),
     [events],
   );
 
   const allDayEvents = useMemo(() => {
     const dayS = startOfDay(selectedDate);
     const dayE = endOfDay(selectedDate);
-    return activeEvents.filter((e) => {
+    return activeEvents.filter((e: CalendarEvent) => {
       if (!e.is_all_day) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
@@ -71,7 +72,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   const timedEvents = useMemo(() => {
     const dayS = startOfDay(selectedDate);
     const dayE = endOfDay(selectedDate);
-    return activeEvents.filter((e) => {
+    return activeEvents.filter((e: CalendarEvent) => {
       if (e.is_all_day) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
@@ -81,14 +82,14 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
 
   const dueTodos = useMemo(() => {
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
-    return todos.filter(
-      (t) =>
+    return allTodos.filter(
+      (t: Todo) =>
         !t.is_deleted &&
         t.due_date === dateKey &&
         t.status !== 'completed' &&
         t.status !== 'cancelled',
     );
-  }, [selectedDate, todos]);
+  }, [selectedDate, allTodos]);
 
   const isCurrentDay = isToday(selectedDate);
   const holidayName = isHoliday(selectedDate);

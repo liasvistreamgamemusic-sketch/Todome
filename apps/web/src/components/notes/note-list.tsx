@@ -7,12 +7,14 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
-import type { Note, NoteSortBy, Folder } from '@todome/store';
+import type { NoteSortBy } from '@todome/store';
+import type { Note, Folder } from '@todome/db';
 import { useKeyboardShortcut, useClickOutside } from '@todome/hooks';
 import {
-  supabase, createFolder, localDb,
-  updateNote as persistNote, deleteNote as persistDeleteNote,
-} from '@todome/db';
+  useNotes, useFolders, useCreateNote, useUpdateNote,
+  useDeleteNote, useCreateFolder, useUserId,
+} from '@/hooks/queries';
+import { filterAndSortNotes } from '@/lib/note-filters';
 import { NoteListItem } from './note-list-item';
 import { NoteCard } from './note-card';
 import { NoteSearch } from './note-search';
@@ -32,22 +34,27 @@ type NoteListProps = {
 };
 
 export function NoteList({ onSelectNote }: NoteListProps = {}) {
-  const filteredNotes = useNoteStore((s) => s.filteredNotes);
-  const notes = filteredNotes();
   const selectedNoteId = useNoteStore((s) => s.selectedNoteId);
+  const selectedFolderId = useNoteStore((s) => s.selectedFolderId);
+  const searchQuery = useNoteStore((s) => s.searchQuery);
   const viewMode = useNoteStore((s) => s.viewMode);
   const sortBy = useNoteStore((s) => s.sortBy);
-  const folders = useNoteStore((s) => s.folders);
   const selectNote = useNoteStore((s) => s.selectNote);
   const setViewMode = useNoteStore((s) => s.setViewMode);
   const setSortBy = useNoteStore((s) => s.setSortBy);
-  const addNote = useNoteStore((s) => s.addNote);
-  const addFolder = useNoteStore((s) => s.addFolder);
-  const pinNote = useNoteStore((s) => s.pinNote);
-  const unpinNote = useNoteStore((s) => s.unpinNote);
-  const archiveNote = useNoteStore((s) => s.archiveNote);
-  const deleteNote = useNoteStore((s) => s.deleteNote);
-  const moveNoteToFolder = useNoteStore((s) => s.moveNoteToFolder);
+
+  const userId = useUserId();
+  const { data: allNotes } = useNotes();
+  const { data: folders = [] } = useFolders();
+  const createNoteMutation = useCreateNote();
+  const updateNoteMutation = useUpdateNote();
+  const deleteNoteMutation = useDeleteNote();
+  const createFolderMutation = useCreateFolder();
+
+  const notes = useMemo(
+    () => filterAndSortNotes(allNotes ?? [], { folderId: selectedFolderId, searchQuery, sortBy }),
+    [allNotes, selectedFolderId, searchQuery, sortBy],
+  );
 
   const [showSortMenu, setShowSortMenu] = useState(false);
   const [showFolderForm, setShowFolderForm] = useState(false);
@@ -65,84 +72,69 @@ export function NoteList({ onSelectNote }: NoteListProps = {}) {
     return { pinned: p, unpinned: u };
   }, [notes]);
 
-  const handleNewNote = useCallback(async () => {
-    const { data: { session } } = await supabase.auth.getSession();
+  const handleNewNote = useCallback(() => {
+    if (!userId) return;
     const now = new Date().toISOString();
     const n: Note = {
-      id: crypto.randomUUID(), user_id: session?.user?.id ?? '', title: '',
+      id: crypto.randomUUID(), user_id: userId, title: '',
       content: { type: 'doc', content: [] }, plain_text: '',
       folder_id: null, tags: [], is_pinned: false,
       is_archived: false, is_deleted: false,
       created_at: now, updated_at: now, synced_at: null,
     };
-    addNote(n);
-    useNoteStore.getState().markLocalOnly(n.id);
+    createNoteMutation.mutate(n);
     if (onSelectNote) onSelectNote(n.id);
     else selectNote(n.id);
-    // Local only — note-editor will push to Supabase on first meaningful save
-    localDb.notes.put(n).catch(console.error);
-  }, [addNote, selectNote, onSelectNote]);
+  }, [userId, createNoteMutation, selectNote, onSelectNote]);
 
   useKeyboardShortcut('cmd+n', handleNewNote);
 
-  const handleCreateFolder = useCallback(async () => {
-    if (!folderName.trim()) return;
-    const { data: { session } } = await supabase.auth.getSession();
+  const handleCreateFolder = useCallback(() => {
+    if (!folderName.trim() || !userId) return;
     const now = new Date().toISOString();
     const f: Folder = {
-      id: crypto.randomUUID(), user_id: session?.user?.id ?? '', name: folderName.trim(),
+      id: crypto.randomUUID(), user_id: userId, name: folderName.trim(),
       color: folderColor, icon: null, parent_id: null,
       sort_order: folders.length, created_at: now, updated_at: now,
     };
-    addFolder(f);
-    createFolder(f).catch(console.error);
+    createFolderMutation.mutate(f);
     setFolderName('');
     setFolderColor(FOLDER_COLORS[4] ?? '#3b82f6');
     setShowFolderForm(false);
-  }, [folderName, folderColor, folders.length, addFolder]);
+  }, [folderName, folderColor, folders.length, userId, createFolderMutation]);
 
-  // action handlers passed to each item — all persist to DB via repository layer
   const handlePin = useCallback((id: string) => {
     const note = notes.find((n) => n.id === id);
     if (!note) return;
-    const patch = { is_pinned: !note.is_pinned };
-    note.is_pinned ? unpinNote(id) : pinNote(id);
-    persistNote(id, patch, note).catch(console.error);
-  }, [notes, pinNote, unpinNote]);
+    updateNoteMutation.mutate({ id, patch: { is_pinned: !note.is_pinned } });
+  }, [notes, updateNoteMutation]);
 
   const handleArchive = useCallback((id: string) => {
-    const note = notes.find((n) => n.id === id);
-    archiveNote(id);
+    updateNoteMutation.mutate({ id, patch: { is_archived: true } });
     if (selectedNoteId === id) selectNote(null);
-    if (note) persistNote(id, { is_archived: true }, note).catch(console.error);
-  }, [notes, archiveNote, selectedNoteId, selectNote]);
+  }, [updateNoteMutation, selectedNoteId, selectNote]);
 
   const handleDelete = useCallback((id: string) => {
-    const note = notes.find((n) => n.id === id);
-    deleteNote(id);
+    deleteNoteMutation.mutate(id);
     if (selectedNoteId === id) selectNote(null);
-    if (note) persistDeleteNote(id, note).catch(console.error);
-  }, [notes, deleteNote, selectedNoteId, selectNote]);
+  }, [deleteNoteMutation, selectedNoteId, selectNote]);
 
   const handleMoveToFolder = useCallback((id: string, folderId: string | null) => {
-    const note = notes.find((n) => n.id === id);
-    moveNoteToFolder(id, folderId);
-    if (note) persistNote(id, { folder_id: folderId }, note).catch(console.error);
-  }, [notes, moveNoteToFolder]);
+    updateNoteMutation.mutate({ id, patch: { folder_id: folderId } });
+  }, [updateNoteMutation]);
 
   const handleExportText = useCallback((id: string) => {
-    const note = notes.find((n) => n.id === id);
+    const note = (allNotes ?? []).find((n) => n.id === id);
     if (note) exportNoteAsText(note);
-  }, [notes]);
+  }, [allNotes]);
 
   const handleExportPdf = useCallback((id: string) => {
-    const note = notes.find((n) => n.id === id);
+    const note = (allNotes ?? []).find((n) => n.id === id);
     if (note) exportNoteAsPdf(note);
-  }, [notes]);
+  }, [allNotes]);
 
   const handleContextMenu = useCallback((e: React.MouseEvent, _id: string) => {
     e.preventDefault();
-    // right-click is handled by the item's own dropdown
   }, []);
 
   const handleNoteClick = useCallback((id: string) => {

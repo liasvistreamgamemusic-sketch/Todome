@@ -12,9 +12,10 @@ import {
   parseISO,
 } from 'date-fns';
 import { MapPin, Clock } from 'lucide-react';
-import { useCalendarStore, useTodoStore } from '@todome/store';
+import { useCalendarStore } from '@todome/store';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import type { CalendarEvent, Todo } from '@todome/store';
+import { useCalendarEvents, useTodos } from '@/hooks/queries';
 import { isHoliday } from '@/lib/japanese-holidays';
 
 type Props = {
@@ -36,8 +37,8 @@ const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 export const ListView = ({ onSelectEvent }: Props) => {
   const selectedDate = useCalendarStore((s) => s.selectedDate);
-  const events = useCalendarStore((s) => s.events);
-  const todos = useTodoStore((s) => s.todos);
+  const { data: events = [] } = useCalendarEvents();
+  const { data: allTodos = [] } = useTodos();
   const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
   const swipe = useSwipeNavigation(navigateMonthNext, navigateMonthPrev);
@@ -46,15 +47,15 @@ export const ListView = ({ onSelectEvent }: Props) => {
     const rangeStart = startOfDay(selectedDate);
     const rangeEnd = endOfDay(addDays(selectedDate, DAYS_AHEAD - 1));
 
-    const activeEvents = events.filter((e) => {
+    const activeEvents = events.filter((e: CalendarEvent) => {
       if (e.is_deleted) return false;
       const eventStart = parseISO(e.start_at);
       const eventEnd = parseISO(e.end_at);
       return eventStart <= rangeEnd && eventEnd >= rangeStart;
     });
 
-    const activeTodos = todos.filter(
-      (t) =>
+    const activeTodos = allTodos.filter(
+      (t: Todo) =>
         !t.is_deleted &&
         t.due_date &&
         t.status !== 'completed' &&
@@ -104,7 +105,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
     );
 
     return sortedEntries;
-  }, [selectedDate, events, todos]);
+  }, [selectedDate, events, allTodos]);
 
   if (groupedItems.length === 0) {
     return (

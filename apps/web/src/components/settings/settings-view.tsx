@@ -12,15 +12,12 @@ import {
   RefreshCw,
   LogOut,
 } from 'lucide-react';
-import {
-  useUiStore,
-  useNoteStore,
-  useTodoStore,
-  useCalendarStore,
-} from '@todome/store';
+import { useUiStore } from '@todome/store';
 import type { Theme, FontSize, Locale, CalendarWeekStart } from '@todome/store';
 import { Button } from '@todome/ui';
 import { clsx } from 'clsx';
+import { useQueryClient } from '@tanstack/react-query';
+import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
 import { exportToJSON, exportToMarkdown } from './export-data';
 
 type SettingsSectionProps = {
@@ -150,9 +147,11 @@ export const SettingsView = () => {
   const setLocale = useUiStore((s) => s.setLocale);
   const setCalendarWeekStart = useUiStore((s) => s.setCalendarWeekStart);
 
-  const notes = useNoteStore((s) => s.notes);
-  const todos = useTodoStore((s) => s.todos);
-  const events = useCalendarStore((s) => s.events);
+  const { data: notes } = useNotes();
+  const { data: todos } = useTodos();
+  const { data: events } = useCalendarEvents();
+
+  const queryClient = useQueryClient();
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
@@ -277,18 +276,17 @@ export const SettingsView = () => {
   );
 
   const handleExportJSON = useCallback(() => {
-    exportToJSON(notes, todos, events);
+    exportToJSON(notes ?? [], todos ?? [], events ?? []);
   }, [notes, todos, events]);
 
   const handleExportMarkdown = useCallback(() => {
-    exportToMarkdown(notes);
+    exportToMarkdown(notes ?? []);
   }, [notes]);
 
   const handleSync = useCallback(async () => {
     setIsSyncing(true);
     try {
-      const { syncEngine } = await import('@todome/db');
-      await syncEngine.sync();
+      await queryClient.invalidateQueries();
       const now = new Date().toISOString();
       setLastSyncTime(now);
       persistSettings({ lastSyncTime: now });
@@ -297,7 +295,7 @@ export const SettingsView = () => {
     } finally {
       setIsSyncing(false);
     }
-  }, [persistSettings]);
+  }, [queryClient, persistSettings]);
 
   const handleLogout = useCallback(async () => {
     try {

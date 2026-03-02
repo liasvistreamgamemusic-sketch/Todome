@@ -3,9 +3,10 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { clsx } from 'clsx';
 import { ChevronDown, ChevronRight, Inbox } from 'lucide-react';
+import type { Todo } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
-import type { Todo } from '@todome/store/src/types';
-import { updateTodo as persistTodo } from '@todome/db';
+import { useTodos, useUpdateTodo } from '@/hooks/queries';
+import { filterTodos, groupTodos, STATUS_CYCLE } from '@/lib/todo-filters';
 import { TodoListItem } from './todo-list-item';
 
 const GROUP_LABELS: Record<string, string> = {
@@ -94,19 +95,32 @@ const sortGroupKeys = (keys: string[], groupBy: string): string[] => {
 };
 
 export const TodoList = () => {
-  const todos = useTodoStore((s) => s.todos);
-  const groupedTodos = useTodoStore((s) => s.groupedTodos);
+  const { data: todos } = useTodos();
+  const updateTodo = useUpdateTodo();
   const groupBy = useTodoStore((s) => s.groupBy);
   const sortBy = useTodoStore((s) => s.sortBy);
   const showCompleted = useTodoStore((s) => s.showCompleted);
   const filterStatus = useTodoStore((s) => s.filterStatus);
   const filterPriority = useTodoStore((s) => s.filterPriority);
   const filterTags = useTodoStore((s) => s.filterTags);
-  const toggleTodoStatus = useTodoStore((s) => s.toggleTodoStatus);
   const selectTodo = useTodoStore((s) => s.selectTodo);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const groups = useMemo(() => groupedTodos(), [todos, groupBy, sortBy, showCompleted, filterStatus, filterPriority, filterTags]);
+  const filtered = useMemo(
+    () =>
+      filterTodos(todos ?? [], {
+        filterStatus,
+        filterPriority,
+        filterTags,
+        sortBy,
+        showCompleted,
+      }),
+    [todos, filterStatus, filterPriority, filterTags, sortBy, showCompleted],
+  );
+
+  const groups = useMemo(
+    () => groupTodos(filtered, groupBy),
+    [filtered, groupBy],
+  );
 
   const sortedKeys = useMemo(
     () => sortGroupKeys(Object.keys(groups), groupBy),
@@ -115,15 +129,21 @@ export const TodoList = () => {
 
   const handleToggleStatus = useCallback(
     (id: string) => {
-      const prev = useTodoStore.getState().todos.find((t) => t.id === id);
-      if (!prev) return;
-      toggleTodoStatus(id);
-      const updated = useTodoStore.getState().todos.find((t) => t.id === id);
-      if (updated) {
-        persistTodo(id, { status: updated.status, completed_at: updated.completed_at, updated_at: updated.updated_at }, prev).catch(console.error);
-      }
+      const todo = (todos ?? []).find((t) => t.id === id);
+      if (!todo) return;
+      const currentIndex = STATUS_CYCLE.indexOf(todo.status);
+      const nextStatus = STATUS_CYCLE[(currentIndex + 1) % STATUS_CYCLE.length]!;
+      const now = new Date().toISOString();
+      updateTodo.mutate({
+        id,
+        patch: {
+          status: nextStatus,
+          completed_at: nextStatus === 'completed' ? now : null,
+          updated_at: now,
+        },
+      });
     },
-    [toggleTodoStatus],
+    [todos, updateTodo],
   );
 
   const handleSelect = useCallback(
@@ -157,13 +177,13 @@ export const TodoList = () => {
   return (
     <div className="space-y-1">
       {activeKeys.map((key) => {
-        const todos = groups[key];
-        if (!todos || todos.length === 0) return null;
+        const keyTodos = groups[key];
+        if (!keyTodos || keyTodos.length === 0) return null;
         return (
           <GroupSection
             key={key}
             groupKey={key}
-            todos={todos}
+            todos={keyTodos}
             onToggleStatus={handleToggleStatus}
             onSelect={handleSelect}
           />
@@ -171,13 +191,13 @@ export const TodoList = () => {
       })}
       {showCompleted &&
         completedKeys.map((key) => {
-          const todos = groups[key];
-          if (!todos || todos.length === 0) return null;
+          const keyTodos = groups[key];
+          if (!keyTodos || keyTodos.length === 0) return null;
           return (
             <GroupSection
               key={key}
               groupKey={key}
-              todos={todos}
+              todos={keyTodos}
               defaultOpen={false}
               onToggleStatus={handleToggleStatus}
               onSelect={handleSelect}

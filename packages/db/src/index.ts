@@ -11,8 +11,6 @@ export type {
   TodoStatus,
   ParentType,
   RemindRepeat,
-  SyncOperation,
-  SyncableTable,
   Result,
   Note,
   Folder,
@@ -28,7 +26,6 @@ export type {
   CreateCalendarEventInput,
   UpdateCalendarEventInput,
   CreateAttachmentInput,
-  SyncQueueItem,
 } from './types';
 
 export {
@@ -36,8 +33,6 @@ export {
   TODO_STATUSES,
   PARENT_TYPES,
   REMIND_REPEATS,
-  SYNC_OPERATIONS,
-  SYNCABLE_TABLES,
   Ok,
   Err,
 } from './types';
@@ -45,12 +40,6 @@ export {
 // Supabase
 export { supabase } from './supabase';
 export type { Database } from './supabase';
-
-// Local DB
-export { TodomeLocalDB, localDb } from './local-db';
-
-// Sync engine
-export { SyncEngine, syncEngine } from './sync-engine';
 
 // Repository layer
 export {

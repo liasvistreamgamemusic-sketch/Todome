@@ -15,17 +15,14 @@ import { format } from 'date-fns';
 import { Button } from '@todome/ui/src/button';
 import { Badge } from '@todome/ui/src/badge';
 import { Textarea } from '@todome/ui/src/textarea';
-import { useTodoStore } from '@todome/store/src/todo-store';
 import type {
   Todo,
   TodoStatus,
   TodoPriority,
-  TodoRemindRepeat,
-} from '@todome/store/src/types';
-import {
-  updateTodo as persistTodo,
-  deleteTodo as persistDeleteTodo,
+  RemindRepeat,
 } from '@todome/db';
+import { useTodoStore } from '@todome/store/src/todo-store';
+import { useTodos, useUpdateTodo, useDeleteTodo } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { TodoSubtasks, type Subtask } from './todo-subtasks';
 
@@ -47,7 +44,7 @@ const PRIORITY_OPTIONS: {
   { value: 4, label: '緊急', color: 'bg-[#D32F2F]' },
 ];
 
-const REPEAT_OPTIONS: { value: TodoRemindRepeat; label: string }[] = [
+const REPEAT_OPTIONS: { value: RemindRepeat; label: string }[] = [
   { value: 'none', label: 'なし' },
   { value: 'daily', label: '毎日' },
   { value: 'weekly', label: '毎週' },
@@ -57,15 +54,16 @@ const REPEAT_OPTIONS: { value: TodoRemindRepeat; label: string }[] = [
 
 export const TodoDetail = () => {
   const selectedTodoId = useTodoStore((s) => s.selectedTodoId);
-  const todos = useTodoStore((s) => s.todos);
-  const updateTodo = useTodoStore((s) => s.updateTodo);
-  const deleteTodo = useTodoStore((s) => s.deleteTodo);
   const selectTodo = useTodoStore((s) => s.selectTodo);
+
+  const { data: todos } = useTodos();
+  const updateTodo = useUpdateTodo();
+  const deleteTodoMutation = useDeleteTodo();
 
   const isMobile = useIsMobile();
 
   const todo = useMemo(
-    () => todos.find((t) => t.id === selectedTodoId) ?? null,
+    () => (todos ?? []).find((t) => t.id === selectedTodoId) ?? null,
     [todos, selectedTodoId],
   );
 
@@ -73,7 +71,7 @@ export const TodoDetail = () => {
   const [detail, setDetail] = useState('');
   const [dueDate, setDueDate] = useState('');
   const [remindAt, setRemindAt] = useState('');
-  const [remindRepeat, setRemindRepeat] = useState<TodoRemindRepeat>('none');
+  const [remindRepeat, setRemindRepeat] = useState<RemindRepeat>('none');
   const [tagInput, setTagInput] = useState('');
   const [subtasks, setSubtasks] = useState<Subtask[]>([]);
 
@@ -103,8 +101,7 @@ export const TodoDetail = () => {
     (patch: Partial<Todo>) => {
       if (!todo) return;
       const fullPatch = { ...patch, updated_at: new Date().toISOString() };
-      updateTodo(todo.id, fullPatch);
-      persistTodo(todo.id, fullPatch, todo).catch(console.error);
+      updateTodo.mutate({ id: todo.id, patch: fullPatch });
     },
     [todo, updateTodo],
   );
@@ -167,7 +164,7 @@ export const TodoDetail = () => {
 
   const handleRemindRepeatChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const value = e.target.value as TodoRemindRepeat;
+      const value = e.target.value as RemindRepeat;
       setRemindRepeat(value);
       handleUpdate({ remind_repeat: value });
     },
@@ -205,10 +202,9 @@ export const TodoDetail = () => {
 
   const handleDelete = useCallback(() => {
     if (!todo) return;
-    persistDeleteTodo(todo.id, todo).catch(console.error);
-    deleteTodo(todo.id);
+    deleteTodoMutation.mutate(todo.id);
     selectTodo(null);
-  }, [todo, deleteTodo, selectTodo]);
+  }, [todo, deleteTodoMutation, selectTodo]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

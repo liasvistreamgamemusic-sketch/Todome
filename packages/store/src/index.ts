@@ -5,8 +5,8 @@ export type {
   Todo,
   TodoStatus,
   TodoPriority,
-  TodoRemindRepeat,
   CalendarEvent,
+  TodoRemindRepeat,
 } from './types';
 
 // Note store

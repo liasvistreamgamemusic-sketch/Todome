@@ -3,7 +3,8 @@
 import React, { useCallback, useState } from 'react';
 import { clsx } from 'clsx';
 import { useTodoStore } from '@todome/store/src/todo-store';
-import type { Todo, TodoStatus } from '@todome/store/src/types';
+import { useTodos, useUpdateTodo } from '@/hooks/queries';
+import type { Todo, TodoStatus } from '@todome/db';
 import { TodoBoardCard } from './todo-board-card';
 
 type Column = {
@@ -26,18 +27,18 @@ const STATUS_HEADER_COLORS: Record<TodoStatus, string> = {
 };
 
 export const TodoBoard = () => {
-  const allTodos = useTodoStore((s) => s.todos);
-  const updateTodo = useTodoStore((s) => s.updateTodo);
+  const { data: allTodos = [] } = useTodos();
+  const updateTodoMutation = useUpdateTodo();
   const selectTodo = useTodoStore((s) => s.selectTodo);
   const [dragOverColumn, setDragOverColumn] = useState<TodoStatus | null>(
     null,
   );
 
-  const todos = allTodos.filter((t) => !t.is_deleted);
+  const todos = allTodos.filter((t: Todo) => !t.is_deleted);
 
   const todosByStatus = COLUMNS.reduce<Record<TodoStatus, Todo[]>>(
     (acc, col) => {
-      acc[col.status] = todos.filter((t) => t.status === col.status);
+      acc[col.status] = todos.filter((t: Todo) => t.status === col.status);
       return acc;
     },
     { pending: [], in_progress: [], completed: [], cancelled: [] },
@@ -74,13 +75,16 @@ export const TodoBoard = () => {
       const now = new Date().toISOString();
       const completedAt = targetStatus === 'completed' ? now : null;
 
-      updateTodo(todoId, {
-        status: targetStatus,
-        completed_at: completedAt,
-        updated_at: now,
+      updateTodoMutation.mutate({
+        id: todoId,
+        patch: {
+          status: targetStatus,
+          completed_at: completedAt,
+          updated_at: now,
+        },
       });
     },
-    [updateTodo],
+    [updateTodoMutation],
   );
 
   const handleSelect = useCallback(

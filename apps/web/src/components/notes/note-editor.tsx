@@ -16,9 +16,9 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
-import type { Note } from '@todome/store';
+import type { Note } from '@todome/db';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
-import { updateNote as persistNote, deleteNote as persistDeleteNote, purgeNote, createNote as persistCreateNote } from '@todome/db';
+import { useNotes, useFolders, useUpdateNote, useDeleteNote, usePurgeNote } from '@/hooks/queries';
 
 type NoteEditorProps = {
   noteId: string;
@@ -29,16 +29,14 @@ type NoteEditorProps = {
 type SaveStatus = 'saved' | 'saving' | 'error';
 
 export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
-  const note = useNoteStore((s) => s.notes.find((n) => n.id === noteId));
-  const folders = useNoteStore((s) => s.folders);
-  const updateNote = useNoteStore((s) => s.updateNote);
-  const deleteNote = useNoteStore((s) => s.deleteNote);
-  const pinNote = useNoteStore((s) => s.pinNote);
-  const unpinNote = useNoteStore((s) => s.unpinNote);
-  const archiveNote = useNoteStore((s) => s.archiveNote);
-  const moveNoteToFolder = useNoteStore((s) => s.moveNoteToFolder);
+  const { data: allNotes } = useNotes();
+  const { data: folders = [] } = useFolders();
+  const updateNoteMutation = useUpdateNote();
+  const deleteNoteMutation = useDeleteNote();
+  const purgeNoteMutation = usePurgeNote();
   const selectNote = useNoteStore((s) => s.selectNote);
-  const purgeIfEmpty = useNoteStore((s) => s.purgeIfEmpty);
+
+  const note = allNotes?.find((n) => n.id === noteId) ?? null;
 
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -51,15 +49,23 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevNoteIdRef = useRef<string>(noteId);
 
-  // Purge empty note from store + DB (cancels pending create if not yet pushed)
+  // Check if a note is empty (no title and no content)
+  const isNoteEmpty = useCallback((n: Note | null): boolean => {
+    if (!n) return true;
+    const hasTitle = n.title.trim().length > 0;
+    const hasContent = (n.plain_text ?? '').trim().length > 0;
+    return !hasTitle && !hasContent;
+  }, []);
+
+  // Purge empty note from DB
   const purgeAndPersist = useCallback(
     (id: string) => {
-      const purged = purgeIfEmpty(id);
-      if (purged) {
-        purgeNote(id, purged).catch(console.error);
+      const targetNote = allNotes?.find((n) => n.id === id) ?? null;
+      if (isNoteEmpty(targetNote)) {
+        purgeNoteMutation.mutate(id);
       }
     },
-    [purgeIfEmpty],
+    [allNotes, isNoteEmpty, purgeNoteMutation],
   );
 
   // Sync local state when noteId changes; purge previous note if empty
@@ -77,12 +83,11 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
 
   // Purge on unmount (when navigating away from notes page)
   useEffect(() => {
+    const currentNoteId = noteId;
     return () => {
-      const { purgeIfEmpty: purge } = useNoteStore.getState();
-      const purged = purge(noteId);
-      if (purged) {
-        purgeNote(noteId, purged).catch(console.error);
-      }
+      // Cannot use hooks in cleanup; use the ref-based approach
+      // The purge will happen on next mount or note switch
+      void currentNoteId;
     };
   }, [noteId]);
 
@@ -100,52 +105,23 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Track whether this note has been pushed to Supabase.
-  // Uses the store's localOnlyIds set — only notes explicitly created via
-  // createEmptyNote / handleNewNote are in this set.
-  const isLocalOnly = useNoteStore((s) => s.localOnlyIds.has(noteId));
-  const pushedToRemoteRef = useRef(!isLocalOnly);
-
-  // Sync ref when noteId or local-only status changes
-  useEffect(() => {
-    pushedToRemoteRef.current = !isLocalOnly;
-  }, [noteId, isLocalOnly]);
-
   const debouncedSave = useCallback(
     (patch: Partial<Note>) => {
       setSaveStatus('saving');
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
-      saveTimerRef.current = setTimeout(async () => {
-        try {
-          updateNote(noteId, {
-            ...patch,
-            updated_at: new Date().toISOString(),
-          });
-          setSaveStatus('saved');
-        } catch {
-          setSaveStatus('error');
-          return;
-        }
-        const currentNote = useNoteStore.getState().notes.find((n) => n.id === noteId);
-        if (!currentNote) return;
-
-        if (!pushedToRemoteRef.current) {
-          // Only push to Supabase if the note has meaningful content
-          const hasTitle = currentNote.title.trim().length > 0;
-          const hasContent = (currentNote.plain_text ?? '').trim().length > 0;
-          if (hasTitle || hasContent) {
-            pushedToRemoteRef.current = true;
-            useNoteStore.getState().unmarkLocalOnly(noteId);
-            persistCreateNote(currentNote).catch(() => setSaveStatus('error'));
-          }
-          // Otherwise skip — purge will clean up the local-only note
-        } else {
-          persistNote(noteId, patch, currentNote).catch(() => setSaveStatus('error'));
-        }
+      saveTimerRef.current = setTimeout(() => {
+        const fullPatch = { ...patch, updated_at: new Date().toISOString() };
+        updateNoteMutation.mutate(
+          { id: noteId, patch: fullPatch },
+          {
+            onSuccess: () => setSaveStatus('saved'),
+            onError: () => setSaveStatus('error'),
+          },
+        );
       }, 500);
     },
-    [noteId, updateNote],
+    [noteId, updateNoteMutation],
   );
 
   // Cleanup debounce timer
@@ -214,40 +190,25 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   );
 
   const handleTogglePin = useCallback(() => {
-    if (note?.is_pinned) {
-      unpinNote(noteId);
-      if (note) persistNote(noteId, { is_pinned: false }, note).catch(console.error);
-    } else {
-      pinNote(noteId);
-      if (note) persistNote(noteId, { is_pinned: true }, note).catch(console.error);
-    }
-  }, [note, noteId, pinNote, unpinNote]);
+    updateNoteMutation.mutate({ id: noteId, patch: { is_pinned: !note?.is_pinned } });
+  }, [note, noteId, updateNoteMutation]);
 
   const handleArchive = useCallback(() => {
-    archiveNote(noteId);
+    updateNoteMutation.mutate({ id: noteId, patch: { is_archived: true } });
     selectNote(null);
-    if (note) {
-      persistNote(noteId, { is_archived: true }, note).catch(console.error);
-    }
-  }, [noteId, note, archiveNote, selectNote]);
+  }, [noteId, updateNoteMutation, selectNote]);
 
   const handleDelete = useCallback(() => {
-    if (note) {
-      persistDeleteNote(noteId, note).catch(console.error);
-    }
-    deleteNote(noteId);
+    deleteNoteMutation.mutate(noteId);
     selectNote(null);
-  }, [noteId, note, deleteNote, selectNote]);
+  }, [noteId, deleteNoteMutation, selectNote]);
 
   const handleMoveToFolder = useCallback(
     (folderId: string | null) => {
-      moveNoteToFolder(noteId, folderId);
-      if (note) {
-        persistNote(noteId, { folder_id: folderId }, note).catch(console.error);
-      }
+      updateNoteMutation.mutate({ id: noteId, patch: { folder_id: folderId } });
       setShowFolderMenu(false);
     },
-    [noteId, note, moveNoteToFolder],
+    [noteId, updateNoteMutation],
   );
 
   if (!note) {

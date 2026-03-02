@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useUiStore } from '@todome/store';
-import { useDataProvider } from '@/hooks/use-data-provider';
+import { useRealtimeSync } from '@/hooks/queries';
 import { Sidebar } from './sidebar';
 import { BottomNav } from './bottom-nav';
 import { clsx } from 'clsx';
@@ -10,9 +10,7 @@ import { clsx } from 'clsx';
 const DESKTOP_QUERY = '(min-width: 768px)';
 
 export const AppShell = ({ children }: { children: React.ReactNode }) => {
-  // Loads data from Supabase or localDb on mount and syncs every 30s.
-  // Runs in the background — UI renders immediately with empty state then fills in.
-  const { isLoading: _isDataLoading } = useDataProvider();
+  useRealtimeSync();
 
   // SSR-safe media query — default true (desktop) to avoid hydration flash
   const [isDesktop, setIsDesktop] = useState(true);

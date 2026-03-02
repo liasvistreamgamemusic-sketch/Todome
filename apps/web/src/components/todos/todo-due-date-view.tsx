@@ -17,9 +17,10 @@ import {
   startOfWeek,
   endOfWeek,
 } from 'date-fns';
+import type { Todo } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
-import type { Todo } from '@todome/store/src/types';
-import { updateTodo as persistTodo } from '@todome/db';
+import { useTodos, useUpdateTodo } from '@/hooks/queries';
+import { filterTodos, STATUS_CYCLE } from '@/lib/todo-filters';
 import { TodoListItem } from './todo-list-item';
 
 type DateGroup = {
@@ -191,32 +192,46 @@ const DateGroupSection = ({
 };
 
 export const TodoDueDateView = () => {
-  const allTodos = useTodoStore((s) => s.todos);
-  const filteredTodos = useTodoStore((s) => s.filteredTodos);
+  const { data: todos } = useTodos();
+  const updateTodo = useUpdateTodo();
   const showCompleted = useTodoStore((s) => s.showCompleted);
   const filterStatus = useTodoStore((s) => s.filterStatus);
   const filterPriority = useTodoStore((s) => s.filterPriority);
   const filterTags = useTodoStore((s) => s.filterTags);
   const sortBy = useTodoStore((s) => s.sortBy);
-  const toggleTodoStatus = useTodoStore((s) => s.toggleTodoStatus);
   const selectTodo = useTodoStore((s) => s.selectTodo);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const todos = useMemo(() => filteredTodos(), [allTodos, showCompleted, filterStatus, filterPriority, filterTags, sortBy]);
+  const filtered = useMemo(
+    () =>
+      filterTodos(todos ?? [], {
+        filterStatus,
+        filterPriority,
+        filterTags,
+        sortBy,
+        showCompleted,
+      }),
+    [todos, filterStatus, filterPriority, filterTags, sortBy, showCompleted],
+  );
 
-  const groups = useMemo(() => categorizeTodosByDate(todos), [todos]);
+  const groups = useMemo(() => categorizeTodosByDate(filtered), [filtered]);
 
   const handleToggleStatus = useCallback(
     (id: string) => {
-      const prev = useTodoStore.getState().todos.find((t) => t.id === id);
-      if (!prev) return;
-      toggleTodoStatus(id);
-      const updated = useTodoStore.getState().todos.find((t) => t.id === id);
-      if (updated) {
-        persistTodo(id, { status: updated.status, completed_at: updated.completed_at, updated_at: updated.updated_at }, prev).catch(console.error);
-      }
+      const todo = (todos ?? []).find((t) => t.id === id);
+      if (!todo) return;
+      const currentIndex = STATUS_CYCLE.indexOf(todo.status);
+      const nextStatus = STATUS_CYCLE[(currentIndex + 1) % STATUS_CYCLE.length]!;
+      const now = new Date().toISOString();
+      updateTodo.mutate({
+        id,
+        patch: {
+          status: nextStatus,
+          completed_at: nextStatus === 'completed' ? now : null,
+          updated_at: now,
+        },
+      });
     },
-    [toggleTodoStatus],
+    [todos, updateTodo],
   );
 
   const handleSelect = useCallback(

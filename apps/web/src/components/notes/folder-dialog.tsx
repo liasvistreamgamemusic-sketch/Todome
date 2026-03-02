@@ -14,9 +14,9 @@ import {
   FolderOpen,
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import { useNoteStore } from '@todome/store';
-import type { Folder } from '@todome/store';
+import type { Folder } from '@todome/db';
 import { useClickOutside } from '@todome/hooks';
+import { useFolders, useCreateFolder, useUpdateFolder, useUserId } from '@/hooks/queries';
 
 const PRESET_COLORS = [
   '#EF4444', // red
@@ -52,9 +52,10 @@ export function FolderDialog({
   onClose,
   editingFolderId,
 }: FolderDialogProps) {
-  const folders = useNoteStore((s) => s.folders);
-  const addFolder = useNoteStore((s) => s.addFolder);
-  const updateFolder = useNoteStore((s) => s.updateFolder);
+  const { data: folders = [] } = useFolders();
+  const createFolderMutation = useCreateFolder();
+  const updateFolderMutation = useUpdateFolder();
+  const userId = useUserId();
 
   const editingFolder = editingFolderId
     ? folders.find((f) => f.id === editingFolderId) ?? null
@@ -96,18 +97,22 @@ export function FolderDialog({
       if (!trimmedName) return;
 
       if (editingFolder) {
-        updateFolder(editingFolder.id, {
-          name: trimmedName,
-          color,
-          icon,
-          parent_id: parentId,
-          updated_at: new Date().toISOString(),
+        updateFolderMutation.mutate({
+          id: editingFolder.id,
+          patch: {
+            name: trimmedName,
+            color,
+            icon,
+            parent_id: parentId,
+            updated_at: new Date().toISOString(),
+          },
         });
       } else {
+        if (!userId) return;
         const now = new Date().toISOString();
         const newFolder: Folder = {
           id: crypto.randomUUID(),
-          user_id: '',
+          user_id: userId,
           name: trimmedName,
           color,
           icon,
@@ -116,12 +121,12 @@ export function FolderDialog({
           created_at: now,
           updated_at: now,
         };
-        addFolder(newFolder);
+        createFolderMutation.mutate(newFolder);
       }
 
       onClose();
     },
-    [name, color, icon, parentId, editingFolder, folders.length, addFolder, updateFolder, onClose],
+    [name, color, icon, parentId, editingFolder, folders.length, userId, createFolderMutation, updateFolderMutation, onClose],
   );
 
   // Available parent folders (exclude self and descendants for editing)

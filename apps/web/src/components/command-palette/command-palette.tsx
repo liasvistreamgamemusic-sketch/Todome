@@ -14,8 +14,10 @@ import {
   Moon,
   Search,
 } from 'lucide-react';
-import { useNoteStore, useCalendarStore, useTodoStore, useUiStore } from '@todome/store';
+import { useUiStore } from '@todome/store';
 import { useDebounce } from '@todome/hooks';
+import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
+import type { Note, Todo, CalendarEvent } from '@todome/db';
 import { clsx } from 'clsx';
 
 type CommandItem = {
@@ -46,9 +48,9 @@ export const CommandPalette = () => {
   const { setTheme, theme } = useTheme();
   const open = useUiStore((s) => s.commandPaletteOpen);
   const toggleCommandPalette = useUiStore((s) => s.toggleCommandPalette);
-  const notes = useNoteStore((s) => s.notes);
-  const todos = useTodoStore((s) => s.todos);
-  const events = useCalendarStore((s) => s.events);
+  const { data: notes = [] } = useNotes();
+  const { data: todos = [] } = useTodos();
+  const { data: events = [] } = useCalendarEvents();
 
   const [search, setSearch] = useState('');
   const debouncedSearch = useDebounce(search, 200);
@@ -126,8 +128,8 @@ export const CommandPalette = () => {
 
   const noteItems = useMemo<CommandItem[]>(() => {
     return notes
-      .filter((n) => !n.is_deleted && !n.is_archived)
-      .map((n): CommandItem => ({
+      .filter((n: Note) => !n.is_deleted && !n.is_archived)
+      .map((n: Note): CommandItem => ({
         id: `note-${n.id}`,
         label: n.title || '無題のメモ',
         secondaryText: (n.plain_text ?? '').slice(0, 60),
@@ -142,8 +144,8 @@ export const CommandPalette = () => {
 
   const todoItems = useMemo<CommandItem[]>(() => {
     return todos
-      .filter((t) => !t.is_deleted)
-      .map((t): CommandItem => ({
+      .filter((t: Todo) => !t.is_deleted)
+      .map((t: Todo): CommandItem => ({
         id: `todo-${t.id}`,
         label: t.title,
         secondaryText: t.due_date
@@ -160,8 +162,8 @@ export const CommandPalette = () => {
 
   const eventItems = useMemo<CommandItem[]>(() => {
     return events
-      .filter((e) => !e.is_deleted)
-      .map((e): CommandItem => ({
+      .filter((e: CalendarEvent) => !e.is_deleted)
+      .map((e: CalendarEvent): CommandItem => ({
         id: `event-${e.id}`,
         label: e.title,
         secondaryText: new Date(e.start_at).toLocaleDateString('ja-JP'),

@@ -12,14 +12,21 @@ import {
   Link2,
   Palette,
 } from 'lucide-react';
-import { createCalendarEvent, updateCalendarEvent as persistUpdateEvent, deleteCalendarEvent as persistDeleteEvent, supabase } from '@todome/db';
-import { useCalendarStore, useTodoStore } from '@todome/store';
-import type { CalendarEvent } from '@todome/store';
+import type { CalendarEvent } from '@todome/db';
+import { useCalendarStore } from '@todome/store';
 import { Button } from '@todome/ui';
 import { Input } from '@todome/ui';
 import { Textarea } from '@todome/ui';
 import { Checkbox } from '@todome/ui';
 import { createRepeatRule } from '@/lib/rrule-helpers';
+import {
+  useCalendarEvents,
+  useCreateCalendarEvent,
+  useUpdateCalendarEvent,
+  useDeleteCalendarEvent,
+  useTodos,
+  useUserId,
+} from '@/hooks/queries';
 
 type Props = {
   eventId: string | null;
@@ -97,15 +104,16 @@ const computeRemindAt = (
 };
 
 export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
-  const events = useCalendarStore((s) => s.events);
-  const addEvent = useCalendarStore((s) => s.addEvent);
-  const updateEvent = useCalendarStore((s) => s.updateEvent);
-  const deleteEvent = useCalendarStore((s) => s.deleteEvent);
+  const { data: events } = useCalendarEvents();
+  const { data: todos } = useTodos();
+  const createCalendarEvent = useCreateCalendarEvent();
+  const updateCalendarEvent = useUpdateCalendarEvent();
+  const deleteCalendarEvent = useDeleteCalendarEvent();
+  const userId = useUserId();
   const selectEvent = useCalendarStore((s) => s.selectEvent);
-  const todos = useTodoStore((s) => s.todos);
 
   const existingEvent = useMemo(
-    () => (eventId ? events.find((e) => e.id === eventId) ?? null : null),
+    () => (eventId ? (events ?? []).find((e) => e.id === eventId) ?? null : null),
     [eventId, events],
   );
 
@@ -162,7 +170,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
   const [showTodoSelector, setShowTodoSelector] = useState(false);
 
   const availableTodos = useMemo(
-    () => todos.filter((t) => !t.is_deleted && t.status !== 'cancelled'),
+    () => (todos ?? []).filter((t) => !t.is_deleted && t.status !== 'cancelled'),
     [todos],
   );
 
@@ -201,10 +209,8 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
     return createRepeatRule(options);
   }, [form]);
 
-  const handleSave = useCallback(async () => {
+  const handleSave = useCallback(() => {
     if (!form.title.trim()) return;
-
-    const { data: { user } } = await supabase.auth.getUser();
 
     const startAt = form.isAllDay
       ? new Date(`${form.startDate}T00:00:00`).toISOString()
@@ -218,25 +224,26 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
     const now = new Date().toISOString();
 
     if (isEditing && existingEvent) {
-      const patch = {
-        title: form.title.trim(),
-        start_at: startAt,
-        end_at: endAt,
-        is_all_day: form.isAllDay,
-        location: form.location.trim() || null,
-        description: form.description.trim() || null,
-        color: form.color,
-        remind_at: remindAt,
-        repeat_rule: repeatRule,
-        todo_ids: form.linkedTodoIds,
-        updated_at: now,
-      };
-      updateEvent(existingEvent.id, patch);
-      persistUpdateEvent(existingEvent.id, patch, existingEvent).catch(console.error);
+      updateCalendarEvent.mutate({
+        id: existingEvent.id,
+        patch: {
+          title: form.title.trim(),
+          start_at: startAt,
+          end_at: endAt,
+          is_all_day: form.isAllDay,
+          location: form.location.trim() || null,
+          description: form.description.trim() || null,
+          color: form.color,
+          remind_at: remindAt,
+          repeat_rule: repeatRule,
+          todo_ids: form.linkedTodoIds,
+          updated_at: now,
+        },
+      });
     } else {
       const newEvent: CalendarEvent = {
         id: crypto.randomUUID(),
-        user_id: user?.id ?? '',
+        user_id: userId ?? '',
         title: form.title.trim(),
         description: form.description.trim() || null,
         start_at: startAt,
@@ -253,8 +260,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
         created_at: now,
         updated_at: now,
       };
-      addEvent(newEvent);
-      createCalendarEvent(newEvent).catch(console.error);
+      createCalendarEvent.mutate(newEvent);
     }
 
     selectEvent(null);
@@ -263,8 +269,9 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
     form,
     isEditing,
     existingEvent,
-    addEvent,
-    updateEvent,
+    userId,
+    updateCalendarEvent,
+    createCalendarEvent,
     selectEvent,
     onClose,
     buildRepeatRule,
@@ -272,12 +279,11 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
 
   const handleDelete = useCallback(() => {
     if (existingEvent) {
-      persistDeleteEvent(existingEvent.id, existingEvent).catch(console.error);
-      deleteEvent(existingEvent.id);
+      deleteCalendarEvent.mutate(existingEvent.id);
       selectEvent(null);
       onClose();
     }
-  }, [existingEvent, deleteEvent, selectEvent, onClose]);
+  }, [existingEvent, deleteCalendarEvent, selectEvent, onClose]);
 
   const toggleTodo = useCallback(
     (todoId: string) => {
@@ -561,7 +567,7 @@ export const EventDetail = ({ eventId, initialDate, onClose }: Props) => {
             {form.linkedTodoIds.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-1.5">
                 {form.linkedTodoIds.map((id) => {
-                  const todo = todos.find((t) => t.id === id);
+                  const todo = (todos ?? []).find((t) => t.id === id);
                   return (
                     <span
                       key={id}

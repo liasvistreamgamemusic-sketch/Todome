@@ -48,18 +48,6 @@ export const REMIND_REPEATS = [
 ] as const;
 export type RemindRepeat = (typeof REMIND_REPEATS)[number];
 
-export const SYNC_OPERATIONS = ['create', 'update', 'delete'] as const;
-export type SyncOperation = (typeof SYNC_OPERATIONS)[number];
-
-export const SYNCABLE_TABLES = [
-  'notes',
-  'folders',
-  'todos',
-  'calendar_events',
-  'attachments',
-] as const;
-export type SyncableTable = (typeof SYNCABLE_TABLES)[number];
-
 // ---------------------------------------------------------------------------
 // Result pattern
 // ---------------------------------------------------------------------------
@@ -266,15 +254,3 @@ export interface CreateAttachmentInput {
   storage_path: string;
 }
 
-// ---------------------------------------------------------------------------
-// Sync queue
-// ---------------------------------------------------------------------------
-
-export interface SyncQueueItem {
-  id?: number;
-  table: SyncableTable;
-  record_id: string;
-  operation: SyncOperation;
-  data: Record<string, unknown>;
-  timestamp: string;
-}

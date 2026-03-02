@@ -15,8 +15,9 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
-import type { Folder } from '@todome/store';
+import type { Folder } from '@todome/db';
 import { useClickOutside } from '@todome/hooks';
+import { useNotes, useFolders, useDeleteFolder } from '@/hooks/queries';
 
 type FolderNodeProps = {
   folder: Folder;
@@ -145,11 +146,11 @@ type FolderTreeProps = {
 };
 
 export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
-  const folders = useNoteStore((s) => s.folders);
-  const notes = useNoteStore((s) => s.notes);
+  const { data: folders = [] } = useFolders();
+  const { data: notes = [] } = useNotes();
   const selectedFolderId = useNoteStore((s) => s.selectedFolderId);
   const selectFolder = useNoteStore((s) => s.selectFolder);
-  const deleteFolder = useNoteStore((s) => s.deleteFolder);
+  const deleteFolderMutation = useDeleteFolder();
 
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [contextMenu, setContextMenu] = useState<FolderContextMenuState>({
@@ -241,10 +242,10 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
 
   const handleDeleteFolder = useCallback(() => {
     if (contextMenu.folderId) {
-      deleteFolder(contextMenu.folderId);
+      deleteFolderMutation.mutate(contextMenu.folderId);
     }
     setContextMenu((s) => ({ ...s, visible: false }));
-  }, [contextMenu.folderId, deleteFolder]);
+  }, [contextMenu.folderId, deleteFolderMutation]);
 
   return (
     <div className="flex flex-col h-full text-sm">

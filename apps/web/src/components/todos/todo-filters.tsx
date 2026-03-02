@@ -5,7 +5,8 @@ import { clsx } from 'clsx';
 import { X, Filter } from 'lucide-react';
 import { Badge } from '@todome/ui/src/badge';
 import { useTodoStore } from '@todome/store/src/todo-store';
-import type { TodoStatus, TodoPriority } from '@todome/store/src/types';
+import { useTodos } from '@/hooks/queries';
+import type { Todo, TodoStatus, TodoPriority } from '@todome/db';
 
 const STATUS_FILTERS: { value: TodoStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'すべて' },
@@ -34,7 +35,7 @@ export const TodoFilters = () => {
   const setFilterStatus = useTodoStore((s) => s.setFilterStatus);
   const setFilterPriority = useTodoStore((s) => s.setFilterPriority);
   const setFilterTags = useTodoStore((s) => s.setFilterTags);
-  const todos = useTodoStore((s) => s.todos);
+  const { data: todos = [] } = useTodos();
 
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();

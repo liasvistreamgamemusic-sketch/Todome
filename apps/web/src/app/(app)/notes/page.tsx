@@ -5,49 +5,33 @@ import { NoteList } from '@/components/notes/note-list';
 import { NoteEditor } from '@/components/notes/note-editor';
 import { useNoteStore } from '@todome/store';
 import { useIsMobile } from '@todome/hooks';
-import type { Note } from '@todome/store';
-import { supabase, localDb } from '@todome/db';
-
-async function createEmptyNote(): Promise<Note> {
-  const { data: { session } } = await supabase.auth.getSession();
-  const now = new Date().toISOString();
-  return {
-    id: crypto.randomUUID(),
-    user_id: session?.user?.id ?? '',
-    title: '',
-    content: { type: 'doc', content: [] },
-    plain_text: '',
-    folder_id: null,
-    tags: [],
-    is_pinned: false,
-    is_archived: false,
-    is_deleted: false,
-    created_at: now,
-    updated_at: now,
-    synced_at: null,
-  };
-}
+import type { Note } from '@todome/db';
+import { useNotes, useCreateNote, useUserId } from '@/hooks/queries';
+import { filterAndSortNotes } from '@/lib/note-filters';
 
 export default function NotesPage() {
   const isMobile = useIsMobile();
   const selectedNoteId = useNoteStore((s) => s.selectedNoteId);
   const selectNote = useNoteStore((s) => s.selectNote);
-  const hydrated = useNoteStore((s) => s.hydrated);
-  const synced = useNoteStore((s) => s.synced);
+  const selectedFolderId = useNoteStore((s) => s.selectedFolderId);
+  const searchQuery = useNoteStore((s) => s.searchQuery);
+  const sortBy = useNoteStore((s) => s.sortBy);
 
-  // モバイル: ドロワー一覧（初期表示で開く）
+  const userId = useUserId();
+  const { data: notes } = useNotes();
+  const createNote = useCreateNote();
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const drawerInitRef = useRef(false);
+  const autoCreatedRef = useRef(false);
 
-  // hydrated 後にドロワーを開く（SSR中は表示しない）
   useEffect(() => {
-    if (isMobile && hydrated && !drawerInitRef.current) {
+    if (isMobile && notes && !drawerInitRef.current) {
       drawerInitRef.current = true;
       setDrawerOpen(true);
     }
-  }, [isMobile, hydrated]);
+  }, [isMobile, notes]);
 
-  // 左端スワイプでドロワーを開く
   const touchStartRef = useRef({ x: 0, y: 0 });
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const touch = e.touches[0];
@@ -65,40 +49,43 @@ export default function NotesPage() {
     }
   }, []);
 
-  // ドロワーでメモを選択 → ドロワーを閉じて selectNote
   const handleDrawerSelect = useCallback((id: string) => {
     selectNote(id);
     setDrawerOpen(false);
   }, [selectNote]);
 
-  // Auto-select or create note:
-  // - Select existing: immediately after hydration (Phase 1)
-  // - Create empty: only after Supabase sync (Phase 2) to avoid flash
-  const notes = useNoteStore((s) => s.notes);
+  // Auto-select or create note
   useEffect(() => {
-    if (!hydrated) return;
+    if (!notes || !userId) return;
 
-    const { addNote, selectNote: select, filteredNotes } = useNoteStore.getState();
-    const visible = filteredNotes();
+    const visible = filterAndSortNotes(notes, { folderId: selectedFolderId, searchQuery, sortBy });
 
-    // If a valid note is already selected, nothing to do
     if (selectedNoteId && visible.some((n) => n.id === selectedNoteId)) return;
 
     if (visible.length > 0 && visible[0]) {
-      // Select the first visible note (available after Phase 1)
-      select(visible[0].id);
-    } else if (synced) {
-      // Only create an empty note after Supabase sync completes
-      // to avoid a flash of "untitled note" that disappears when real data arrives
-      const { markLocalOnly } = useNoteStore.getState();
-      createEmptyNote().then(async (newNote) => {
-        addNote(newNote);
-        markLocalOnly(newNote.id);
-        await localDb.notes.put(newNote);
-        select(newNote.id);
-      }).catch(console.error);
+      selectNote(visible[0].id);
+    } else if (!autoCreatedRef.current) {
+      autoCreatedRef.current = true;
+      const now = new Date().toISOString();
+      const newNote: Note = {
+        id: crypto.randomUUID(),
+        user_id: userId,
+        title: '',
+        content: { type: 'doc', content: [] },
+        plain_text: '',
+        folder_id: null,
+        tags: [],
+        is_pinned: false,
+        is_archived: false,
+        is_deleted: false,
+        created_at: now,
+        updated_at: now,
+        synced_at: null,
+      };
+      createNote.mutate(newNote);
+      selectNote(newNote.id);
     }
-  }, [hydrated, synced, selectedNoteId, notes]);
+  }, [notes, userId, selectedNoteId, selectedFolderId, searchQuery, sortBy, selectNote, createNote]);
 
   return (
     <div className="flex h-full">
@@ -108,12 +95,9 @@ export default function NotesPage() {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {/* エディタは常にレンダリング（背景に見える） */}
           {selectedNoteId && (
             <NoteEditor noteId={selectedNoteId} onMenu={() => setDrawerOpen(true)} />
           )}
-
-          {/* ドロワーオーバーレイ */}
           {drawerOpen && (
             <>
               <div

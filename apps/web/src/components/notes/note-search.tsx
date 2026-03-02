@@ -5,7 +5,8 @@ import { Search, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useDebounce } from '@todome/hooks';
 import { useNoteStore } from '@todome/store';
-import type { Note } from '@todome/store';
+import { useNotes } from '@/hooks/queries';
+import type { Note } from '@todome/db';
 
 type SearchResultProps = {
   note: Note;
@@ -73,7 +74,7 @@ function SearchResult({ note, query, onClick }: SearchResultProps) {
 export function NoteSearch() {
   const [inputValue, setInputValue] = useState('');
   const setSearchQuery = useNoteStore((s) => s.setSearchQuery);
-  const notes = useNoteStore((s) => s.notes);
+  const { data: notes = [] } = useNotes();
   const selectNote = useNoteStore((s) => s.selectNote);
 
   const debouncedQuery = useDebounce(inputValue, 300);
@@ -87,12 +88,12 @@ export function NoteSearch() {
 
   const results = query
     ? notes.filter(
-        (n) =>
+        (n: Note) =>
           !n.is_deleted &&
           !n.is_archived &&
           (n.title.toLowerCase().includes(query) ||
             (n.plain_text ?? '').toLowerCase().includes(query) ||
-            n.tags.some((t) => t.toLowerCase().includes(query))),
+            n.tags.some((t: string) => t.toLowerCase().includes(query))),
       )
     : [];
 
@@ -140,7 +141,7 @@ export function NoteSearch() {
           <div className="px-3 py-1.5 text-[10px] text-text-tertiary uppercase tracking-wider border-b border-border">
             {results.length}件の結果
           </div>
-          {results.map((note) => (
+          {results.map((note: Note) => (
             <SearchResult
               key={note.id}
               note={note}
