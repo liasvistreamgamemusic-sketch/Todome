@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@todome/ui';
 import { Input } from '@todome/ui';
@@ -14,7 +13,6 @@ type SignupFormProps = {
 const PASSWORD_MIN_LENGTH = 8;
 
 export const SignupForm = ({ onToggleMode }: SignupFormProps) => {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -62,14 +60,14 @@ export const SignupForm = ({ onToggleMode }: SignupFormProps) => {
           return;
         }
 
-        router.replace('/notes');
+        window.location.href = '/notes';
       } catch {
         setError('アカウントの作成に失敗しました。もう一度お試しください。');
       } finally {
         setLoading(false);
       }
     },
-    [email, password, validateForm, router],
+    [email, password, validateForm],
   );
 
   return (

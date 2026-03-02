@@ -1,13 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@todome/db';
 
 type AuthState = 'loading' | 'authenticated' | 'unauthenticated';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const [authState, setAuthState] = useState<AuthState>('loading');
 
   useEffect(() => {
@@ -20,7 +18,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         setAuthState('authenticated');
       } else {
-        router.replace('/login');
+        window.location.href = '/login';
       }
     }
 
@@ -28,7 +26,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === 'SIGNED_OUT') {
-        router.replace('/login');
+        window.location.href = '/login';
       }
     });
 
@@ -36,7 +34,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       cancelled = true;
       subscription.unsubscribe();
     };
-  }, [router]);
+  }, []);
 
   if (authState !== 'authenticated') {
     return (

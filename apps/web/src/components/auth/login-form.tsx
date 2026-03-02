@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@todome/ui';
 import { Input } from '@todome/ui';
@@ -12,7 +11,6 @@ type LoginFormProps = {
 };
 
 export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -46,14 +44,15 @@ export const LoginForm = ({ onToggleMode }: LoginFormProps) => {
           return;
         }
 
-        router.replace('/notes');
+        // Full page navigation to avoid RSC flight data issues in Tauri static export
+        window.location.href = '/notes';
       } catch {
         setError('ログインに失敗しました。もう一度お試しください。');
       } finally {
         setLoading(false);
       }
     },
-    [email, password, router],
+    [email, password],
   );
 
   return (
