@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import type { JSONContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -40,6 +40,9 @@ export const TiptapEditor = ({
   placeholder = 'Start writing...',
   editable = true,
 }: TiptapEditorProps) => {
+  // Suppress onChange during programmatic content updates (e.g. remote sync)
+  const suppressOnChangeRef = useRef(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -167,6 +170,7 @@ export const TiptapEditor = ({
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
+      if (suppressOnChangeRef.current) return;
       onChange(currentEditor.getJSON(), currentEditor.getText());
     },
     immediatelyRender: false,
@@ -189,14 +193,16 @@ export const TiptapEditor = ({
     }
   }, [editor, editable]);
 
-  // Update content from outside
+  // Update content from outside (remote sync) without triggering onChange
   const handleContentUpdate = useCallback(
     (newContent: JSONContent | null) => {
       if (editor && newContent) {
         const currentContent = JSON.stringify(editor.getJSON());
         const incomingContent = JSON.stringify(newContent);
         if (currentContent !== incomingContent) {
+          suppressOnChangeRef.current = true;
           editor.commands.setContent(newContent);
+          suppressOnChangeRef.current = false;
         }
       }
     },

@@ -48,6 +48,8 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const folderMenuRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevNoteIdRef = useRef<string>(noteId);
+  // Track the updated_at we last saved to detect remote changes
+  const lastSavedAtRef = useRef<string | null>(null);
 
   // Check if a note is empty (no title and no content)
   const isNoteEmpty = useCallback((n: Note | null): boolean => {
@@ -69,14 +71,29 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   );
 
   // Sync local state when noteId changes; purge previous note if empty
+  // Accept remote data only when switching notes or when remote is newer
   useEffect(() => {
     if (prevNoteIdRef.current !== noteId) {
       purgeAndPersist(prevNoteIdRef.current);
       prevNoteIdRef.current = noteId;
+      lastSavedAtRef.current = null;
     }
-    if (note) {
+    if (!note) return;
+
+    const isNoteSwitch = lastSavedAtRef.current === null;
+    const remoteIsNewer =
+      lastSavedAtRef.current !== null &&
+      note.updated_at > lastSavedAtRef.current;
+
+    if (isNoteSwitch || remoteIsNewer) {
+      // Cancel any pending local save — remote is authoritative
+      if (remoteIsNewer && saveTimerRef.current) {
+        clearTimeout(saveTimerRef.current);
+        saveTimerRef.current = null;
+      }
       setTitle(note.title);
       setTags(note.tags);
+      lastSavedAtRef.current = note.updated_at;
       setSaveStatus('saved');
     }
   }, [noteId, note, purgeAndPersist]);
@@ -111,7 +128,9 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
       saveTimerRef.current = setTimeout(() => {
-        const fullPatch = { ...patch, updated_at: new Date().toISOString() };
+        const now = new Date().toISOString();
+        const fullPatch = { ...patch, updated_at: now };
+        lastSavedAtRef.current = now;
         updateNoteMutation.mutate(
           { id: noteId, patch: fullPatch },
           {

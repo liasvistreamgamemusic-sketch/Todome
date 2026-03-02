@@ -39,9 +39,6 @@ const config: Config = {
       transitionTimingFunction: {
         DEFAULT: 'ease-out',
       },
-      width: {
-        sidebar: '240px',
-      },
       keyframes: {
         'slide-in': {
           from: { transform: 'translateX(-100%)' },
