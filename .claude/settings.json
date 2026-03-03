@@ -8,7 +8,10 @@
       "Bash(ls -la /Users/nitandatomoya/repository/github/Todome/apps/web/src/app/\\\\\\(auth\\\\\\)/login/)",
       "Bash(ls -la /Users/nitandatomoya/repository/github/Todome/apps/web/src/app/\\\\\\(app\\\\\\)/)",
       "Bash(ls -la /Users/nitandatomoya/repository/github/Todome/*.md)",
-      "Bash(pnpm build)"
+      "Bash(pnpm build)",
+      "Bash(ls -la /Users/nitandatomoya/repository/github/Todome/apps/desktop/src-*/)",
+      "Bash(pnpm --filter web build)",
+      "Bash(git add apps/web/src/app/\\\\\\(app\\\\\\)/notes/page.tsx apps/web/src/components/notes/note-list.tsx apps/web/src/hooks/queries/use-notes.ts apps/desktop/src-tauri/tauri.conf.json apps/web/src/app/api/ics/route.ts apps/web/src/app/globals.css apps/web/src/components/calendar/month-view.tsx apps/web/src/components/calendar/week-view.tsx apps/web/src/components/notes/folder-tree.tsx apps/web/src/components/notes/note-card.tsx apps/web/src/components/notes/note-editor.tsx apps/web/src/components/notes/note-list-item.tsx apps/web/src/hooks/queries/index.ts apps/web/src/hooks/use-ics-sync.ts apps/web/src/lib/ics-fetch.ts apps/web/src/lib/note-filters.ts packages/db/src/index.ts packages/db/src/repository.ts packages/store/src/index.ts packages/store/src/note-store.ts)"
     ]
   }
 }

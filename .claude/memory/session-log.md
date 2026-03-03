@@ -727,3 +727,68 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-02T22:38:09Z
+
+- session_id: `A6EDB8A9-4CB7-4470-9EF5-51DC537AD94D`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T22:32:09Z`
+- ended_at: `2026-03-02T22:38:09Z`
+- duration_minutes: 546
+- changes: 6
+
+### 変更ファイル
+- `apps/web/src/app/globals.css`
+- `apps/web/src/components/calendar/week-view.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-02T23:03:45Z
+
+- session_id: `599CEBB2-94AF-4633-9975-E576A54293BD`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-02T23:03:45Z`
+- ended_at: `2026-03-02T23:03:45Z`
+- duration_minutes: 540
+- changes: 0
+
+### 変更ファイル
+- （なし）
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
+
+## セッション: 2026-03-03T00:29:52Z
+
+- session_id: `3B7BC9BC-AB49-4D21-86C8-8020447324BD`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-03T00:23:48Z`
+- ended_at: `2026-03-03T00:29:52Z`
+- duration_minutes: 546
+- changes: 3
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/deep-chasing-wolf.md`
+- `apps/web/src/lib/ics-parser.ts`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

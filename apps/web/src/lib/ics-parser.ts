@@ -37,11 +37,11 @@ function allDayDates(
   dtstart: ICAL.Time,
   dtend: ICAL.Time | null,
 ): { startAt: string; endAt: string } {
-  const startAt = `${icalDateToISO(dtstart)}T00:00:00.000Z`;
+  const startAt = `${icalDateToISO(dtstart)}T00:00:00.000`;
   if (dtend && dtend.isDate) {
     const inclusive = dtend.clone();
     inclusive.day -= 1;
-    return { startAt, endAt: `${icalDateToISO(inclusive)}T23:59:59.999Z` };
+    return { startAt, endAt: `${icalDateToISO(inclusive)}T23:59:59.999` };
   }
   return { startAt, endAt: startAt };
 }
