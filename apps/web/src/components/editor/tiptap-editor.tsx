@@ -14,7 +14,7 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Link from '@tiptap/extension-link';
 import { ResizableImage } from './resizable-image';
-import Table from '@tiptap/extension-table';
+import { ResizableTable, ResizableTableView } from './resizable-table';
 import TableRow from '@tiptap/extension-table-row';
 import TableCell from '@tiptap/extension-table-cell';
 import TableHeader from '@tiptap/extension-table-header';
@@ -22,6 +22,7 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Mathematics from '@tiptap/extension-mathematics';
 import { createLowlight, common } from 'lowlight';
 import { FontSize } from './font-size-extension';
+import { DragHandle } from './drag-handle-extension';
 import { EditorToolbar } from './editor-toolbar';
 import './editor-styles.css';
 
@@ -96,11 +97,13 @@ export const TiptapEditor = ({
           loading: 'lazy',
         },
       }),
-      Table.configure({
+      ResizableTable.configure({
         resizable: true,
         handleWidth: 5,
         cellMinWidth: 60,
         lastColumnResizable: true,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        View: ResizableTableView as any,
       }),
       TableRow,
       TableCell,
@@ -116,6 +119,7 @@ export const TiptapEditor = ({
           displayMode: false,
         },
       }),
+      DragHandle,
     ],
     content: content ?? undefined,
     editable,
@@ -123,6 +127,9 @@ export const TiptapEditor = ({
       attributes: {
         class: 'prose-editor',
         spellcheck: 'true',
+      },
+      clipboardTextSerializer: (slice) => {
+        return slice.content.textBetween(0, slice.content.size, '\n');
       },
       handleDrop: (_view, event) => {
         const hasFiles = event.dataTransfer?.files?.length;

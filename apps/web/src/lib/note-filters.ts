@@ -47,8 +47,7 @@ export function filterAndSortNotes(
     filtered = filtered.filter(
       (n) =>
         n.title.toLowerCase().includes(query) ||
-        (n.plain_text ?? '').toLowerCase().includes(query) ||
-        n.tags.some((t) => t.toLowerCase().includes(query)),
+        (n.plain_text ?? '').toLowerCase().includes(query),
     );
   }
 

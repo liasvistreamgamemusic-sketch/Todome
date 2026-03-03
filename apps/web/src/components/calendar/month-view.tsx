@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useRef } from 'react';
 import { clsx } from 'clsx';
 import {
   startOfMonth,
@@ -22,7 +22,8 @@ import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
 import { BookOpen } from 'lucide-react';
 import { useCalendarEvents, useTodos, useDiaries } from '@/hooks/queries';
-import { useIsMobile } from '@todome/hooks';
+import { useGridRowHeight } from '@/hooks/use-grid-row-height';
+import { computeMonthCellCapacity } from '@/lib/month-cell-capacity';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { isHoliday } from '@/lib/japanese-holidays';
 import { ProviderIcon } from './provider-icon';
@@ -51,7 +52,6 @@ const DAY_LABELS_SUN: string[] = ['日', '月', '火', '水', '木', '金', '土
 const DAY_LABELS_MON: string[] = ['月', '火', '水', '木', '金', '土', '日'];
 
 export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDayEvents }: Props) => {
-  const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
@@ -70,8 +70,6 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
   const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
   const swipe = useSwipeNavigation(navigateMonthNext, navigateMonthPrev);
-
-  const maxVisibleEvents = isMobile ? 1 : 3;
 
   const dayLabels = weekStart === 0 ? DAY_LABELS_SUN : DAY_LABELS_MON;
 
@@ -103,7 +101,14 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
     return [...activeLocal, ...activeExternal];
   }, [events, externalEvents]);
 
-  const maxAllDayLanes = isMobile ? 1 : 2;
+  // Dynamic event capacity based on measured cell height
+  const gridRef = useRef<HTMLDivElement>(null);
+  const weekCount = calendarDays.length / 7;
+  const rowHeight = useGridRowHeight(gridRef, weekCount);
+  const { maxVisibleEvents, maxAllDayLanes } = useMemo(
+    () => computeMonthCellCapacity(rowHeight),
+    [rowHeight],
+  );
 
   const weekSpanLayouts = useMemo(() => {
     const allDayEvents = allActiveEvents.filter((e) => e.is_all_day);
@@ -143,19 +148,11 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
 
   const handleDateClick = useCallback(
     (day: Date) => {
-      if (isMobile) {
-        selectDate(day);
-        const { setViewMode } = useCalendarStore.getState();
-        setViewMode('day');
-        return;
-      }
       selectDate(day);
       onShowDayEvents(day);
     },
-    [selectDate, isMobile, onShowDayEvents],
+    [selectDate, onShowDayEvents],
   );
-
-  const weekCount = calendarDays.length / 7;
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden" {...swipe}>
@@ -182,6 +179,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
 
       {/* Calendar grid - week by week */}
       <div
+        ref={gridRef}
         className="flex flex-1 flex-col"
         style={{ display: 'grid', gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
       >

@@ -42,7 +42,6 @@ export function DiaryList({ onSelectDiary }: Props = {}) {
       mood: null,
       weather: null,
       gratitude: [],
-      tags: [],
       is_deleted: false,
       created_at: now,
       updated_at: now,

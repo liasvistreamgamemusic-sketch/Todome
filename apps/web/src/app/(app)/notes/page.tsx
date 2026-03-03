@@ -95,7 +95,6 @@ export default function NotesPage() {
         content: { type: 'doc', content: [] },
         plain_text: '',
         folder_id: selectedFolderId,
-        tags: [],
         is_pinned: false,
         is_archived: false,
         is_deleted: false,

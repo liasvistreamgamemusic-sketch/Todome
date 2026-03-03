@@ -22,8 +22,6 @@ type NoteListItemProps = {
   onExportPdf: (id: string) => void;
 };
 
-const MAX_VISIBLE_TAGS = 3;
-
 export const NoteListItem = memo(function NoteListItem({
   note,
   isActive,
@@ -46,8 +44,6 @@ export const NoteListItem = memo(function NoteListItem({
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const previewText = (note.plain_text ?? '').slice(0, 120).replace(/\n/g, ' ');
-  const visibleTags = note.tags.slice(0, MAX_VISIBLE_TAGS);
-  const extraTagCount = note.tags.length - MAX_VISIBLE_TAGS;
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -109,16 +105,8 @@ export const NoteListItem = memo(function NoteListItem({
         </div>
       </div>
 
-      <div className="flex items-center justify-between mt-1.5 pr-6">
-        <div className="flex items-center gap-1 min-w-0 flex-1">
-          {visibleTags.map((tag) => (
-            <span key={tag} className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-bg-tertiary text-text-secondary truncate max-w-[72px]">
-              {tag}
-            </span>
-          ))}
-          {extraTagCount > 0 && <span className="text-[10px] text-text-tertiary">+{extraTagCount}</span>}
-        </div>
-        <span className="text-[10px] text-text-tertiary whitespace-nowrap ml-2">
+      <div className="flex items-center justify-end mt-1.5 pr-6">
+        <span className="text-[10px] text-text-tertiary whitespace-nowrap">
           {formatRelativeDate(note.updated_at)}
         </span>
       </div>

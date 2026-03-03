@@ -44,7 +44,6 @@ export default function DiaryPage() {
         mood: null,
         weather: null,
         gratitude: [],
-        tags: [],
         is_deleted: false,
         created_at: now,
         updated_at: now,

@@ -39,8 +39,6 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const note = allNotes?.find((n) => n.id === noteId) ?? null;
 
   const [title, setTitle] = useState('');
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showFolderMenu, setShowFolderMenu] = useState(false);
@@ -65,6 +63,7 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const purgeAndPersist = useCallback(
     (id: string) => {
       const targetNote = allNotes?.find((n) => n.id === id) ?? null;
+      if (targetNote?.is_archived) return;
       if (isNoteEmpty(targetNote)) {
         deleteNoteMutation.mutate(id);
       }
@@ -97,7 +96,6 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
       saveTimerRef.current = null;
     }
     setTitle(note.title);
-    setTags(note.tags);
     lastSyncedAtRef.current = note.updated_at;
     setSaveStatus('saved');
   }, [noteId, note, purgeAndPersist]);
@@ -154,11 +152,24 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
     };
   }, []);
 
+  // IME composition guard – suppress saves while composing (e.g. Japanese input)
+  const isComposingRef = useRef(false);
+
   const handleTitleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newTitle = e.target.value;
       setTitle(newTitle);
-      debouncedSave({ title: newTitle });
+      if (!isComposingRef.current) {
+        debouncedSave({ title: newTitle });
+      }
+    },
+    [debouncedSave],
+  );
+
+  const handleTitleCompositionEnd = useCallback(
+    (e: React.CompositionEvent<HTMLInputElement>) => {
+      isComposingRef.current = false;
+      debouncedSave({ title: e.currentTarget.value });
     },
     [debouncedSave],
   );
@@ -180,36 +191,6 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
       }
     },
     [debouncedSave, title],
-  );
-
-  const handleTagKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter' && tagInput.trim()) {
-        e.preventDefault();
-        const newTag = tagInput.trim();
-        if (!tags.includes(newTag)) {
-          const newTags = [...tags, newTag];
-          setTags(newTags);
-          debouncedSave({ tags: newTags });
-        }
-        setTagInput('');
-      }
-      if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
-        const newTags = tags.slice(0, -1);
-        setTags(newTags);
-        debouncedSave({ tags: newTags });
-      }
-    },
-    [tagInput, tags, debouncedSave],
-  );
-
-  const handleRemoveTag = useCallback(
-    (tag: string) => {
-      const newTags = tags.filter((t) => t !== tag);
-      setTags(newTags);
-      debouncedSave({ tags: newTags });
-    },
-    [tags, debouncedSave],
   );
 
   const handleTogglePin = useCallback(() => {
@@ -408,36 +389,11 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
           type="text"
           value={title}
           onChange={handleTitleChange}
+          onCompositionStart={() => { isComposingRef.current = true; }}
+          onCompositionEnd={handleTitleCompositionEnd}
           placeholder="タイトル"
           className="w-full text-xl md:text-2xl font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-text-tertiary"
         />
-
-        {/* Tags input */}
-        <div className="flex items-center flex-wrap gap-1 mt-2">
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-bg-tertiary text-text-secondary"
-            >
-              {tag}
-              <button
-                type="button"
-                onClick={() => handleRemoveTag(tag)}
-                className="hover:text-text-primary"
-              >
-                &times;
-              </button>
-            </span>
-          ))}
-          <input
-            type="text"
-            value={tagInput}
-            onChange={(e) => setTagInput(e.target.value)}
-            onKeyDown={handleTagKeyDown}
-            placeholder={tags.length === 0 ? 'タグを追加...' : ''}
-            className="flex-1 min-w-[80px] text-xs bg-transparent border-none outline-none text-text-secondary placeholder:text-text-tertiary py-0.5"
-          />
-        </div>
 
         {/* Folder selector */}
         <div className="relative mt-2 mb-2" ref={folderMenuRef}>

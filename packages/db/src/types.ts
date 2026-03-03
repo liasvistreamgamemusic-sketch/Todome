@@ -73,7 +73,6 @@ export interface Note {
   content: TiptapDocument | null;
   plain_text: string | null;
   folder_id: string | null;
-  tags: string[];
   is_pinned: boolean;
   is_archived: boolean;
   is_deleted: boolean;
@@ -155,7 +154,6 @@ export interface CreateNoteInput {
   content?: TiptapDocument | null;
   plain_text?: string | null;
   folder_id?: string | null;
-  tags?: string[];
   is_pinned?: boolean;
   is_archived?: boolean;
 }
@@ -165,7 +163,6 @@ export interface UpdateNoteInput {
   content?: TiptapDocument | null;
   plain_text?: string | null;
   folder_id?: string | null;
-  tags?: string[];
   is_pinned?: boolean;
   is_archived?: boolean;
   is_deleted?: boolean;
@@ -335,7 +332,6 @@ export interface Diary {
   mood: DiaryMood | null;
   weather: DiaryWeather | null;
   gratitude: string[];
-  tags: string[];
   is_deleted: boolean;
   created_at: string;
   updated_at: string;
@@ -349,7 +345,6 @@ export interface CreateDiaryInput {
   mood?: DiaryMood | null;
   weather?: DiaryWeather | null;
   gratitude?: string[];
-  tags?: string[];
 }
 
 export interface UpdateDiaryInput {
@@ -360,7 +355,6 @@ export interface UpdateDiaryInput {
   mood?: DiaryMood | null;
   weather?: DiaryWeather | null;
   gratitude?: string[];
-  tags?: string[];
   is_deleted?: boolean;
 }
 

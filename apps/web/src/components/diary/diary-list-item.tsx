@@ -119,24 +119,6 @@ export const DiaryListItem = memo(function DiaryListItem({
             {previewText || '内容なし'}
           </p>
 
-          {/* Tags */}
-          {diary.tags.length > 0 && (
-            <div className="flex items-center gap-1 mt-1">
-              {diary.tags.slice(0, 3).map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] bg-bg-tertiary text-text-secondary truncate max-w-[72px]"
-                >
-                  {tag}
-                </span>
-              ))}
-              {diary.tags.length > 3 && (
-                <span className="text-[10px] text-text-tertiary">
-                  +{diary.tags.length - 3}
-                </span>
-              )}
-            </div>
-          )}
         </div>
       </div>
 

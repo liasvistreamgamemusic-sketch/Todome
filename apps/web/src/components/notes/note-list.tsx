@@ -83,7 +83,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
     const n: Note = {
       id: crypto.randomUUID(), user_id: userId, title: '',
       content: { type: 'doc', content: [] }, plain_text: '',
-      folder_id: selectedFolderId, tags: [], is_pinned: false,
+      folder_id: selectedFolderId, is_pinned: false,
       is_archived: false, is_deleted: false,
       created_at: now, updated_at: now, synced_at: null,
     };

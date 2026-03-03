@@ -47,8 +47,6 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
   const [mood, setMood] = useState<DiaryMood | null>(null);
   const [weather, setWeather] = useState<DiaryWeather | null>(null);
   const [gratitude, setGratitude] = useState<string[]>([]);
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -81,7 +79,6 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
     setMood(diary.mood);
     setWeather(diary.weather);
     setGratitude(diary.gratitude);
-    setTags(diary.tags);
     lastSyncedAtRef.current = diary.updated_at;
     setSaveStatus('saved');
   }, [diaryId, diary]);
@@ -167,36 +164,6 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
       setShowDatePicker(false);
     },
     [debouncedSave],
-  );
-
-  const handleTagKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter' && tagInput.trim()) {
-        e.preventDefault();
-        const newTag = tagInput.trim();
-        if (!tags.includes(newTag)) {
-          const newTags = [...tags, newTag];
-          setTags(newTags);
-          debouncedSave({ tags: newTags });
-        }
-        setTagInput('');
-      }
-      if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
-        const newTags = tags.slice(0, -1);
-        setTags(newTags);
-        debouncedSave({ tags: newTags });
-      }
-    },
-    [tagInput, tags, debouncedSave],
-  );
-
-  const handleRemoveTag = useCallback(
-    (tag: string) => {
-      const newTags = tags.filter((t) => t !== tag);
-      setTags(newTags);
-      debouncedSave({ tags: newTags });
-    },
-    [tags, debouncedSave],
   );
 
   const handleDelete = useCallback(() => {
@@ -363,35 +330,6 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
             />
           </div>
 
-          {/* Tags */}
-          <div className="space-y-2">
-            <span className="text-xs font-medium text-text-secondary">タグ</span>
-            <div className="flex items-center flex-wrap gap-1">
-              {tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-bg-tertiary text-text-secondary"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveTag(tag)}
-                    className="hover:text-text-primary"
-                  >
-                    &times;
-                  </button>
-                </span>
-              ))}
-              <input
-                type="text"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyDown={handleTagKeyDown}
-                placeholder={tags.length === 0 ? 'タグを追加...' : ''}
-                className="flex-1 min-w-[80px] text-xs bg-transparent border-none outline-none text-text-secondary placeholder:text-text-tertiary py-0.5"
-              />
-            </div>
-          </div>
         </div>
       </div>
     </div>

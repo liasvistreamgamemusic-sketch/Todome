@@ -92,8 +92,7 @@ export function NoteSearch() {
           !n.is_deleted &&
           !n.is_archived &&
           (n.title.toLowerCase().includes(query) ||
-            (n.plain_text ?? '').toLowerCase().includes(query) ||
-            n.tags.some((t: string) => t.toLowerCase().includes(query))),
+            (n.plain_text ?? '').toLowerCase().includes(query)),
       )
     : [];
 

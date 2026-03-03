@@ -54,11 +54,6 @@ const noteToMarkdown = (note: Note): string => {
   lines.push(`# ${note.title || '無題のメモ'}`);
   lines.push('');
 
-  if (note.tags.length > 0) {
-    lines.push(`Tags: ${note.tags.join(', ')}`);
-    lines.push('');
-  }
-
   lines.push(`Created: ${new Date(note.created_at).toLocaleString('ja-JP')}`);
   lines.push(`Updated: ${new Date(note.updated_at).toLocaleString('ja-JP')}`);
   lines.push('');
@@ -179,10 +174,6 @@ export const exportNoteAsText = (note: Note): void => {
   const lines: string[] = [];
   lines.push(note.title || '無題のメモ');
   lines.push('');
-  if (note.tags.length > 0) {
-    lines.push(`タグ: ${note.tags.join(', ')}`);
-    lines.push('');
-  }
   lines.push(note.plain_text ?? '');
   const content = lines.join('\n');
   downloadFile(content, `${sanitizeFilename(note.title || 'note')}.txt`, 'text/plain;charset=utf-8');
@@ -190,9 +181,8 @@ export const exportNoteAsText = (note: Note): void => {
 
 export const exportNoteAsPdf = (note: Note): void => {
   const title = note.title || '無題のメモ';
-  const tags = note.tags.length > 0 ? `<p style="color:#666;font-size:13px">タグ: ${note.tags.join(', ')}</p>` : '';
   const body = (note.plain_text ?? '').split('\n').map((line) => `<p>${line || '&nbsp;'}</p>`).join('');
-  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#111}h1{font-size:24px;margin-bottom:8px}p{font-size:15px;line-height:1.7;margin:0 0 4px}</style></head><body><h1>${title}</h1>${tags}<hr style="margin:16px 0;border:none;border-top:1px solid #ddd">${body}</body></html>`;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#111}h1{font-size:24px;margin-bottom:8px}p{font-size:15px;line-height:1.7;margin:0 0 4px}</style></head><body><h1>${title}</h1><hr style="margin:16px 0;border:none;border-top:1px solid #ddd">${body}</body></html>`;
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
   printWindow.document.write(html);
