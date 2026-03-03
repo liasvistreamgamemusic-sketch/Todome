@@ -254,7 +254,7 @@ export const TiptapEditor = ({
 
   if (!editor) {
     return (
-      <div className="tiptap-editor border border-border rounded-lg overflow-hidden">
+      <div className="tiptap-editor border border-border rounded-lg">
         <div className="h-10 border-b border-border bg-bg-primary animate-pulse" />
         <div className="p-4 min-h-[200px] bg-bg-primary" />
       </div>
@@ -262,7 +262,7 @@ export const TiptapEditor = ({
   }
 
   return (
-    <div className="tiptap-editor rounded-xl overflow-hidden glass border">
+    <div className="tiptap-editor rounded-xl glass border">
       {editable && <EditorToolbar editor={editor} />}
       <EditorContent editor={editor} />
     </div>

@@ -1,5 +1,10 @@
 @import 'katex/dist/katex.min.css';
 
+/* Editor container — no overflow-hidden to allow drag handles & resize handles */
+.tiptap-editor {
+  overflow: visible;
+}
+
 /* ProseMirror base styles */
 .tiptap-editor .ProseMirror {
   outline: none;
@@ -312,8 +317,7 @@
 /* Table styles */
 .tiptap-editor .ProseMirror table {
   border-collapse: collapse;
-  margin: 0.5em 0;
-  overflow: hidden;
+  margin: 0;
 }
 
 .tiptap-editor .ProseMirror table td,
@@ -625,7 +629,7 @@
 /* Resizable table wrapper */
 .tiptap-editor .ProseMirror .resizable-table-wrapper {
   position: relative;
-  display: inline-block;
+  display: block;
   max-width: 100%;
   margin: 0.5em 0;
 }
@@ -641,10 +645,10 @@
 
 .table-width-resize-handle {
   position: absolute;
-  right: -4px;
+  right: 0;
   top: 0;
   bottom: 0;
-  width: 8px;
+  width: 6px;
   cursor: ew-resize;
   background-color: transparent;
   z-index: 10;

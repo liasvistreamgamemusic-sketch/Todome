@@ -23,6 +23,7 @@ export class ResizableTableView implements NodeView {
   private cellMinWidth: number;
   private editorView: EditorView;
   private resizeHandle: HTMLElement;
+  private tableWrapperEl: HTMLElement;
   private isResizing = false;
   private startX = 0;
   private startWidth = 0;
@@ -37,13 +38,12 @@ export class ResizableTableView implements NodeView {
     this.dom.className = 'resizable-table-wrapper';
 
     const tableWidth = node.attrs.tableWidth as string | null;
-    if (tableWidth) {
-      this.dom.style.width = tableWidth;
-    }
+    this.dom.style.width = tableWidth || '100%';
 
     // Inner table structure (same as original TableView)
     const tableWrapper = document.createElement('div');
     tableWrapper.className = 'tableWrapper';
+    this.tableWrapperEl = tableWrapper;
 
     this.table = document.createElement('table');
     this.colgroup = document.createElement('colgroup');
@@ -119,11 +119,7 @@ export class ResizableTableView implements NodeView {
     this.node = node;
 
     const tableWidth = node.attrs.tableWidth as string | null;
-    if (tableWidth) {
-      this.dom.style.width = tableWidth;
-    } else {
-      this.dom.style.width = '';
-    }
+    this.dom.style.width = tableWidth || '100%';
 
     updateColumns(node, this.colgroup, this.table, this.cellMinWidth);
     return true;
@@ -134,6 +130,7 @@ export class ResizableTableView implements NodeView {
       mutation.type === 'attributes' &&
       (mutation.target === this.table ||
         mutation.target === this.dom ||
+        mutation.target === this.tableWrapperEl ||
         mutation.target === this.resizeHandle ||
         this.colgroup.contains(mutation.target as Node))
     );

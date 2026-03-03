@@ -28,25 +28,24 @@ export const DragHandle = Extension.create({
           let currentNodePos: number | null = null;
           let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
-          // Create drag handle element
           dragHandleEl = document.createElement('div');
           dragHandleEl.className = 'drag-handle';
           dragHandleEl.draggable = true;
           dragHandleEl.innerHTML = GRIP_SVG;
           dragHandleEl.style.display = 'none';
 
-          const editorWrapper = editorView.dom.parentElement;
-          if (editorWrapper) {
-            editorWrapper.style.position = 'relative';
-            editorWrapper.appendChild(dragHandleEl);
-          }
+          // Attach to the ProseMirror DOM itself (position: relative)
+          const proseMirrorEl = editorView.dom as HTMLElement;
+          proseMirrorEl.style.position = 'relative';
+          proseMirrorEl.appendChild(dragHandleEl);
 
           const showHandle = (rect: DOMRect, editorRect: DOMRect) => {
             if (!dragHandleEl) return;
             dragHandleEl.style.display = 'flex';
             dragHandleEl.classList.add('visible');
+            // Position in the left padding area (28px padding-left)
             dragHandleEl.style.top = `${rect.top - editorRect.top + rect.height / 2 - 10}px`;
-            dragHandleEl.style.left = '2px';
+            dragHandleEl.style.left = '4px';
           };
 
           const hideHandle = () => {
@@ -74,6 +73,7 @@ export const DragHandle = Extension.create({
             const resolved = editorView.state.doc.resolve(posInfo.pos);
             let depth = resolved.depth;
 
+            // Walk up to depth 1 (direct child of doc)
             while (depth > 1) {
               depth--;
             }
@@ -99,7 +99,7 @@ export const DragHandle = Extension.create({
 
             currentNodePos = nodePos;
             const nodeRect = domNode.getBoundingClientRect();
-            const editorRect = editorView.dom.parentElement!.getBoundingClientRect();
+            const editorRect = proseMirrorEl.getBoundingClientRect();
             showHandle(nodeRect, editorRect);
           };
 
@@ -108,14 +108,19 @@ export const DragHandle = Extension.create({
           };
 
           const handleDragStart = (e: DragEvent) => {
-            if (currentNodePos === null) return;
+            if (currentNodePos === null || !e.dataTransfer) return;
 
+            // Set NodeSelection so ProseMirror handles the move
             const { state } = editorView;
             const selection = NodeSelection.create(state.doc, currentNodePos);
             editorView.dispatch(state.tr.setSelection(selection));
 
+            // Required for drag to work in all browsers
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', '');
+
             const domNode = editorView.nodeDOM(currentNodePos);
-            if (domNode instanceof HTMLElement && e.dataTransfer) {
+            if (domNode instanceof HTMLElement) {
               e.dataTransfer.setDragImage(domNode, 0, 0);
             }
 
@@ -126,8 +131,8 @@ export const DragHandle = Extension.create({
             if (hideTimeout) clearTimeout(hideTimeout);
           });
           dragHandleEl.addEventListener('mouseleave', handleMouseLeave);
-          editorView.dom.addEventListener('mousemove', handleMouseMove);
-          editorView.dom.addEventListener('mouseleave', handleMouseLeave);
+          proseMirrorEl.addEventListener('mousemove', handleMouseMove);
+          proseMirrorEl.addEventListener('mouseleave', handleMouseLeave);
           dragHandleEl.addEventListener('dragstart', handleDragStart);
 
           return {
@@ -141,8 +146,8 @@ export const DragHandle = Extension.create({
             },
             destroy() {
               dragHandleEl?.remove();
-              editorView.dom.removeEventListener('mousemove', handleMouseMove);
-              editorView.dom.removeEventListener('mouseleave', handleMouseLeave);
+              proseMirrorEl.removeEventListener('mousemove', handleMouseMove);
+              proseMirrorEl.removeEventListener('mouseleave', handleMouseLeave);
               if (hideTimeout) clearTimeout(hideTimeout);
             },
           };
