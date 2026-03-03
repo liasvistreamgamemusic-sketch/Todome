@@ -6,15 +6,26 @@
  * out of the way during the build, then restores it afterward.
  */
 
-import { renameSync, existsSync } from 'node:fs';
+import { renameSync, cpSync, rmSync, existsSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 
 const API_DIR = 'src/app/api';
 const BAK_DIR = 'src/app/_api_bak';
 
+/** Move directory with fallback for Windows EPERM on renameSync. */
+function moveDir(src, dest) {
+  try {
+    renameSync(src, dest);
+  } catch {
+    cpSync(src, dest, { recursive: true });
+    rmSync(src, { recursive: true, force: true });
+  }
+}
+
 // Move API routes out of the way
 if (existsSync(API_DIR)) {
-  renameSync(API_DIR, BAK_DIR);
+  if (existsSync(BAK_DIR)) rmSync(BAK_DIR, { recursive: true, force: true });
+  moveDir(API_DIR, BAK_DIR);
 }
 
 try {
@@ -25,6 +36,7 @@ try {
 } finally {
   // Always restore, regardless of build success/failure
   if (existsSync(BAK_DIR)) {
-    renameSync(BAK_DIR, API_DIR);
+    if (existsSync(API_DIR)) rmSync(API_DIR, { recursive: true, force: true });
+    moveDir(BAK_DIR, API_DIR);
   }
 }
