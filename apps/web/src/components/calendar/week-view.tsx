@@ -27,6 +27,8 @@ import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { computeEventLayouts } from '@/lib/event-layout';
+import { computeAllDayLayout } from '@/lib/all-day-layout';
+import { ProviderIcon } from './provider-icon';
 
 /** Unified event shape for rendering both local and external events. */
 type MergedEvent = {
@@ -138,23 +140,11 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
     );
   }, [isMobile, selectedDate, allTodos]);
 
-  // For desktop: all-day events by day
-  const allDayEvents = useMemo(() => {
-    if (isMobile) return new Map<string, MergedEvent[]>();
-    const map = new Map<string, MergedEvent[]>();
-    for (const day of weekDays) {
-      const dateKey = format(day, 'yyyy-MM-dd');
-      map.set(
-        dateKey,
-        activeEvents.filter((e) => {
-          if (!e.is_all_day) return false;
-          const eventStart = parseISO(e.start_at);
-          const eventEnd = parseISO(e.end_at);
-          return eventStart <= endOfDay(day) && eventEnd >= startOfDay(day);
-        }),
-      );
-    }
-    return map;
+  // For desktop: spanning layout for all-day events
+  const allDaySpanLayout = useMemo(() => {
+    if (isMobile) return null;
+    const allDayEvents = activeEvents.filter((e) => e.is_all_day);
+    return computeAllDayLayout(weekDays, allDayEvents, Infinity);
   }, [isMobile, weekDays, activeEvents]);
 
   // For desktop: timed events by day
@@ -464,25 +454,65 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
       </div>
 
       {/* All-day events row — right padding matches scrollbar width for grid alignment */}
-      <div className="flex border-b border-[var(--border)] min-h-[32px]" style={{ paddingRight: scrollbarWidth }}>
+      <div className="flex border-b border-[var(--border)]" style={{ paddingRight: scrollbarWidth, minHeight: '32px' }}>
         <div className="w-14 shrink-0 flex items-center justify-center text-[10px] text-text-tertiary">
           終日
         </div>
-        <div className="grid flex-1 grid-cols-7">
-          {weekDays.map((day) => {
-            const dateKey = format(day, 'yyyy-MM-dd');
-            const dayAllDay = allDayEvents.get(dateKey) ?? [];
-            return (
-              <div
-                key={dateKey}
-                className="flex flex-col gap-px border-r border-[var(--border)] p-0.5 min-h-[28px]"
-              >
-                {dayAllDay.map((event) => (
-                  <CalendarEventBlock key={event.id} event={event} onClick={onSelectEvent} provider={event.provider} />
-                ))}
-              </div>
-            );
-          })}
+        <div className="relative flex-1">
+          {/* Grid lines for columns */}
+          <div className="grid grid-cols-7 h-full">
+            {weekDays.map((day) => (
+              <div key={day.toISOString()} className="border-r border-[var(--border)]" />
+            ))}
+          </div>
+          {/* Spanning bars */}
+          {allDaySpanLayout && (
+            <div
+              className="absolute inset-0"
+              style={{ minHeight: allDaySpanLayout.laneCount > 0 ? `${allDaySpanLayout.laneCount * 22 + 4}px` : undefined }}
+            >
+              {allDaySpanLayout.spans.map((span) => {
+                const barHeight = 18;
+                const barGap = 2;
+                const leftPct = (span.startCol / 7) * 100;
+                const widthPct = (span.colSpan / 7) * 100;
+                const topPx = span.lane * (barHeight + barGap) + 2;
+                const eventColor = span.event.color ?? 'var(--accent)';
+
+                return (
+                  <div
+                    key={`${span.event.id}-${span.startCol}`}
+                    className="absolute cursor-pointer hover:opacity-80 transition-opacity"
+                    style={{
+                      left: `calc(${leftPct}% + 2px)`,
+                      width: `calc(${widthPct}% - 4px)`,
+                      top: `${topPx}px`,
+                      height: `${barHeight}px`,
+                      backgroundColor: `${eventColor}30`,
+                      color: eventColor,
+                      borderLeft: span.isStart ? `3px solid ${eventColor}` : undefined,
+                      borderRadius: `${span.isStart ? '3px' : '0'} ${span.isEnd ? '3px' : '0'} ${span.isEnd ? '3px' : '0'} ${span.isStart ? '3px' : '0'}`,
+                    }}
+                    onClick={() => onSelectEvent(span.event)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') onSelectEvent(span.event);
+                    }}
+                  >
+                    <span className="flex items-center gap-1 truncate px-1.5 text-xs font-medium leading-[18px]">
+                      {span.event.provider && <ProviderIcon provider={(span.event as MergedEvent).provider!} size={10} className="shrink-0" />}
+                      <span className="truncate">{span.isStart ? `(終日) ${span.event.title}` : span.event.title}</span>
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {/* Set minimum height based on lane count */}
+          {allDaySpanLayout && allDaySpanLayout.laneCount > 0 && (
+            <div style={{ height: `${allDaySpanLayout.laneCount * 22 + 4}px` }} />
+          )}
         </div>
       </div>
 

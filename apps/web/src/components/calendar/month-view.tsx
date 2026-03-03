@@ -26,6 +26,7 @@ import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { isHoliday } from '@/lib/japanese-holidays';
 import { ProviderIcon } from './provider-icon';
+import { computeAllDayLayout } from '@/lib/all-day-layout';
 
 /** Unified event shape for rendering both local and external events. */
 type MergedEvent = {
@@ -82,8 +83,16 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
     return eachDayOfInterval({ start: calStart, end: calEnd });
   }, [selectedDate, weekStart]);
 
-  const eventsByDate = useMemo(() => {
-    const map = new Map<string, MergedEvent[]>();
+  // Compute spanning layout for all-day events per week row
+  const weekRows = useMemo(() => {
+    const rows: Date[][] = [];
+    for (let i = 0; i < calendarDays.length; i += 7) {
+      rows.push(calendarDays.slice(i, i + 7));
+    }
+    return rows;
+  }, [calendarDays]);
+
+  const allActiveEvents = useMemo(() => {
     const activeLocal: MergedEvent[] = events
       .filter((e: CalendarEvent) => !e.is_deleted)
       .map((e) => ({ ...e, provider: undefined }));
@@ -91,23 +100,32 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
       ...e,
       is_deleted: false,
     }));
-    const allEvents = [...activeLocal, ...activeExternal];
+    return [...activeLocal, ...activeExternal];
+  }, [events, externalEvents]);
 
+  const maxAllDayLanes = isMobile ? 1 : 2;
+
+  const weekSpanLayouts = useMemo(() => {
+    const allDayEvents = allActiveEvents.filter((e) => e.is_all_day);
+    return weekRows.map((weekDays) => computeAllDayLayout(weekDays, allDayEvents, maxAllDayLanes));
+  }, [weekRows, allActiveEvents, maxAllDayLanes]);
+
+  const timedEventsByDate = useMemo(() => {
+    const map = new Map<string, MergedEvent[]>();
     for (const day of calendarDays) {
       const dateKey = format(day, 'yyyy-MM-dd');
       const dayS = startOfDay(day);
       const dayE = endOfDay(day);
-      const dayEvents = allEvents.filter((e) => {
+      const dayEvents = allActiveEvents.filter((e) => {
+        if (e.is_all_day) return false;
         const eventStart = parseISO(e.start_at);
         const eventEnd = parseISO(e.end_at);
         return eventStart <= dayE && eventEnd >= dayS;
       });
-      if (dayEvents.length > 0) {
-        map.set(dateKey, dayEvents);
-      }
+      if (dayEvents.length > 0) map.set(dateKey, dayEvents);
     }
     return map;
-  }, [events, externalEvents, calendarDays]);
+  }, [allActiveEvents, calendarDays]);
 
   const todosWithDueDate = useMemo(() => {
     const map = new Map<string, number>();
@@ -162,145 +180,182 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
         })}
       </div>
 
-      {/* Calendar grid */}
+      {/* Calendar grid - week by week */}
       <div
-        className="grid flex-1 grid-cols-7"
-        style={{ gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
+        className="flex flex-1 flex-col"
+        style={{ display: 'grid', gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))` }}
       >
-        {calendarDays.map((day) => {
-          const dateKey = format(day, 'yyyy-MM-dd');
-          const dayEvents = eventsByDate.get(dateKey) ?? [];
-          const todoCount = todosWithDueDate.get(dateKey) ?? 0;
-          const holidayName = isHoliday(day);
-          const inMonth = isSameMonth(day, selectedDate);
-          const selected = isSameDay(day, selectedDate);
-          const today = isToday(day);
-          const weekend = isWeekend(day);
-          const dayOfWeek = day.getDay();
-          const isSunday = dayOfWeek === 0;
-          const isSaturday = dayOfWeek === 6;
-
-          const visibleEvents = dayEvents.slice(0, maxVisibleEvents);
-          const overflowCount = dayEvents.length - maxVisibleEvents;
+        {weekRows.map((weekDays, weekIdx) => {
+          const layout = weekSpanLayouts[weekIdx]!;
+          const barHeight = 16;
+          const barGap = 2;
+          const reservedHeight = layout.laneCount * (barHeight + barGap);
 
           return (
-            <button
-              key={dateKey}
-              type="button"
-              onClick={() => handleDateClick(day)}
-              className={clsx(
-                'flex flex-col gap-0.5 border-b border-r border-[var(--border)] p-1 text-left',
-                'transition-colors duration-100',
-                'hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]',
-                !inMonth && 'opacity-40',
-                weekend && inMonth && 'bg-bg-secondary/50',
-                selected && 'ring-2 ring-inset ring-[var(--accent)]',
-              )}
-            >
-              {/* Date number */}
-              <div className="flex items-center gap-1">
-                <span
-                  className={clsx(
-                    'inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
-                    today && 'bg-[var(--accent)] text-white',
-                    !today && isSunday && 'text-[#D32F2F]',
-                    !today && isSaturday && 'text-[#4285F4]',
-                    !today && !isSunday && !isSaturday && 'text-text-primary',
-                    holidayName && !today && 'text-[#D32F2F]',
-                  )}
-                >
-                  {format(day, 'd')}
-                </span>
-                {diaryDates.has(dateKey) && (
-                  <BookOpen
-                    className="h-2.5 w-2.5 text-[#7986CB] cursor-pointer hover:opacity-70 transition-opacity shrink-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenDiary(day);
-                    }}
-                  />
-                )}
-                {holidayName && (
-                  <span className="truncate text-[10px] text-[#D32F2F]">
-                    {holidayName}
-                  </span>
-                )}
-              </div>
+            <div key={weekIdx} className="relative grid grid-cols-7">
+              {/* Day cells */}
+              {weekDays.map((day, colIdx) => {
+                const dateKey = format(day, 'yyyy-MM-dd');
+                const timedEvents = timedEventsByDate.get(dateKey) ?? [];
+                const todoCount = todosWithDueDate.get(dateKey) ?? 0;
+                const holidayName = isHoliday(day);
+                const inMonth = isSameMonth(day, selectedDate);
+                const selected = isSameDay(day, selectedDate);
+                const today = isToday(day);
+                const weekend = isWeekend(day);
+                const dayOfWeek = day.getDay();
+                const isSunday = dayOfWeek === 0;
+                const isSaturday = dayOfWeek === 6;
 
-              {/* Events */}
-              <div className="flex flex-col gap-px overflow-hidden">
-                {visibleEvents.map((event) => (
-                  <div
-                    key={event.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectEvent(event);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        onSelectEvent(event);
-                      }
-                    }}
+                // For overflow: count all events (spanning + timed) minus visible
+                const allDayOverflow = layout.overflowByCol[colIdx] ?? 0;
+                const maxTimedVisible = Math.max(0, maxVisibleEvents - layout.laneCount);
+                const visibleTimed = timedEvents.slice(0, maxTimedVisible);
+                const totalOverflow = allDayOverflow + Math.max(0, timedEvents.length - maxTimedVisible);
+
+                return (
+                  <button
+                    key={dateKey}
+                    type="button"
+                    onClick={() => handleDateClick(day)}
                     className={clsx(
-                      'truncate rounded px-1 py-px text-[10px] leading-tight',
-                      'cursor-pointer hover:opacity-80 transition-opacity',
-                      'flex items-center gap-0.5',
+                      'flex flex-col gap-0.5 border-b border-r border-[var(--border)] p-1 text-left',
+                      'transition-colors duration-100',
+                      'hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]',
+                      !inMonth && 'opacity-40',
+                      weekend && inMonth && 'bg-bg-secondary/50',
+                      selected && 'ring-2 ring-inset ring-[var(--accent)]',
                     )}
-                    style={{
-                      backgroundColor: `${event.color ?? 'var(--accent)'}20`,
-                      color: event.color ?? 'var(--accent)',
-                    }}
                   >
-                    {event.provider && <ProviderIcon provider={event.provider} size={8} className="shrink-0" />}
-                    <span className="truncate">
-                      {event.is_all_day
-                        ? event.title
-                        : `${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}
-                    </span>
-                  </div>
-                ))}
-                {overflowCount > 0 && (
-                  <span
-                    role="button"
-                    tabIndex={0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onShowDayEvents(day);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        onShowDayEvents(day);
-                      }
-                    }}
-                    className="text-[10px] text-text-tertiary pl-1 cursor-pointer hover:text-[var(--accent)] transition-colors"
-                  >
-                    +{overflowCount} more
-                  </span>
-                )}
-              </div>
+                    {/* Date number */}
+                    <div className="flex items-center gap-1">
+                      <span
+                        className={clsx(
+                          'inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
+                          today && 'bg-[var(--accent)] text-white',
+                          !today && isSunday && 'text-[#D32F2F]',
+                          !today && isSaturday && 'text-[#4285F4]',
+                          !today && !isSunday && !isSaturday && 'text-text-primary',
+                          holidayName && !today && 'text-[#D32F2F]',
+                        )}
+                      >
+                        {format(day, 'd')}
+                      </span>
+                      {diaryDates.has(dateKey) && (
+                        <BookOpen
+                          className="h-2.5 w-2.5 text-[#7986CB] cursor-pointer hover:opacity-70 transition-opacity shrink-0"
+                          onClick={(e) => { e.stopPropagation(); onOpenDiary(day); }}
+                        />
+                      )}
+                      {holidayName && (
+                        <span className="truncate text-[10px] text-[#D32F2F]">{holidayName}</span>
+                      )}
+                    </div>
 
-              {/* Todo dots */}
-              {todoCount > 0 && (
-                <div className="flex items-center gap-0.5 pl-0.5">
-                  {Array.from({ length: Math.min(todoCount, 4) }).map((_, i) => (
-                    <span
-                      key={i}
-                      className="h-1.5 w-1.5 rounded-full bg-[#F57C00]"
-                    />
-                  ))}
-                  {todoCount > 4 && (
-                    <span className="text-[9px] text-text-tertiary">
-                      +{todoCount - 4}
-                    </span>
-                  )}
+                    {/* Reserved space for spanning all-day bars */}
+                    {reservedHeight > 0 && <div style={{ height: `${reservedHeight}px` }} />}
+
+                    {/* Timed (non-all-day) events */}
+                    <div className="flex flex-col gap-px overflow-hidden">
+                      {visibleTimed.map((event) => (
+                        <div
+                          key={event.id}
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => { e.stopPropagation(); onSelectEvent(event); }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onSelectEvent(event); }
+                          }}
+                          className={clsx(
+                            'truncate rounded px-1 py-px text-[10px] leading-tight',
+                            'cursor-pointer hover:opacity-80 transition-opacity',
+                            'flex items-center gap-0.5',
+                          )}
+                          style={{
+                            backgroundColor: `${event.color ?? 'var(--accent)'}20`,
+                            color: event.color ?? 'var(--accent)',
+                          }}
+                        >
+                          {event.provider && <ProviderIcon provider={event.provider} size={8} className="shrink-0" />}
+                          <span className="truncate">{`${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}</span>
+                        </div>
+                      ))}
+                      {totalOverflow > 0 && (
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          onClick={(e) => { e.stopPropagation(); onShowDayEvents(day); }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onShowDayEvents(day); }
+                          }}
+                          className="text-[10px] text-text-tertiary pl-1 cursor-pointer hover:text-[var(--accent)] transition-colors"
+                        >
+                          +{totalOverflow} more
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Todo dots */}
+                    {todoCount > 0 && (
+                      <div className="flex items-center gap-0.5 pl-0.5">
+                        {Array.from({ length: Math.min(todoCount, 4) }).map((_, i) => (
+                          <span key={i} className="h-1.5 w-1.5 rounded-full bg-[#F57C00]" />
+                        ))}
+                        {todoCount > 4 && <span className="text-[9px] text-text-tertiary">+{todoCount - 4}</span>}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+
+              {/* Spanning all-day bars overlay */}
+              {layout.spans.length > 0 && (
+                <div
+                  className="absolute left-0 right-0 pointer-events-none"
+                  style={{ top: '28px' }}
+                >
+                  {layout.spans.map((span) => {
+                    const leftPct = (span.startCol / 7) * 100;
+                    const widthPct = (span.colSpan / 7) * 100;
+                    const topPx = span.lane * (barHeight + barGap);
+                    const eventColor = span.event.color ?? 'var(--accent)';
+
+                    return (
+                      <div
+                        key={`${span.event.id}-${span.startCol}`}
+                        className="absolute pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity"
+                        style={{
+                          left: `calc(${leftPct}% + 2px)`,
+                          width: `calc(${widthPct}% - 4px)`,
+                          top: `${topPx}px`,
+                          height: `${barHeight}px`,
+                          backgroundColor: `${eventColor}30`,
+                          color: eventColor,
+                          borderLeft: span.isStart ? `3px solid ${eventColor}` : undefined,
+                        }}
+                        onClick={(e) => { e.stopPropagation(); onSelectEvent(span.event); }}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onSelectEvent(span.event); }
+                        }}
+                      >
+                        <span
+                          className={clsx(
+                            'flex items-center gap-0.5 truncate px-1 text-[10px] font-medium leading-[16px]',
+                            span.isStart ? 'rounded-l' : '',
+                            span.isEnd ? 'rounded-r' : '',
+                          )}
+                        >
+                          {span.event.provider && <ProviderIcon provider={(span.event as MergedEvent).provider!} size={8} className="shrink-0" />}
+                          <span className="truncate">{span.isStart ? `(終日) ${span.event.title}` : span.event.title}</span>
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
-
-            </button>
+            </div>
           );
         })}
       </div>

@@ -8,10 +8,11 @@ import { ProviderIcon } from './provider-icon';
 type Props = {
   event: ExternalCalendarEvent;
   subscription: CalendarSubscription | undefined;
-  onClose: () => void;
+  onClose?: () => void;
+  embedded?: boolean;
 };
 
-export const ExternalEventDetail = ({ event, subscription, onClose }: Props) => {
+export const ExternalEventDetail = ({ event, subscription, onClose, embedded }: Props) => {
   const startDate = parseISO(event.start_at);
   const endDate = parseISO(event.end_at);
 
@@ -20,6 +21,46 @@ export const ExternalEventDetail = ({ event, subscription, onClose }: Props) => 
     : `${format(startDate, 'H:mm')} - ${format(endDate, 'H:mm')}`;
 
   const dateText = format(startDate, 'yyyy年M月d日');
+
+  const body = (
+    <div className="space-y-4 px-5 py-4">
+      {/* Source indicator */}
+      <div className="flex items-center gap-2 rounded-lg bg-bg-secondary px-3 py-2">
+        <ProviderIcon provider={event.provider} size={16} />
+        <span className="text-xs text-text-secondary">
+          {subscription?.name ?? '外部カレンダー'} (読み取り専用)
+        </span>
+      </div>
+
+      {/* Date & Time */}
+      <div className="flex items-center gap-2 text-sm text-text-primary">
+        <Clock className="h-4 w-4 shrink-0 text-text-tertiary" />
+        <span>{dateText} {timeText}</span>
+      </div>
+
+      {/* Location */}
+      {event.location && (
+        <div className="flex items-center gap-2 text-sm text-text-primary">
+          <MapPin className="h-4 w-4 shrink-0 text-text-tertiary" />
+          <span className="truncate">{event.location}</span>
+        </div>
+      )}
+
+      {/* Description */}
+      {event.description && (
+        <div className="flex items-start gap-2 text-sm text-text-primary">
+          <FileText className="h-4 w-4 shrink-0 text-text-tertiary mt-0.5" />
+          <p className="whitespace-pre-wrap break-words text-text-secondary">
+            {event.description}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+
+  if (embedded) {
+    return body;
+  }
 
   return (
     <>
@@ -54,38 +95,8 @@ export const ExternalEventDetail = ({ event, subscription, onClose }: Props) => 
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto space-y-4 px-5 py-4">
-          {/* Source indicator */}
-          <div className="flex items-center gap-2 rounded-lg bg-bg-secondary px-3 py-2">
-            <ProviderIcon provider={event.provider} size={16} />
-            <span className="text-xs text-text-secondary">
-              {subscription?.name ?? '外部カレンダー'} (読み取り専用)
-            </span>
-          </div>
-
-          {/* Date & Time */}
-          <div className="flex items-center gap-2 text-sm text-text-primary">
-            <Clock className="h-4 w-4 shrink-0 text-text-tertiary" />
-            <span>{dateText} {timeText}</span>
-          </div>
-
-          {/* Location */}
-          {event.location && (
-            <div className="flex items-center gap-2 text-sm text-text-primary">
-              <MapPin className="h-4 w-4 shrink-0 text-text-tertiary" />
-              <span className="truncate">{event.location}</span>
-            </div>
-          )}
-
-          {/* Description */}
-          {event.description && (
-            <div className="flex items-start gap-2 text-sm text-text-primary">
-              <FileText className="h-4 w-4 shrink-0 text-text-tertiary mt-0.5" />
-              <p className="whitespace-pre-wrap break-words text-text-secondary">
-                {event.description}
-              </p>
-            </div>
-          )}
+        <div className="flex-1 overflow-y-auto">
+          {body}
         </div>
       </div>
     </>

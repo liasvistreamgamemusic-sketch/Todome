@@ -65,32 +65,35 @@ export function parseIcsToEvents(
 
   const events: ParsedExternalEvent[] = [];
 
+  // Group VEVENTs by UID: separate master (no RECURRENCE-ID) from exceptions
+  const uidGroups = new Map<string, { master: ICAL.Component | null; exceptions: ICAL.Component[] }>();
   for (const vevent of vevents) {
+    const uid = String(vevent.getFirstPropertyValue('uid') ?? '');
+    const group = uidGroups.get(uid) ?? { master: null, exceptions: [] };
+    if (vevent.hasProperty('recurrence-id')) {
+      group.exceptions.push(vevent);
+    } else {
+      group.master = vevent;
+    }
+    uidGroups.set(uid, group);
+  }
+
+  // Process each UID group
+  for (const [uid, { master, exceptions }] of uidGroups) {
     if (events.length >= MAX_EVENTS_PER_SUBSCRIPTION) break;
+    if (!master) continue;
 
     try {
-      const event = new ICAL.Event(vevent);
-      const uid = event.uid ?? vevent.getFirstPropertyValue('uid') ?? '';
+      const event = new ICAL.Event(master);
 
       if (event.isRecurring()) {
-        expandRecurringEvent(
-          event,
-          uid,
-          subscriptionId,
-          color,
-          provider,
-          rangeStart,
-          rangeEnd,
-          events,
-        );
+        // Relate exception components so the iterator handles overrides/cancellations
+        for (const exc of exceptions) {
+          try { event.relateException(exc); } catch { /* skip malformed exception */ }
+        }
+        expandRecurringEvent(event, uid, subscriptionId, color, provider, rangeStart, rangeEnd, events);
       } else {
-        const parsed = parseSingleEvent(
-          event,
-          uid,
-          subscriptionId,
-          color,
-          provider,
-        );
+        const parsed = parseSingleEvent(event, uid, subscriptionId, color, provider);
         if (parsed) events.push(parsed);
       }
     } catch {

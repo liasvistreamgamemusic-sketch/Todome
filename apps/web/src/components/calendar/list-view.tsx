@@ -6,6 +6,7 @@ import {
   addDays,
   startOfDay,
   endOfDay,
+  eachDayOfInterval,
   isToday,
   isTomorrow,
   format,
@@ -90,16 +91,24 @@ export const ListView = ({ onSelectEvent }: Props) => {
 
     const groups = new Map<string, ListItem[]>();
 
-    // Add events
+    // Add events - multi-day events appear on all days they span
     for (const event of allActiveEvents) {
-      const dateKey = format(parseISO(event.start_at), 'yyyy-MM-dd');
-      const items = groups.get(dateKey) ?? [];
-      items.push({
-        type: 'event',
-        event,
-        sortKey: event.is_all_day ? '00:00' : format(parseISO(event.start_at), 'HH:mm'),
-      });
-      groups.set(dateKey, items);
+      const eventStart = parseISO(event.start_at);
+      const eventEnd = parseISO(event.end_at);
+      const clampedStart = eventStart < rangeStart ? rangeStart : startOfDay(eventStart);
+      const clampedEnd = eventEnd > rangeEnd ? rangeEnd : endOfDay(eventEnd);
+      const eventDays = eachDayOfInterval({ start: clampedStart, end: clampedEnd });
+
+      for (const day of eventDays) {
+        const dateKey = format(day, 'yyyy-MM-dd');
+        const items = groups.get(dateKey) ?? [];
+        items.push({
+          type: 'event',
+          event,
+          sortKey: event.is_all_day ? '00:00' : format(eventStart, 'HH:mm'),
+        });
+        groups.set(dateKey, items);
+      }
     }
 
     // Add todos
