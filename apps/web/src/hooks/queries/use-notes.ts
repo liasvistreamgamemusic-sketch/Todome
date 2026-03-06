@@ -83,8 +83,7 @@ export function useUpdateNote() {
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.notes.all(userId!), context.previous);
       }
-    },
-    onSettled: () => {
+      // Refetch on error to fix stale optimistic data
       queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
     },
   });

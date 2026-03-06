@@ -54,6 +54,9 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const lastLocalSaveAtRef = useRef<string | null>(null);
   // Track the last updated_at we synced from to detect new remote versions
   const lastSyncedAtRef = useRef<string | null>(null);
+  // Cooldown after local save — skip incoming content during this window
+  const saveCooldownRef = useRef(false);
+  const saveCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Check if a note is empty (no title and no content)
   const isNoteEmpty = useCallback((n: Note | null): boolean => {
@@ -83,6 +86,8 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
       hasManualTitleRef.current = false;
       lastLocalSaveAtRef.current = null;
       lastSyncedAtRef.current = null;
+      saveCooldownRef.current = false;
+      if (saveCooldownTimerRef.current) clearTimeout(saveCooldownTimerRef.current);
     }
     if (!note) return;
 
@@ -91,6 +96,12 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
 
     // Skip echo-back from our own save (our save timestamp matches)
     if (note.updated_at === lastLocalSaveAtRef.current) {
+      lastSyncedAtRef.current = note.updated_at;
+      return;
+    }
+
+    // Skip content updates during save cooldown (likely echo-backs)
+    if (saveCooldownRef.current) {
       lastSyncedAtRef.current = note.updated_at;
       return;
     }
@@ -141,6 +152,10 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
         const now = new Date().toISOString();
         const fullPatch = { ...patch, updated_at: now };
         lastLocalSaveAtRef.current = now;
+        // Activate cooldown to ignore echo-backs for 2 seconds
+        saveCooldownRef.current = true;
+        if (saveCooldownTimerRef.current) clearTimeout(saveCooldownTimerRef.current);
+        saveCooldownTimerRef.current = setTimeout(() => { saveCooldownRef.current = false; }, 2000);
         updateNoteMutation.mutate(
           { id: noteId, patch: fullPatch },
           {
@@ -153,10 +168,11 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
     [noteId, updateNoteMutation],
   );
 
-  // Cleanup debounce timer
+  // Cleanup debounce and cooldown timers
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (saveCooldownTimerRef.current) clearTimeout(saveCooldownTimerRef.current);
     };
   }, []);
 

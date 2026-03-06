@@ -46,6 +46,8 @@ export const TiptapEditor = ({
   const suppressOnChangeRef = useRef(false);
   // Store pending remote content to apply when editor loses focus
   const latestContentRef = useRef<JSONContent | null>(null);
+  // Track last emitted content JSON string to skip own echo-backs cheaply
+  const lastEmittedRef = useRef<string | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -185,7 +187,11 @@ export const TiptapEditor = ({
     },
     onUpdate: ({ editor: currentEditor }) => {
       if (suppressOnChangeRef.current) return;
-      onChange(currentEditor.getJSON(), currentEditor.getText());
+      // Skip onChange during active drag operations to prevent premature saves
+      if ((currentEditor.view as unknown as { dragging: unknown }).dragging) return;
+      const json = currentEditor.getJSON();
+      lastEmittedRef.current = JSON.stringify(json);
+      onChange(json, currentEditor.getText());
     },
     immediatelyRender: false,
   });
@@ -226,14 +232,17 @@ export const TiptapEditor = ({
         return;
       }
 
-      // If editor is focused, defer the update to prevent IME/input disruption
-      if (editor.isFocused) {
+      // If editor is focused or drag is active, defer the update
+      if (editor.isFocused || (editor.view as unknown as { dragging: unknown }).dragging) {
         latestContentRef.current = newContent;
         return;
       }
 
-      const currentContent = JSON.stringify(editor.getJSON());
+      // Skip if incoming content matches our last emitted content (own echo-back)
       const incomingContent = JSON.stringify(newContent);
+      if (incomingContent === lastEmittedRef.current) return;
+
+      const currentContent = JSON.stringify(editor.getJSON());
       if (currentContent !== incomingContent) {
         // Defer to avoid flushSync-during-render error from React/ProseMirror
         queueMicrotask(() => {
