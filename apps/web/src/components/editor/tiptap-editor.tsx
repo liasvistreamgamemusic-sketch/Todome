@@ -23,6 +23,7 @@ import Mathematics from '@tiptap/extension-mathematics';
 import { createLowlight, common } from 'lowlight';
 import { FontSize } from './font-size-extension';
 import { DragHandle } from './drag-handle-extension';
+import { AudioNode } from './audio-node';
 import { EditorToolbar } from './editor-toolbar';
 import './editor-styles.css';
 
@@ -53,6 +54,9 @@ export const TiptapEditor = ({
           levels: [1, 2, 3, 4],
         },
         codeBlock: false,
+        dropcursor: {
+          width: 2,
+        },
         bulletList: {
           keepMarks: true,
           keepAttributes: false,
@@ -120,6 +124,7 @@ export const TiptapEditor = ({
         },
       }),
       DragHandle,
+      AudioNode,
     ],
     content: content ?? undefined,
     editable,
@@ -205,7 +210,21 @@ export const TiptapEditor = ({
   // Update content from outside (remote sync) without triggering onChange
   const handleContentUpdate = useCallback(
     (newContent: JSONContent | null) => {
-      if (!editor || !newContent) return;
+      if (!editor) return;
+
+      // null content → clear the editor (e.g. switching to a new diary)
+      if (!newContent) {
+        if (!editor.isEmpty) {
+          queueMicrotask(() => {
+            if (!editor.isDestroyed) {
+              suppressOnChangeRef.current = true;
+              editor.commands.clearContent();
+              suppressOnChangeRef.current = false;
+            }
+          });
+        }
+        return;
+      }
 
       // If editor is focused, defer the update to prevent IME/input disruption
       if (editor.isFocused) {
@@ -216,9 +235,14 @@ export const TiptapEditor = ({
       const currentContent = JSON.stringify(editor.getJSON());
       const incomingContent = JSON.stringify(newContent);
       if (currentContent !== incomingContent) {
-        suppressOnChangeRef.current = true;
-        editor.commands.setContent(newContent);
-        suppressOnChangeRef.current = false;
+        // Defer to avoid flushSync-during-render error from React/ProseMirror
+        queueMicrotask(() => {
+          if (!editor.isDestroyed) {
+            suppressOnChangeRef.current = true;
+            editor.commands.setContent(newContent);
+            suppressOnChangeRef.current = false;
+          }
+        });
       }
     },
     [editor],

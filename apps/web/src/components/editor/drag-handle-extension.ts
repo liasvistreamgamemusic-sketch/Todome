@@ -6,6 +6,7 @@ import { NodeSelection } from '@tiptap/pm/state';
 
 const DRAGGABLE_NODE_TYPES = new Set([
   'image',
+  'audio',
   'table',
   'codeBlock',
   'blockquote',
@@ -115,13 +116,20 @@ export const DragHandle = Extension.create({
             const selection = NodeSelection.create(state.doc, currentNodePos);
             editorView.dispatch(state.tr.setSelection(selection));
 
+            // Inform ProseMirror's native drop handler about the drag
+            const slice = selection.content();
+            (editorView as any).dragging = { slice, move: true };
+
             // Required for drag to work in all browsers
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', '');
 
+            // For ReactNodeViewRenderer nodes, nodeDOM returns the wrapper.
+            // Find a suitable drag image element.
             const domNode = editorView.nodeDOM(currentNodePos);
             if (domNode instanceof HTMLElement) {
-              e.dataTransfer.setDragImage(domNode, 0, 0);
+              const inner = domNode.querySelector('img, table, .audio-player-node') || domNode;
+              e.dataTransfer.setDragImage(inner as HTMLElement, 0, 0);
             }
 
             hideHandle();
@@ -134,12 +142,24 @@ export const DragHandle = Extension.create({
           proseMirrorEl.addEventListener('mousemove', handleMouseMove);
           proseMirrorEl.addEventListener('mouseleave', handleMouseLeave);
           dragHandleEl.addEventListener('dragstart', handleDragStart);
+          dragHandleEl.addEventListener('dragend', () => {
+            (editorView as any).dragging = null;
+          });
 
           return {
             update() {
               if (currentNodePos !== null) {
                 const docSize = editorView.state.doc.content.size;
                 if (currentNodePos >= docSize) {
+                  hideHandle();
+                  return;
+                }
+                try {
+                  const node = editorView.state.doc.nodeAt(currentNodePos);
+                  if (!node || !DRAGGABLE_NODE_TYPES.has(node.type.name)) {
+                    hideHandle();
+                  }
+                } catch {
                   hideHandle();
                 }
               }

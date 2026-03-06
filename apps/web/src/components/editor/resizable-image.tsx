@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from '@tiptap/extension-image';
 import { mergeAttributes } from '@tiptap/core';
 import { NodeViewWrapper, ReactNodeViewRenderer } from '@tiptap/react';
+import { NodeSelection } from '@tiptap/pm/state';
 import type { NodeViewProps } from '@tiptap/react';
 
 /* ------------------------------------------------------------------ */
@@ -52,6 +53,7 @@ const ResizableImageView = ({
   updateAttributes,
   selected,
   editor,
+  getPos,
 }: NodeViewProps) => {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -213,6 +215,20 @@ const ResizableImageView = ({
     [showControls, getAspectRatio, updateAttributes],
   );
 
+  /* ---- Click to select ---- */
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isEditable) return;
+      const pos = getPos();
+      if (pos == null) return;
+      e.stopPropagation();
+      const { state } = editor;
+      const selection = NodeSelection.create(state.doc, pos);
+      editor.view.dispatch(state.tr.setSelection(selection));
+    },
+    [editor, getPos, isEditable],
+  );
+
   /* ---- Compute image style ---- */
   const imageStyle: React.CSSProperties = {};
   if (width) imageStyle.width = width;
@@ -223,10 +239,12 @@ const ResizableImageView = ({
       as="div"
       className={`resizable-image-wrapper${showControls ? ' selected' : ''}${isResizing ? ' resizing' : ''}`}
       ref={wrapperRef}
+      onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={showControls ? 0 : undefined}
       role="group"
       aria-label={`Image: ${alt || 'embedded image'}`}
+      data-drag-handle=""
     >
       <img
         ref={imgRef}
@@ -284,6 +302,8 @@ const ResizableImageView = ({
 /* ------------------------------------------------------------------ */
 
 export const ResizableImage = Image.extend<ResizableImageOptions>({
+  draggable: true,
+
   addAttributes() {
     return {
       ...this.parent?.(),

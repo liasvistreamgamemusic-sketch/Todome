@@ -14,6 +14,7 @@ import {
   Save,
   AlertCircle,
   ChevronDown,
+  Plus,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
@@ -25,11 +26,12 @@ type NoteEditorProps = {
   noteId: string;
   onBack?: () => void;
   onMenu?: () => void;
+  onCreateNote?: () => void;
 };
 
 type SaveStatus = 'saved' | 'saving' | 'error';
 
-export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
+export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorProps) {
   const { data: allNotes } = useNotes();
   const { data: folders = [] } = useFolders();
   const updateNoteMutation = useUpdateNote();
@@ -46,6 +48,8 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const folderMenuRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevNoteIdRef = useRef<string>(noteId);
+  // Track whether the user has manually edited the title (disables auto-title from content)
+  const hasManualTitleRef = useRef(false);
   // Track the updated_at we last wrote to distinguish our saves from remote changes
   const lastLocalSaveAtRef = useRef<string | null>(null);
   // Track the last updated_at we synced from to detect new remote versions
@@ -76,6 +80,7 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
     if (prevNoteIdRef.current !== noteId) {
       purgeAndPersist(prevNoteIdRef.current);
       prevNoteIdRef.current = noteId;
+      hasManualTitleRef.current = false;
       lastLocalSaveAtRef.current = null;
       lastSyncedAtRef.current = null;
     }
@@ -96,6 +101,9 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
       saveTimerRef.current = null;
     }
     setTitle(note.title);
+    if (!note.title.trim()) {
+      hasManualTitleRef.current = false;
+    }
     lastSyncedAtRef.current = note.updated_at;
     setSaveStatus('saved');
   }, [noteId, note, purgeAndPersist]);
@@ -158,6 +166,7 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
   const handleTitleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newTitle = e.target.value;
+      hasManualTitleRef.current = true;
       setTitle(newTitle);
       if (!isComposingRef.current) {
         debouncedSave({ title: newTitle });
@@ -176,7 +185,7 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
 
   const handleContentChange = useCallback(
     (content: Record<string, unknown>, plainText: string) => {
-      const autoTitle = !title.trim()
+      const autoTitle = !title.trim() && !hasManualTitleRef.current
         ? plainText.split('\n')[0]?.slice(0, 100) ?? ''
         : undefined;
 
@@ -279,6 +288,16 @@ export function NoteEditor({ noteId, onBack, onMenu }: NoteEditorProps) {
         </div>
 
         <div className="flex items-center gap-1">
+          {onCreateNote && (
+            <button
+              type="button"
+              onClick={onCreateNote}
+              className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
+              title="新規メモ"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          )}
           {note.is_archived ? (
             <>
               <button

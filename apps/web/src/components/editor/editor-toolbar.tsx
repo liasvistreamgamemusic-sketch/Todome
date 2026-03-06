@@ -37,6 +37,7 @@ import {
   Rows,
   TableCellsMerge,
   TableCellsSplit,
+  Mic,
 } from 'lucide-react';
 import { ColorPicker } from './color-picker';
 import { EmojiPicker } from './emoji-picker';
@@ -95,6 +96,7 @@ type PopoverType =
   | 'image'
   | 'emoji'
   | 'codeLanguage'
+  | 'recording'
   | 'overflow'
   | null;
 
@@ -241,6 +243,51 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
     editor.chain().focus().insertContent('$E = mc^2$').run();
   }, [editor]);
 
+  const [isRecording, setIsRecording] = useState(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingStartTimeRef = useRef<number>(0);
+
+  const handleToggleRecording = useCallback(async () => {
+    if (isRecording) {
+      mediaRecorderRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+          ? 'audio/webm;codecs=opus'
+          : 'audio/webm',
+      });
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
+      recordingStartTimeRef.current = Date.now();
+
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0) audioChunksRef.current.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType });
+        const reader = new FileReader();
+        reader.onload = () => {
+          const duration = (Date.now() - recordingStartTimeRef.current) / 1000;
+          editor.chain().focus().setAudio({ src: reader.result as string, duration }).run();
+        };
+        reader.readAsDataURL(blob);
+        stream.getTracks().forEach((t) => t.stop());
+      };
+
+      mediaRecorder.start(100);
+      setIsRecording(true);
+    } catch {
+      // Microphone permission denied or not available
+    }
+  }, [isRecording, editor]);
+
   const handleInsertMentionLink = useCallback(() => {
     const title = window.prompt('Note title:');
     if (title) {
@@ -278,9 +325,8 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
   return (
     <div
       ref={toolbarRef}
-      className="border-b border-border bg-transparent"
+      className="sticky top-0 z-20 border-b border-border bg-bg-primary/80 backdrop-blur-sm"
     >
-      {/* Row 1: Inline formatting */}
       <div className="flex items-center gap-0.5 px-2 py-1 flex-wrap">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -398,10 +444,8 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             </Popover>
           )}
         </div>
-      </div>
+        <ToolbarDivider />
 
-      {/* Row 2: Block formatting */}
-      <div className="flex items-center gap-0.5 px-2 py-1 border-t border-border flex-wrap">
         {/* Heading selector */}
         <div className="relative">
           <button
@@ -532,10 +576,8 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
         >
           <Minus size={15} />
         </ToolbarButton>
-      </div>
+        <ToolbarDivider />
 
-      {/* Row 3: Contextual tools */}
-      <div className="flex items-center gap-0.5 px-2 py-1 border-t border-border flex-wrap">
         {/* Table */}
         <div className="relative">
           <ToolbarButton
@@ -727,6 +769,15 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             </Popover>
           )}
         </div>
+
+        {/* Recording */}
+        <ToolbarButton
+          onClick={handleToggleRecording}
+          isActive={isRecording}
+          title={isRecording ? '録音停止' : '録音'}
+        >
+          <Mic size={15} className={isRecording ? 'text-red-500 animate-pulse' : ''} />
+        </ToolbarButton>
 
         <ToolbarDivider />
 

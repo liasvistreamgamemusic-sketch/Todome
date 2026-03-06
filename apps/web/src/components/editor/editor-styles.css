@@ -389,6 +389,7 @@
   line-height: 0;
   margin: 0.5em 0;
   user-select: none;
+  cursor: pointer;
 }
 
 .tiptap-editor .ProseMirror .resizable-image-wrapper img {
@@ -666,4 +667,35 @@
   outline: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
   outline-offset: 2px;
   border-radius: 2px;
+}
+
+/* Audio player node */
+.tiptap-editor .ProseMirror .audio-player-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.5em 0;
+  user-select: none;
+}
+
+.tiptap-editor .ProseMirror .audio-player-node audio.audio-element {
+  flex: 1;
+  height: 32px;
+  min-width: 0;
+}
+
+.tiptap-editor .ProseMirror .audio-player-node .audio-duration {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: nowrap;
+}
+
+.tiptap-editor .ProseMirror .audio-player-node.ProseMirror-selectednode {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }

@@ -61,6 +61,21 @@ export default function NotesPage() {
     selectNote(id);
   }, [selectNote]);
 
+  const handleEditorCreateNote = useCallback(() => {
+    if (!userId) return;
+    const now = new Date().toISOString();
+    const n: Note = {
+      id: crypto.randomUUID(), user_id: userId, title: '',
+      content: { type: 'doc', content: [] }, plain_text: '',
+      folder_id: selectedFolderId, is_pinned: false,
+      is_archived: false, is_deleted: false,
+      created_at: now, updated_at: now, synced_at: null,
+    };
+    justCreatedNoteIdRef.current = n.id;
+    createNote.mutate(n);
+    selectNote(n.id);
+  }, [userId, selectedFolderId, createNote, selectNote]);
+
   const handleDrawerCreateNote = useCallback((id: string) => {
     justCreatedNoteIdRef.current = id;
     selectNote(id);
@@ -119,7 +134,7 @@ export default function NotesPage() {
           onTouchEnd={handleTouchEnd}
         >
           {selectedNoteId && (
-            <NoteEditor noteId={selectedNoteId} onMenu={() => setDrawerOpen(true)} />
+            <NoteEditor noteId={selectedNoteId} onMenu={() => setDrawerOpen(true)} onCreateNote={handleEditorCreateNote} />
           )}
           {drawerOpen && (
             <>
@@ -138,7 +153,7 @@ export default function NotesPage() {
         <>
           <NoteList onCreateNote={handleCreateNote} />
           <div className="flex-1 min-w-0">
-            {selectedNoteId && <NoteEditor noteId={selectedNoteId} />}
+            {selectedNoteId && <NoteEditor noteId={selectedNoteId} onCreateNote={handleEditorCreateNote} />}
           </div>
         </>
       )}

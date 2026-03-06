@@ -1,11 +1,10 @@
 {
   "decision": "no-skill",
-  "reason": "This task involves creating configuration files (Tauri, GitHub Actions, Next.js config) and Rust source files. No matching skill covers Tauri desktop app setup or CI/CD pipeline creation for this stack.",
+  "reason": "Multiple UI/editor improvements: list height reduction, toolbar refactor, recording feature, D&D enhancements. Direct implementation is more efficient than any skill workflow.",
   "evaluated_skills": [
-    "feature-dev:feature-dev",
     "claude-code-harness:impl",
-    "claude-code-harness:deploy",
-    "claude-code-harness:ci"
+    "claude-code-harness:ui",
+    "feature-dev:feature-dev"
   ],
-  "timestamp": "2026-02-28"
+  "timestamp": "2026-03-06"
 }

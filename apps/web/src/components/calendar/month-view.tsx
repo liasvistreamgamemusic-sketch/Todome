@@ -18,6 +18,7 @@ import {
   parseISO,
 } from 'date-fns';
 import { useCalendarStore, useUiStore, useSubscriptionStore } from '@todome/store';
+import { useIsMobile } from '@todome/hooks';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
 import { BookOpen } from 'lucide-react';
@@ -52,6 +53,7 @@ const DAY_LABELS_SUN: string[] = ['日', '月', '火', '水', '木', '金', '土
 const DAY_LABELS_MON: string[] = ['月', '火', '水', '木', '金', '土', '日'];
 
 export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDayEvents }: Props) => {
+  const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
@@ -275,7 +277,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                           }}
                         >
                           {event.provider && <ProviderIcon provider={event.provider} size={8} className="shrink-0" />}
-                          <span className="truncate">{`${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}</span>
+                          <span className="truncate">{isMobile ? event.title : `${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}</span>
                         </div>
                       ))}
                       {totalOverflow > 0 && (
@@ -346,7 +348,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                           )}
                         >
                           {span.event.provider && <ProviderIcon provider={(span.event as MergedEvent).provider!} size={8} className="shrink-0" />}
-                          <span className="truncate">{span.isStart ? `(終日) ${span.event.title}` : span.event.title}</span>
+                          <span className="truncate">{span.isStart ? (isMobile ? span.event.title : `(終日) ${span.event.title}`) : span.event.title}</span>
                         </span>
                       </div>
                     );

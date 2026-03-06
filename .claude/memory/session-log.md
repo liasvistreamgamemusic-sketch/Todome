@@ -927,3 +927,31 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-06T04:53:13Z
+
+- session_id: `11B2A968-E56F-4DC5-8AF7-0BB132C14A5D`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-06T04:17:32Z`
+- ended_at: `2026-03-06T04:53:13Z`
+- duration_minutes: 575
+- changes: 25
+
+### 変更ファイル
+- `apps/web/src/components/notes/note-list-item.tsx`
+- `apps/web/src/components/notes/note-editor.tsx`
+- `apps/web/src/app/(app)/notes/page.tsx`
+- `apps/web/src/components/editor/audio-node.ts`
+- `apps/web/src/components/editor/editor-toolbar.tsx`
+- `apps/web/src/components/editor/editor-styles.css`
+- `apps/web/src/components/editor/drag-handle-extension.ts`
+- `apps/web/src/components/editor/tiptap-editor.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

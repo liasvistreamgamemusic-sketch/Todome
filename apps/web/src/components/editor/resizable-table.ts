@@ -3,6 +3,7 @@
 import Table from '@tiptap/extension-table';
 import { updateColumns } from '@tiptap/extension-table';
 import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
+import { NodeSelection } from '@tiptap/pm/state';
 import type { EditorView, NodeView, ViewMutationRecord } from '@tiptap/pm/view';
 
 const MIN_TABLE_WIDTH = 120;
@@ -61,6 +62,15 @@ export class ResizableTableView implements NodeView {
     this.resizeHandle = document.createElement('div');
     this.resizeHandle.className = 'table-width-resize-handle';
     this.dom.appendChild(this.resizeHandle);
+
+    // Enable drag via external drag handle only
+    this.dom.draggable = true;
+    this.dom.addEventListener('dragstart', (e: DragEvent) => {
+      // Only allow drag when NodeSelection is active (set by DragHandle)
+      if (!(view.state.selection instanceof NodeSelection)) {
+        e.preventDefault();
+      }
+    });
 
     if (view.editable) {
       this.resizeHandle.addEventListener('mousedown', this.onMouseDown);
@@ -136,6 +146,18 @@ export class ResizableTableView implements NodeView {
     );
   }
 
+  stopEvent(event: Event): boolean {
+    // Allow drag events to propagate to ProseMirror
+    if (event.type.startsWith('drag') || event.type === 'drop') {
+      return false;
+    }
+    // Block events on the resize handle to prevent interference
+    if (event.target === this.resizeHandle) {
+      return true;
+    }
+    return false;
+  }
+
   destroy() {
     this.resizeHandle.removeEventListener('mousedown', this.onMouseDown);
     document.removeEventListener('mousemove', this.onMouseMove);
@@ -147,6 +169,8 @@ export class ResizableTableView implements NodeView {
  * Extended Table extension with tableWidth attribute for whole-table resizing.
  */
 export const ResizableTable = Table.extend({
+  draggable: true,
+
   addAttributes() {
     return {
       ...this.parent?.(),
