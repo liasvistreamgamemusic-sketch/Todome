@@ -17,7 +17,7 @@ import {
 import { useUiStore } from '@todome/store';
 import { useDebounce } from '@todome/hooks';
 import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
-import type { Note, Todo, CalendarEvent } from '@todome/db';
+import type { NoteSummary, Todo, CalendarEvent } from '@todome/db';
 import { clsx } from 'clsx';
 
 type CommandItem = {
@@ -128,8 +128,8 @@ export const CommandPalette = () => {
 
   const noteItems = useMemo<CommandItem[]>(() => {
     return notes
-      .filter((n: Note) => !n.is_deleted && !n.is_archived)
-      .map((n: Note): CommandItem => ({
+      .filter((n: NoteSummary) => !n.is_deleted && !n.is_archived)
+      .map((n: NoteSummary): CommandItem => ({
         id: `note-${n.id}`,
         label: n.title || '無題のメモ',
         secondaryText: (n.plain_text ?? '').slice(0, 60),

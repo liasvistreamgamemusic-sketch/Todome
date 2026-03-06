@@ -81,6 +81,9 @@ export interface Note {
   synced_at: string | null;
 }
 
+/** Note without the heavy `content` field – used for list views. */
+export type NoteSummary = Omit<Note, 'content'>;
+
 export interface Folder {
   id: string;
   user_id: string;

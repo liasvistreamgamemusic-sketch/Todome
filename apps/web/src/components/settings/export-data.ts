@@ -1,4 +1,4 @@
-import type { Note, Todo, CalendarEvent } from '@todome/store';
+import type { Note, NoteSummary, Todo, CalendarEvent } from '@todome/store';
 
 type ExportData = {
   version: 1;
@@ -49,7 +49,7 @@ export const exportToJSON = (
   downloadFile(json, `todome-export-${timestamp}.json`, 'application/json');
 };
 
-const noteToMarkdown = (note: Note): string => {
+const noteToMarkdown = (note: NoteSummary): string => {
   const lines: string[] = [];
   lines.push(`# ${note.title || '無題のメモ'}`);
   lines.push('');
@@ -170,7 +170,7 @@ const sanitizeFilename = (name: string): string => {
     .slice(0, 100);
 };
 
-export const exportNoteAsText = (note: Note): void => {
+export const exportNoteAsText = (note: NoteSummary): void => {
   const lines: string[] = [];
   lines.push(note.title || '無題のメモ');
   lines.push('');
@@ -179,7 +179,7 @@ export const exportNoteAsText = (note: Note): void => {
   downloadFile(content, `${sanitizeFilename(note.title || 'note')}.txt`, 'text/plain;charset=utf-8');
 };
 
-export const exportNoteAsPdf = (note: Note): void => {
+export const exportNoteAsPdf = (note: NoteSummary): void => {
   const title = note.title || '無題のメモ';
   const body = (note.plain_text ?? '').split('\n').map((line) => `<p>${line || '&nbsp;'}</p>`).join('');
   const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${title}</title><style>body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:720px;margin:40px auto;padding:0 20px;color:#111}h1{font-size:24px;margin-bottom:8px}p{font-size:15px;line-height:1.7;margin:0 0 4px}</style></head><body><h1>${title}</h1><hr style="margin:16px 0;border:none;border-top:1px solid #ddd">${body}</body></html>`;
@@ -192,7 +192,7 @@ export const exportNoteAsPdf = (note: Note): void => {
   });
 };
 
-export const exportToMarkdown = (notes: Note[]): void => {
+export const exportToMarkdown = (notes: NoteSummary[]): void => {
   const encoder = new TextEncoder();
   const activeNotes = notes.filter((n) => !n.is_deleted);
 

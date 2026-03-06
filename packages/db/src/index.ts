@@ -13,6 +13,7 @@ export type {
   RemindRepeat,
   Result,
   Note,
+  NoteSummary,
   Folder,
   Todo,
   CalendarEvent,
@@ -60,6 +61,8 @@ export type { Database } from './supabase';
 // Repository layer
 export {
   loadNotes,
+  loadNoteSummaries,
+  loadNote,
   createNote,
   updateNote,
   deleteNote,

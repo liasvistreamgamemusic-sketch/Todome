@@ -6,10 +6,10 @@ import { clsx } from 'clsx';
 import { useDebounce } from '@todome/hooks';
 import { useNoteStore } from '@todome/store';
 import { useNotes } from '@/hooks/queries';
-import type { Note } from '@todome/db';
+import type { NoteSummary } from '@todome/db';
 
 type SearchResultProps = {
-  note: Note;
+  note: NoteSummary;
   query: string;
   onClick: (id: string) => void;
 };
@@ -88,7 +88,7 @@ export function NoteSearch() {
 
   const results = query
     ? notes.filter(
-        (n: Note) =>
+        (n: NoteSummary) =>
           !n.is_deleted &&
           !n.is_archived &&
           (n.title.toLowerCase().includes(query) ||
@@ -140,7 +140,7 @@ export function NoteSearch() {
           <div className="px-3 py-1.5 text-[10px] text-text-tertiary uppercase tracking-wider border-b border-border">
             {results.length}件の結果
           </div>
-          {results.map((note: Note) => (
+          {results.map((note: NoteSummary) => (
             <SearchResult
               key={note.id}
               note={note}

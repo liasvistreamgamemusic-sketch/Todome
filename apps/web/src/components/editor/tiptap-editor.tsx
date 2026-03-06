@@ -46,8 +46,9 @@ export const TiptapEditor = ({
   const suppressOnChangeRef = useRef(false);
   // Store pending remote content to apply when editor loses focus
   const latestContentRef = useRef<JSONContent | null>(null);
-  // Track last emitted content JSON string to skip own echo-backs cheaply
-  const lastEmittedRef = useRef<string | null>(null);
+  // Version counter: increments on every local edit, used to detect own echo-backs
+  // without expensive JSON.stringify comparison
+  const localVersionRef = useRef(0);
 
   const editor = useEditor({
     extensions: [
@@ -187,11 +188,8 @@ export const TiptapEditor = ({
     },
     onUpdate: ({ editor: currentEditor }) => {
       if (suppressOnChangeRef.current) return;
-      // Skip onChange during active drag operations to prevent premature saves
-      if ((currentEditor.view as unknown as { dragging: unknown }).dragging) return;
-      const json = currentEditor.getJSON();
-      lastEmittedRef.current = JSON.stringify(json);
-      onChange(json, currentEditor.getText());
+      localVersionRef.current++;
+      onChange(currentEditor.getJSON(), currentEditor.getText());
     },
     immediatelyRender: false,
   });
@@ -213,6 +211,9 @@ export const TiptapEditor = ({
     }
   }, [editor, editable]);
 
+  // Track the version at which we last accepted remote content
+  const lastSyncedVersionRef = useRef(0);
+
   // Update content from outside (remote sync) without triggering onChange
   const handleContentUpdate = useCallback(
     (newContent: JSONContent | null) => {
@@ -226,33 +227,34 @@ export const TiptapEditor = ({
               suppressOnChangeRef.current = true;
               editor.commands.clearContent();
               suppressOnChangeRef.current = false;
+              lastSyncedVersionRef.current = localVersionRef.current;
             }
           });
         }
         return;
       }
 
-      // If editor is focused or drag is active, defer the update
-      if (editor.isFocused || (editor.view as unknown as { dragging: unknown }).dragging) {
+      // If editor is focused, defer the update to prevent IME/input disruption
+      if (editor.isFocused) {
         latestContentRef.current = newContent;
         return;
       }
 
-      // Skip if incoming content matches our last emitted content (own echo-back)
-      const incomingContent = JSON.stringify(newContent);
-      if (incomingContent === lastEmittedRef.current) return;
-
-      const currentContent = JSON.stringify(editor.getJSON());
-      if (currentContent !== incomingContent) {
-        // Defer to avoid flushSync-during-render error from React/ProseMirror
-        queueMicrotask(() => {
-          if (!editor.isDestroyed) {
-            suppressOnChangeRef.current = true;
-            editor.commands.setContent(newContent);
-            suppressOnChangeRef.current = false;
-          }
-        });
+      // Skip echo-back: if local edits happened since last sync, this is our own data
+      if (localVersionRef.current > lastSyncedVersionRef.current) {
+        lastSyncedVersionRef.current = localVersionRef.current;
+        return;
       }
+
+      // Genuine remote change — apply it
+      queueMicrotask(() => {
+        if (!editor.isDestroyed) {
+          suppressOnChangeRef.current = true;
+          editor.commands.setContent(newContent);
+          suppressOnChangeRef.current = false;
+          lastSyncedVersionRef.current = localVersionRef.current;
+        }
+      });
     },
     [editor],
   );
@@ -270,13 +272,16 @@ export const TiptapEditor = ({
       if (!pending) return;
       latestContentRef.current = null;
 
-      const currentContent = JSON.stringify(editor.getJSON());
-      const incomingContent = JSON.stringify(pending);
-      if (currentContent !== incomingContent) {
-        suppressOnChangeRef.current = true;
-        editor.commands.setContent(pending);
-        suppressOnChangeRef.current = false;
+      // Skip if local edits happened — deferred content is stale echo-back
+      if (localVersionRef.current > lastSyncedVersionRef.current) {
+        lastSyncedVersionRef.current = localVersionRef.current;
+        return;
       }
+
+      suppressOnChangeRef.current = true;
+      editor.commands.setContent(pending);
+      suppressOnChangeRef.current = false;
+      lastSyncedVersionRef.current = localVersionRef.current;
     };
 
     editor.on('blur', handleBlur);

@@ -3,11 +3,11 @@
 import { memo, useState, useRef, useCallback, useEffect } from 'react';
 import { Pin, MoreVertical, Archive, ArchiveRestore, FolderOpen, Trash2, FileText, FileDown } from 'lucide-react';
 import { clsx } from 'clsx';
-import type { Note, Folder } from '@todome/store';
+import type { NoteSummary, Folder } from '@todome/store';
 import { formatRelativeDate } from '@/lib/format-date';
 
 type NoteListItemProps = {
-  note: Note;
+  note: NoteSummary;
   isActive: boolean;
   folders: Folder[];
   isArchiveView?: boolean;

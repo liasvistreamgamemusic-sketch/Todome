@@ -17,7 +17,8 @@ import type { Theme, FontSize, Locale, CalendarWeekStart } from '@todome/store';
 import { Button } from '@todome/ui';
 import { clsx } from 'clsx';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
+import { loadNotes } from '@todome/db';
+import { useNotes, useTodos, useCalendarEvents, useUserId } from '@/hooks/queries';
 import { exportToJSON, exportToMarkdown } from './export-data';
 import { SubscriptionManager } from './subscription-manager';
 
@@ -148,6 +149,7 @@ export const SettingsView = () => {
   const setLocale = useUiStore((s) => s.setLocale);
   const setCalendarWeekStart = useUiStore((s) => s.setCalendarWeekStart);
 
+  const userId = useUserId();
   const { data: notes } = useNotes();
   const { data: todos } = useTodos();
   const { data: events } = useCalendarEvents();
@@ -244,9 +246,11 @@ export const SettingsView = () => {
     [persistSettings],
   );
 
-  const handleExportJSON = useCallback(() => {
-    exportToJSON(notes ?? [], todos ?? [], events ?? []);
-  }, [notes, todos, events]);
+  const handleExportJSON = useCallback(async () => {
+    if (!userId) return;
+    const fullNotes = await loadNotes(userId);
+    exportToJSON(fullNotes, todos ?? [], events ?? []);
+  }, [userId, todos, events]);
 
   const handleExportMarkdown = useCallback(() => {
     exportToMarkdown(notes ?? []);

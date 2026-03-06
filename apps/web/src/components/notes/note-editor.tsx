@@ -18,9 +18,9 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
-import type { Note } from '@todome/db';
+import type { Note, NoteSummary } from '@todome/db';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
-import { useNotes, useFolders, useUpdateNote, useDeleteNote } from '@/hooks/queries';
+import { useNote, useNotes, useFolders, useUpdateNote, useDeleteNote } from '@/hooks/queries';
 
 type NoteEditorProps = {
   noteId: string;
@@ -32,13 +32,13 @@ type NoteEditorProps = {
 type SaveStatus = 'saved' | 'saving' | 'error';
 
 export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorProps) {
+  const { data: note } = useNote(noteId);
   const { data: allNotes } = useNotes();
   const { data: folders = [] } = useFolders();
   const updateNoteMutation = useUpdateNote();
   const deleteNoteMutation = useDeleteNote();
   const selectNote = useNoteStore((s) => s.selectNote);
 
-  const note = allNotes?.find((n) => n.id === noteId) ?? null;
 
   const [title, setTitle] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
@@ -59,7 +59,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const saveCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Check if a note is empty (no title and no content)
-  const isNoteEmpty = useCallback((n: Note | null): boolean => {
+  const isNoteEmpty = useCallback((n: NoteSummary | null): boolean => {
     if (!n) return true;
     const hasTitle = n.title.trim().length > 0;
     const hasContent = (n.plain_text ?? '').trim().length > 0;

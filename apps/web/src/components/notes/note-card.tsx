@@ -1,13 +1,13 @@
 'use client';
 
-import { memo, useMemo, useState, useRef, useCallback, useEffect } from 'react';
+import { memo, useState, useRef, useCallback, useEffect } from 'react';
 import { Pin, MoreVertical, Archive, ArchiveRestore, FolderOpen, Trash2, FileText, FileDown } from 'lucide-react';
 import { clsx } from 'clsx';
-import type { Note, Folder } from '@todome/store';
+import type { NoteSummary, Folder } from '@todome/store';
 import { formatRelativeDate } from '@/lib/format-date';
 
 type NoteCardProps = {
-  note: Note;
+  note: NoteSummary;
   isActive: boolean;
   folders: Folder[];
   isArchiveView?: boolean;
@@ -20,29 +20,6 @@ type NoteCardProps = {
   onMoveToFolder: (id: string, folderId: string | null) => void;
   onExportText: (id: string) => void;
   onExportPdf: (id: string) => void;
-};
-
-const extractThumbnail = (content: Note['content']): string | null => {
-  try {
-    if (!content) return null;
-    const nodes = content.content;
-    if (!Array.isArray(nodes)) return null;
-    for (const node of nodes) {
-      if (node.type === 'image') {
-        const attrs = node.attrs as Record<string, unknown> | undefined;
-        if (attrs && typeof attrs.src === 'string') return attrs.src;
-      }
-      if (node.content && Array.isArray(node.content)) {
-        for (const child of node.content) {
-          if (child.type === 'image') {
-            const attrs = child.attrs as Record<string, unknown> | undefined;
-            if (attrs && typeof attrs.src === 'string') return attrs.src;
-          }
-        }
-      }
-    }
-  } catch { /* ignore */ }
-  return null;
 };
 
 export const NoteCard = memo(function NoteCard({
@@ -67,7 +44,6 @@ export const NoteCard = memo(function NoteCard({
   const btnRef = useRef<HTMLButtonElement>(null);
 
   const previewText = (note.plain_text ?? '').slice(0, 100).replace(/\n/g, ' ');
-  const thumbnail = useMemo(() => extractThumbnail(note.content), [note.content]);
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -114,13 +90,6 @@ export const NoteCard = memo(function NoteCard({
       onKeyDown={(e) => e.key === 'Enter' && onClick(note.id)}
       onContextMenu={(e) => onContextMenu(e, note.id)}
     >
-      {thumbnail && (
-        <div className="mb-2 rounded overflow-hidden bg-bg-tertiary h-28">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={thumbnail} alt="" className="w-full h-full object-cover" />
-        </div>
-      )}
-
       <div className="flex items-center gap-1 pr-6">
         {note.is_pinned && <Pin className="h-3 w-3 text-text-secondary shrink-0 fill-current" />}
         <span className="text-sm font-semibold text-text-primary truncate block">

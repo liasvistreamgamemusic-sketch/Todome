@@ -6,7 +6,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query';
 import {
-  loadNotes,
+  loadNoteSummaries,
+  loadNote,
   loadFolders,
   createNote,
   updateNote,
@@ -15,19 +16,40 @@ import {
   updateFolder,
   deleteFolder,
 } from '@todome/db';
-import type { Note, Folder } from '@todome/db';
+import type { Note, NoteSummary, Folder } from '@todome/db';
 import { queryKeys } from './keys';
 import { useUserId } from './use-auth';
+
+// ---------------------------------------------------------------------------
+// Notes – summary list (excludes heavy `content` field)
+// ---------------------------------------------------------------------------
 
 export function useNotes() {
   const userId = useUserId();
 
   return useQuery({
     queryKey: queryKeys.notes.all(userId ?? ''),
-    queryFn: () => loadNotes(userId!),
+    queryFn: () => loadNoteSummaries(userId!),
     enabled: !!userId,
   });
 }
+
+// ---------------------------------------------------------------------------
+// Note – single note with full content (for the editor)
+// ---------------------------------------------------------------------------
+
+export function useNote(noteId: string | null) {
+  return useQuery({
+    queryKey: queryKeys.notes.detail(noteId ?? ''),
+    queryFn: () => loadNote(noteId!),
+    enabled: !!noteId,
+    staleTime: 30_000,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Folders
+// ---------------------------------------------------------------------------
 
 export function useFolders() {
   const userId = useUserId();
@@ -39,6 +61,16 @@ export function useFolders() {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Mutations – Notes
+// ---------------------------------------------------------------------------
+
+function toSummary(note: Note): NoteSummary {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { content, ...summary } = note;
+  return summary;
+}
+
 export function useCreateNote() {
   const queryClient = useQueryClient();
   const userId = useUserId();
@@ -48,8 +80,9 @@ export function useCreateNote() {
     onMutate: async (note) => {
       const key = queryKeys.notes.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Note[]>(key);
-      queryClient.setQueryData<Note[]>(key, (old) => [note, ...(old ?? [])]);
+      const previous = queryClient.getQueryData<NoteSummary[]>(key);
+      queryClient.setQueryData<NoteSummary[]>(key, (old) => [toSummary(note), ...(old ?? [])]);
+      queryClient.setQueryData<Note | null>(queryKeys.notes.detail(note.id), note);
       return { previous };
     },
     onError: (_err, _vars, context) => {
@@ -58,7 +91,7 @@ export function useCreateNote() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
   });
 }
@@ -73,18 +106,23 @@ export function useUpdateNote() {
     onMutate: async ({ id, patch }) => {
       const key = queryKeys.notes.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Note[]>(key);
-      queryClient.setQueryData<Note[]>(key, (old) =>
+      const previous = queryClient.getQueryData<NoteSummary[]>(key);
+      queryClient.setQueryData<NoteSummary[]>(key, (old) =>
         (old ?? []).map((n) => (n.id === id ? { ...n, ...patch } : n)),
       );
+      // Also update the detail cache if it exists
+      const detailKey = queryKeys.notes.detail(id);
+      const cached = queryClient.getQueryData<Note | null>(detailKey);
+      if (cached) {
+        queryClient.setQueryData<Note | null>(detailKey, { ...cached, ...patch });
+      }
       return { previous };
     },
     onError: (_err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(queryKeys.notes.all(userId!), context.previous);
       }
-      // Refetch on error to fix stale optimistic data
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
   });
 }
@@ -98,10 +136,11 @@ export function useDeleteNote() {
     onMutate: async (id) => {
       const key = queryKeys.notes.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Note[]>(key);
-      queryClient.setQueryData<Note[]>(key, (old) =>
+      const previous = queryClient.getQueryData<NoteSummary[]>(key);
+      queryClient.setQueryData<NoteSummary[]>(key, (old) =>
         (old ?? []).filter((n) => n.id !== id),
       );
+      queryClient.removeQueries({ queryKey: queryKeys.notes.detail(id) });
       return { previous };
     },
     onError: (_err, _vars, context) => {
@@ -110,10 +149,14 @@ export function useDeleteNote() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+      queryClient.invalidateQueries({ queryKey: ['notes'] });
     },
   });
 }
+
+// ---------------------------------------------------------------------------
+// Mutations – Folders
+// ---------------------------------------------------------------------------
 
 export function useCreateFolder() {
   const queryClient = useQueryClient();

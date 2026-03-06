@@ -1,6 +1,7 @@
 export const queryKeys = {
   notes: {
     all: (userId: string) => ['notes', userId] as const,
+    detail: (noteId: string) => ['notes', 'detail', noteId] as const,
   },
   folders: {
     all: (userId: string) => ['folders', userId] as const,

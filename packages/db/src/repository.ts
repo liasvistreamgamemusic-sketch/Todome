@@ -7,6 +7,7 @@
 import { supabase } from './supabase';
 import type {
   Note,
+  NoteSummary,
   Folder,
   Todo,
   CalendarEvent,
@@ -28,6 +29,37 @@ export async function loadNotes(userId: string): Promise<Note[]> {
 
   if (error) throw error;
   return data as Note[];
+}
+
+const NOTE_SUMMARY_COLUMNS =
+  'id,user_id,title,plain_text,folder_id,is_pinned,is_archived,is_deleted,created_at,updated_at,synced_at' as const;
+
+export async function loadNoteSummaries(
+  userId: string,
+): Promise<NoteSummary[]> {
+  const { data, error } = await supabase
+    .from('notes')
+    .select(NOTE_SUMMARY_COLUMNS)
+    .eq('user_id', userId)
+    .eq('is_deleted', false)
+    .order('updated_at', { ascending: false });
+
+  if (error) throw error;
+  return data as NoteSummary[];
+}
+
+export async function loadNote(id: string): Promise<Note | null> {
+  const { data, error } = await supabase
+    .from('notes')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    if (error.code === 'PGRST116') return null;
+    throw error;
+  }
+  return data as Note;
 }
 
 export async function createNote(note: Note): Promise<void> {

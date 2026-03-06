@@ -25,8 +25,8 @@ export function useRealtimeSync(): void {
     const debouncedNotesRefetch = () => {
       if (notesDebounceTimer) clearTimeout(notesDebounceTimer);
       notesDebounceTimer = setTimeout(() => {
-        queryClient.refetchQueries({
-          queryKey: queryKeys.notes.all(userId),
+        queryClient.invalidateQueries({
+          queryKey: ['notes'],
         });
       }, 2000);
     };
@@ -52,7 +52,7 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.refetchQueries({
+          queryClient.invalidateQueries({
             queryKey: queryKeys.folders.all(userId),
           });
         },
@@ -66,7 +66,7 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.refetchQueries({
+          queryClient.invalidateQueries({
             queryKey: queryKeys.todos.all(userId),
           });
         },
@@ -80,7 +80,7 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.refetchQueries({
+          queryClient.invalidateQueries({
             queryKey: queryKeys.calendarEvents.all(userId),
           });
         },
@@ -94,7 +94,7 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.refetchQueries({
+          queryClient.invalidateQueries({
             queryKey: queryKeys.diaries.all(userId),
           });
         },
@@ -108,7 +108,7 @@ export function useRealtimeSync(): void {
           filter: `user_id=eq.${userId}`,
         },
         () => {
-          queryClient.refetchQueries({
+          queryClient.invalidateQueries({
             queryKey: queryKeys.calendarSubscriptions.all(userId),
           });
         },

@@ -5,7 +5,7 @@ import { NoteList } from '@/components/notes/note-list';
 import { NoteEditor } from '@/components/notes/note-editor';
 import { useNoteStore } from '@todome/store';
 import { useIsMobile } from '@todome/hooks';
-import type { Note } from '@todome/db';
+import type { Note, NoteSummary } from '@todome/db';
 import { useNotes, useCreateNote, useUserId } from '@/hooks/queries';
 import { filterAndSortNotes } from '@/lib/note-filters';
 
@@ -98,8 +98,10 @@ export default function NotesPage() {
 
     if (selectedNoteId && visible.some((n) => n.id === selectedNoteId)) return;
 
-    if (visible.length > 0 && visible[0]) {
-      selectNote(visible[0].id);
+    if (visible.length > 0) {
+      // Pick the most recently edited note regardless of pin status
+      const mostRecent = [...visible].sort((a, b) => b.updated_at.localeCompare(a.updated_at))[0]!;
+      selectNote(mostRecent.id);
     } else if (noteFilter === 'active' && !autoCreatedRef.current) {
       autoCreatedRef.current = true;
       const now = new Date().toISOString();

@@ -3,6 +3,7 @@ export { useUserId } from './use-auth';
 
 export {
   useNotes,
+  useNote,
   useFolders,
   useCreateNote,
   useUpdateNote,
