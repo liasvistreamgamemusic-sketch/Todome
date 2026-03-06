@@ -110,10 +110,10 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   }, [folderName, folderColor, folders.length, userId, createFolderMutation]);
 
   const handlePin = useCallback((id: string) => {
-    const note = notes.find((n) => n.id === id);
+    const note = (allNotes ?? []).find((n) => n.id === id);
     if (!note) return;
     updateNoteMutation.mutate({ id, patch: { is_pinned: !note.is_pinned } });
-  }, [notes, updateNoteMutation]);
+  }, [allNotes, updateNoteMutation]);
 
   const handleArchive = useCallback((id: string) => {
     updateNoteMutation.mutate({ id, patch: { is_archived: true } });
@@ -153,7 +153,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
     else selectNote(id);
   }, [onSelectNote, selectNote]);
 
-  const itemProps = {
+  const itemProps = useMemo(() => ({
     folders,
     isArchiveView,
     onClick: handleNoteClick,
@@ -165,14 +165,18 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
     onMoveToFolder: handleMoveToFolder,
     onExportText: handleExportText,
     onExportPdf: handleExportPdf,
-  };
+  }), [
+    folders, isArchiveView, handleNoteClick, handleContextMenu,
+    handlePin, handleArchive, handleRestore, handleDelete,
+    handleMoveToFolder, handleExportText, handleExportPdf,
+  ]);
 
-  const renderNote = (note: NoteSummary) => {
-    const props = { ...itemProps, note, isActive: selectedNoteId === note.id };
+  const renderNote = useCallback((note: NoteSummary) => {
+    const isActive = selectedNoteId === note.id;
     return viewMode === 'card'
-      ? <NoteCard key={note.id} {...props} />
-      : <NoteListItem key={note.id} {...props} />;
-  };
+      ? <NoteCard key={note.id} note={note} isActive={isActive} {...itemProps} />
+      : <NoteListItem key={note.id} note={note} isActive={isActive} {...itemProps} />;
+  }, [viewMode, selectedNoteId, itemProps]);
 
   return (
     <div className="w-full md:w-[300px] h-full md:border-r flex flex-col glass md:shrink-0">

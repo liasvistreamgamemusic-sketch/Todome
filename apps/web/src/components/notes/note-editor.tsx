@@ -59,6 +59,8 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const saveCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Suppress saves until the editor content has been initialized from the loaded note
   const initialLoadRef = useRef(true);
+  // Track the last saved content JSON to skip no-op saves (prevents updated_at changes on open)
+  const lastSavedContentRef = useRef<string | null>(null);
 
   // Check if a note is empty (no title and no content)
   const isNoteEmpty = useCallback((n: NoteSummary | null): boolean => {
@@ -89,6 +91,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
       initialLoadRef.current = true;
       lastLocalSaveAtRef.current = null;
       lastSyncedAtRef.current = null;
+      lastSavedContentRef.current = null;
       saveCooldownRef.current = false;
       if (saveCooldownTimerRef.current) clearTimeout(saveCooldownTimerRef.current);
     }
@@ -120,6 +123,10 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
     }
     lastSyncedAtRef.current = note.updated_at;
     initialLoadRef.current = false;
+    // Record loaded content so we can skip no-op saves when content hasn't actually changed
+    if (note.content) {
+      lastSavedContentRef.current = JSON.stringify(note.content);
+    }
     setSaveStatus('saved');
   }, [noteId, note, purgeAndPersist]);
 
@@ -149,6 +156,14 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
 
   const debouncedSave = useCallback(
     (patch: Partial<Note>) => {
+      // Skip no-op content saves (e.g. editor re-emitting loaded content on open)
+      if (patch.content && !patch.title) {
+        const contentStr = JSON.stringify(patch.content);
+        if (contentStr === lastSavedContentRef.current) {
+          return;
+        }
+      }
+
       setSaveStatus('saving');
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
 
@@ -163,7 +178,12 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
         updateNoteMutation.mutate(
           { id: noteId, patch: fullPatch },
           {
-            onSuccess: () => setSaveStatus('saved'),
+            onSuccess: () => {
+              setSaveStatus('saved');
+              if (fullPatch.content) {
+                lastSavedContentRef.current = JSON.stringify(fullPatch.content);
+              }
+            },
             onError: () => setSaveStatus('error'),
           },
         );

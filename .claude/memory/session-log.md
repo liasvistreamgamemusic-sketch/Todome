@@ -955,3 +955,24 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-06T06:38:28Z
+
+- session_id: `B60C18AD-25EB-4A10-B812-B1E600E5E800`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-06T06:36:08Z`
+- ended_at: `2026-03-06T06:38:28Z`
+- duration_minutes: 542
+- changes: 5
+
+### 変更ファイル
+- `apps/web/src/components/notes/note-editor.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
