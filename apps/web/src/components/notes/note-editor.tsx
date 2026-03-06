@@ -57,6 +57,8 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   // Cooldown after local save — skip incoming content during this window
   const saveCooldownRef = useRef(false);
   const saveCooldownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Suppress saves until the editor content has been initialized from the loaded note
+  const initialLoadRef = useRef(true);
 
   // Check if a note is empty (no title and no content)
   const isNoteEmpty = useCallback((n: NoteSummary | null): boolean => {
@@ -84,6 +86,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
       purgeAndPersist(prevNoteIdRef.current);
       prevNoteIdRef.current = noteId;
       hasManualTitleRef.current = false;
+      initialLoadRef.current = true;
       lastLocalSaveAtRef.current = null;
       lastSyncedAtRef.current = null;
       saveCooldownRef.current = false;
@@ -116,6 +119,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
       hasManualTitleRef.current = false;
     }
     lastSyncedAtRef.current = note.updated_at;
+    initialLoadRef.current = false;
     setSaveStatus('saved');
   }, [noteId, note, purgeAndPersist]);
 
@@ -201,6 +205,8 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
 
   const handleContentChange = useCallback(
     (content: Record<string, unknown>, plainText: string) => {
+      // Skip saves triggered by the editor initializing with loaded content
+      if (initialLoadRef.current) return;
       const autoTitle = !title.trim() && !hasManualTitleRef.current
         ? plainText.split('\n')[0]?.slice(0, 100) ?? ''
         : undefined;
