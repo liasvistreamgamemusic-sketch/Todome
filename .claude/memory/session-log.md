@@ -1025,3 +1025,53 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-09T22:40:50Z
+
+- session_id: `399BAF7F-1233-40C2-B1CA-556E3EE5CF70`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-09T16:45:54Z`
+- ended_at: `2026-03-09T22:40:50Z`
+- duration_minutes: 894
+- changes: 98
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/zany-riding-dahl.md`
+- `apps/web/src/components/editor/tiptap-editor.tsx`
+- `apps/web/src/components/editor/editor-styles.css`
+- `apps/web/src/components/notes/note-list.tsx`
+- `supabase/migrations/006_shared_calendars.sql`
+- `packages/db/src/types.ts`
+- `packages/db/src/repository.ts`
+- `packages/db/src/index.ts`
+- `apps/web/src/components/notes/note-list-item.tsx`
+- `apps/web/src/hooks/queries/keys.ts`
+- `apps/web/src/hooks/queries/use-shared-calendars.ts`
+- `apps/web/src/hooks/queries/use-shared-calendar-members.ts`
+- `apps/web/src/components/notes/note-card.tsx`
+- `apps/web/src/hooks/queries/use-shared-calendar-events.ts`
+- `apps/web/src/hooks/queries/index.ts`
+- `apps/web/src/hooks/use-merged-events.ts`
+- `apps/web/src/components/notes/folder-tree.tsx`
+- `apps/web/src/components/settings/shared-calendar-manager.tsx`
+- `apps/web/src/components/settings/settings-view.tsx`
+- `apps/web/src/app/invite/[token]/page.tsx`
+- `apps/web/src/hooks/queries/use-realtime.ts`
+- `packages/store/src/types.ts`
+- `apps/web/src/components/calendar/calendar-view.tsx`
+- `apps/web/src/components/calendar/shared-event-detail.tsx`
+- `apps/web/src/components/calendar/calendar-event-block.tsx`
+- `apps/web/src/components/calendar/month-view.tsx`
+- `apps/web/src/components/calendar/week-view.tsx`
+- `apps/web/src/components/calendar/day-view.tsx`
+- `apps/web/src/components/calendar/list-view.tsx`
+- `apps/web/src/components/calendar/day-events-panel.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

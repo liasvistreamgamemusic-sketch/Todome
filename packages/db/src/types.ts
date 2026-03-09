@@ -307,10 +307,54 @@ export interface ExternalCalendarEvent {
   ics_uid: string;
 }
 
+// ---------------------------------------------------------------------------
+// Shared Calendar
+// ---------------------------------------------------------------------------
+
+export const MEMBER_STATUSES = ['pending', 'active', 'removed'] as const;
+export type MemberStatus = (typeof MEMBER_STATUSES)[number];
+
+export interface SharedCalendar {
+  id: string;
+  owner_id: string;
+  title: string;
+  color: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SharedCalendarMember {
+  id: string;
+  shared_calendar_id: string;
+  user_id: string | null;
+  invite_token: string;
+  status: MemberStatus;
+  is_visible: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SharedCalendarEvent {
+  id: string;
+  shared_calendar_id: string;
+  created_by: string;
+  title: string;
+  description: string | null;
+  start_at: string;
+  end_at: string;
+  is_all_day: boolean;
+  location: string | null;
+  color: string | null;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 /** Discriminated union for rendering both local and external events. */
 export type DisplayEvent =
   | { source: 'local'; event: CalendarEvent }
-  | { source: 'external'; event: ExternalCalendarEvent };
+  | { source: 'external'; event: ExternalCalendarEvent }
+  | { source: 'shared'; event: SharedCalendarEvent; calendar: SharedCalendar };
 
 // ---------------------------------------------------------------------------
 // Diary

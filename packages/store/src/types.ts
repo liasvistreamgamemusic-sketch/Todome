@@ -17,4 +17,6 @@ export type {
   CalendarSubscription,
   CalendarProvider,
   DisplayEvent,
+  SharedCalendar,
+  SharedCalendarEvent,
 } from '@todome/db';

@@ -11,16 +11,17 @@ import {
 } from 'lucide-react';
 import { useCalendarStore, useSubscriptionStore } from '@todome/store';
 import type { CalendarViewMode } from '@todome/store';
-import type { ExternalCalendarEvent, CalendarSubscription } from '@todome/db';
+import type { ExternalCalendarEvent, CalendarSubscription, SharedCalendarEvent, SharedCalendar } from '@todome/db';
 import { Button } from '@todome/ui';
 import { IconButton } from '@todome/ui';
-import { useCalendarSubscriptions } from '@/hooks/queries';
+import { useCalendarSubscriptions, useSharedCalendars, useSharedCalendarEvents } from '@/hooks/queries';
 import { MonthView } from './month-view';
 import { WeekView } from './week-view';
 import { DayView } from './day-view';
 import { ListView } from './list-view';
 import { EventDetail } from './event-detail';
 import { ExternalEventDetail } from './external-event-detail';
+import { SharedEventDetail } from './shared-event-detail';
 import { DayEventsPanel } from './day-events-panel';
 
 const VIEW_MODE_LABELS: Record<CalendarViewMode, string> = {
@@ -50,11 +51,15 @@ export const CalendarView = () => {
   const [editEventId, setEditEventId] = useState<string | null>(null);
   const [externalEvent, setExternalEvent] = useState<ExternalCalendarEvent | null>(null);
   const [externalEventSub, setExternalEventSub] = useState<CalendarSubscription | undefined>(undefined);
+  const [sharedEvent, setSharedEvent] = useState<SharedCalendarEvent | null>(null);
+  const [sharedEventCalendar, setSharedEventCalendar] = useState<SharedCalendar | undefined>(undefined);
   const [dayEventsDate, setDayEventsDate] = useState<Date | null>(null);
 
   const allExternalEvents = useSubscriptionStore((s) => s.allExternalEvents);
   const setEnabledIds = useSubscriptionStore((s) => s.setEnabledIds);
   const { data: subscriptions = [] } = useCalendarSubscriptions();
+  const { data: sharedCalendars = [] } = useSharedCalendars();
+  const { data: sharedCalendarEvents = [] } = useSharedCalendarEvents();
 
   // Sync enabled subscription IDs to the store for filtering
   useEffect(() => {
@@ -101,12 +106,20 @@ export const CalendarView = () => {
       setExternalEventSub(sub ?? undefined);
       return;
     }
+    // Check if this is a shared calendar event
+    const shared = sharedCalendarEvents.find((e) => e.id === event.id);
+    if (shared) {
+      const calendar = sharedCalendars.find((c) => c.id === shared.shared_calendar_id);
+      setSharedEvent(shared);
+      setSharedEventCalendar(calendar);
+      return;
+    }
     // Local event
     setEditEventId(event.id);
     setEventDetailInitialDate(undefined);
     setShowEventDetail(true);
     selectEvent(event.id);
-  }, [selectEvent, allExternalEvents, subscriptions]);
+  }, [selectEvent, allExternalEvents, subscriptions, sharedCalendarEvents, sharedCalendars]);
 
   const handleCloseEventDetail = useCallback(() => {
     setShowEventDetail(false);
@@ -262,6 +275,18 @@ export const CalendarView = () => {
           onClose={() => {
             setExternalEvent(null);
             setExternalEventSub(undefined);
+          }}
+        />
+      )}
+
+      {/* Shared event detail modal */}
+      {sharedEvent && (
+        <SharedEventDetail
+          event={sharedEvent}
+          calendar={sharedEventCalendar}
+          onClose={() => {
+            setSharedEvent(null);
+            setSharedEventCalendar(undefined);
           }}
         />
       )}

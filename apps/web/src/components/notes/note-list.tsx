@@ -3,21 +3,27 @@
 import { useState, useCallback, useRef, useMemo } from 'react';
 import {
   Plus, List, LayoutGrid, ArrowUpDown,
-  FolderPlus, Check, X, Archive,
+  FolderPlus, Archive,
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import {
+  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
+  type DragStartEvent, type DragEndEvent,
+} from '@dnd-kit/core';
 import { useNoteStore } from '@todome/store';
 import type { NoteSortBy } from '@todome/store';
-import type { Note, NoteSummary, Folder } from '@todome/db';
+import type { Note, NoteSummary } from '@todome/db';
 import { useKeyboardShortcut, useClickOutside } from '@todome/hooks';
 import {
   useNoteSummaries, useFolders, useCreateNote, useUpdateNote,
-  useDeleteNote, useCreateFolder, useUserId,
+  useDeleteNote, useUserId,
 } from '@/hooks/queries';
 import { filterAndSortNotes } from '@/lib/note-filters';
 import { NoteListItem } from './note-list-item';
 import { NoteCard } from './note-card';
 import { NoteSearch } from './note-search';
+import { FolderTree } from './folder-tree';
+import { FolderDialog } from './folder-dialog';
 import { exportNoteAsText, exportNoteAsPdf } from '../settings/export-data';
 
 const SORT_OPTIONS: { value: NoteSortBy; label: string }[] = [
@@ -27,14 +33,16 @@ const SORT_OPTIONS: { value: NoteSortBy; label: string }[] = [
   { value: 'manual', label: '手動' },
 ];
 
-const FOLDER_COLORS = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#a855f7'];
-
 type NoteListProps = {
   onSelectNote?: (id: string) => void;
   onCreateNote?: (id: string) => void;
 };
 
 export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
   const selectedNoteId = useNoteStore((s) => s.selectedNoteId);
   const selectedFolderId = useNoteStore((s) => s.selectedFolderId);
   const searchQuery = useNoteStore((s) => s.searchQuery);
@@ -52,7 +60,6 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   const createNoteMutation = useCreateNote();
   const updateNoteMutation = useUpdateNote();
   const deleteNoteMutation = useDeleteNote();
-  const createFolderMutation = useCreateFolder();
 
   const isArchiveView = noteFilter === 'archived';
 
@@ -62,12 +69,11 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   );
 
   const [showSortMenu, setShowSortMenu] = useState(false);
-  const [showFolderForm, setShowFolderForm] = useState(false);
-  const [folderName, setFolderName] = useState('');
-  const [folderColor, setFolderColor] = useState<string>(FOLDER_COLORS[4] ?? '#3b82f6');
+  const [showFolderSection, setShowFolderSection] = useState(true);
+  const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const [editingFolderId, setEditingFolderId] = useState<string | null>(null);
 
   const sortMenuRef = useRef<HTMLDivElement>(null);
-  const folderInputRef = useRef<HTMLInputElement>(null);
 
   useClickOutside(sortMenuRef, () => setShowSortMenu(false));
 
@@ -94,20 +100,6 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   }, [userId, selectedFolderId, createNoteMutation, selectNote, onSelectNote, onCreateNote]);
 
   useKeyboardShortcut('cmd+n', handleNewNote);
-
-  const handleCreateFolder = useCallback(() => {
-    if (!folderName.trim() || !userId) return;
-    const now = new Date().toISOString();
-    const f: Folder = {
-      id: crypto.randomUUID(), user_id: userId, name: folderName.trim(),
-      color: folderColor, icon: null, parent_id: null,
-      sort_order: folders.length, created_at: now, updated_at: now,
-    };
-    createFolderMutation.mutate(f);
-    setFolderName('');
-    setFolderColor(FOLDER_COLORS[4] ?? '#3b82f6');
-    setShowFolderForm(false);
-  }, [folderName, folderColor, folders.length, userId, createFolderMutation]);
 
   const handlePin = useCallback((id: string) => {
     const note = notes.find((n) => n.id === id);
@@ -147,6 +139,23 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   const handleContextMenu = useCallback((e: React.MouseEvent, _id: string) => {
     e.preventDefault();
   }, []);
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveNoteId(event.active.id as string);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveNoteId(null);
+    const { active, over } = event;
+    if (!over) return;
+    const noteId = active.id as string;
+    const folderId = over.id === '__all__' ? null : (over.id as string);
+    handleMoveToFolder(noteId, folderId);
+  }, [handleMoveToFolder]);
+
+  const activeNote = activeNoteId
+    ? notes.find((n) => n.id === activeNoteId) ?? null
+    : null;
 
   const handleNoteClick = useCallback((id: string) => {
     if (onSelectNote) onSelectNote(id);
@@ -200,9 +209,12 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
               <Archive className="h-4 w-4 md:h-3.5 md:w-3.5" />
             </button>
 
-            <button type="button" title="フォルダを作成"
-              onClick={() => { setShowFolderForm((v) => !v); setTimeout(() => folderInputRef.current?.focus(), 50); }}
-              className="p-2 md:p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors">
+            <button type="button" title="フォルダ"
+              onClick={() => setShowFolderSection((v) => !v)}
+              className={clsx(
+                'p-2 md:p-1 rounded transition-colors',
+                showFolderSection ? 'text-accent hover:bg-accent/10' : 'text-text-tertiary hover:bg-bg-secondary',
+              )}>
               <FolderPlus className="h-4 w-4 md:h-3.5 md:w-3.5" />
             </button>
 
@@ -235,75 +247,72 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
           </div>
         </div>
 
-        {showFolderForm && (
-          <div className="rounded-lg border border-border bg-bg-secondary p-2 space-y-2">
-            <input ref={folderInputRef} type="text" value={folderName}
-              onChange={(e) => setFolderName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateFolder();
-                if (e.key === 'Escape') { setShowFolderForm(false); setFolderName(''); }
-              }}
-              placeholder="フォルダ名"
-              className="w-full text-xs bg-transparent border-none outline-none text-text-primary placeholder:text-text-tertiary" />
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1">
-                {FOLDER_COLORS.map((c) => (
-                  <button key={c} type="button" onClick={() => setFolderColor(c)}
-                    className="h-4 w-4 rounded-full transition-all"
-                    style={{ backgroundColor: c, outline: folderColor === c ? `2px solid ${c}` : 'none', outlineOffset: '2px' }} />
-                ))}
-              </div>
-              <div className="flex items-center gap-1">
-                <button type="button" onClick={() => { setShowFolderForm(false); setFolderName(''); }}
-                  className="p-0.5 rounded text-text-tertiary hover:text-text-primary transition-colors">
-                  <X className="h-3.5 w-3.5" />
-                </button>
-                <button type="button" onClick={handleCreateFolder} disabled={!folderName.trim()}
-                  className="p-0.5 rounded text-accent hover:text-accent/80 transition-colors disabled:opacity-40">
-                  <Check className="h-3.5 w-3.5" />
-                </button>
-              </div>
+      </div>
+
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="flex-1 overflow-y-auto min-h-0">
+          {showFolderSection && folders.length > 0 && (
+            <div className="px-2 pt-1 pb-2 border-b border-border">
+              <FolderTree
+                onNewFolder={() => { setEditingFolderId(null); setFolderDialogOpen(true); }}
+                onEditFolder={(id) => { setEditingFolderId(id); setFolderDialogOpen(true); }}
+              />
             </div>
-          </div>
-        )}
-      </div>
+          )}
+          {notes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full px-6 text-center">
+              <p className="text-text-tertiary text-sm mb-2">
+                {isArchiveView ? 'アーカイブされたメモはありません' : 'メモがありません'}
+              </p>
+              {!isArchiveView && (
+                <button type="button" onClick={handleNewNote}
+                  className="text-xs text-accent hover:text-accent/80 transition-colors">新規メモを作成</button>
+              )}
+            </div>
+          ) : viewMode === 'card' ? (
+            <div className="px-3 pb-3 space-y-3">
+              {pinned.length > 0 && (
+                <>
+                  <p className="text-[10px] uppercase tracking-wider text-text-tertiary px-1 pt-1">ピン留め</p>
+                  <div className="grid grid-cols-1 gap-2">{pinned.map(renderNote)}</div>
+                  {unpinned.length > 0 && <div className="border-t border-border" />}
+                </>
+              )}
+              {unpinned.length > 0 && <div className="grid grid-cols-1 gap-2">{unpinned.map(renderNote)}</div>}
+            </div>
+          ) : (
+            <div>
+              {pinned.length > 0 && (
+                <>
+                  <p className="text-[10px] uppercase tracking-wider text-text-tertiary px-3 py-1.5">ピン留め</p>
+                  {pinned.map(renderNote)}
+                  {unpinned.length > 0 && <div className="border-t border-border" />}
+                </>
+              )}
+              {unpinned.map(renderNote)}
+            </div>
+          )}
+        </div>
 
-      <div className="flex-1 overflow-y-auto min-h-0">
-        {notes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full px-6 text-center">
-            <p className="text-text-tertiary text-sm mb-2">
-              {isArchiveView ? 'アーカイブされたメモはありません' : 'メモがありません'}
-            </p>
-            {!isArchiveView && (
-              <button type="button" onClick={handleNewNote}
-                className="text-xs text-accent hover:text-accent/80 transition-colors">新規メモを作成</button>
-            )}
-          </div>
-        ) : viewMode === 'card' ? (
-          <div className="px-3 pb-3 space-y-3">
-            {pinned.length > 0 && (
-              <>
-                <p className="text-[10px] uppercase tracking-wider text-text-tertiary px-1 pt-1">ピン留め</p>
-                <div className="grid grid-cols-1 gap-2">{pinned.map(renderNote)}</div>
-                {unpinned.length > 0 && <div className="border-t border-border" />}
-              </>
-            )}
-            {unpinned.length > 0 && <div className="grid grid-cols-1 gap-2">{unpinned.map(renderNote)}</div>}
-          </div>
-        ) : (
-          <div>
-            {pinned.length > 0 && (
-              <>
-                <p className="text-[10px] uppercase tracking-wider text-text-tertiary px-3 py-1.5">ピン留め</p>
-                {pinned.map(renderNote)}
-                {unpinned.length > 0 && <div className="border-t border-border" />}
-              </>
-            )}
-            {unpinned.map(renderNote)}
-          </div>
-        )}
-      </div>
+        <DragOverlay>
+          {activeNote && (
+            <div className="w-[260px] rounded-lg border border-border bg-bg-primary shadow-lg px-3 py-2 opacity-90">
+              <p className="text-sm font-semibold text-text-primary truncate">
+                {activeNote.title || '無題のメモ'}
+              </p>
+              <p className="text-[10px] text-text-secondary truncate mt-0.5">
+                {(activeNote.plain_text ?? '').slice(0, 60).replace(/\n/g, ' ') || '\u00A0'}
+              </p>
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
 
+      <FolderDialog
+        open={folderDialogOpen}
+        onClose={() => setFolderDialogOpen(false)}
+        editingFolderId={editingFolderId}
+      />
     </div>
   );
 }

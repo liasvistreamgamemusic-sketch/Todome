@@ -21,8 +21,8 @@ import { useCalendarStore, useUiStore, useSubscriptionStore } from '@todome/stor
 import { useIsMobile } from '@todome/hooks';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
-import { BookOpen } from 'lucide-react';
-import { useCalendarEvents, useTodos, useDiaries } from '@/hooks/queries';
+import { BookOpen, Users } from 'lucide-react';
+import { useCalendarEvents, useTodos, useDiaries, useSharedCalendarEvents } from '@/hooks/queries';
 import { useGridRowHeight } from '@/hooks/use-grid-row-height';
 import { computeMonthCellCapacity } from '@/lib/month-cell-capacity';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
@@ -30,7 +30,7 @@ import { isHoliday } from '@/lib/japanese-holidays';
 import { ProviderIcon } from './provider-icon';
 import { computeAllDayLayout } from '@/lib/all-day-layout';
 
-/** Unified event shape for rendering both local and external events. */
+/** Unified event shape for rendering local, external, and shared events. */
 type MergedEvent = {
   id: string;
   title: string;
@@ -40,6 +40,7 @@ type MergedEvent = {
   color: string | null;
   is_deleted?: boolean;
   provider?: CalendarProvider;
+  isShared?: boolean;
 };
 
 type Props = {
@@ -58,6 +59,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
   const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
+  const { data: sharedEvents = [] } = useSharedCalendarEvents();
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
   const { data: allTodos = [] } = useTodos();
@@ -100,8 +102,11 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
       ...e,
       is_deleted: false,
     }));
-    return [...activeLocal, ...activeExternal];
-  }, [events, externalEvents]);
+    const activeShared: MergedEvent[] = sharedEvents
+      .filter((e) => !e.is_deleted)
+      .map((e) => ({ ...e, provider: undefined, isShared: true }));
+    return [...activeLocal, ...activeExternal, ...activeShared];
+  }, [events, externalEvents, sharedEvents]);
 
   // Dynamic event capacity based on measured cell height
   const gridRef = useRef<HTMLDivElement>(null);
@@ -277,6 +282,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                           }}
                         >
                           {event.provider && <ProviderIcon provider={event.provider} size={8} className="shrink-0" />}
+                          {event.isShared && <Users className="h-2 w-2 shrink-0" />}
                           <span className="truncate">{isMobile ? event.title : `${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}</span>
                         </div>
                       ))}
@@ -348,6 +354,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                           )}
                         >
                           {span.event.provider && <ProviderIcon provider={(span.event as MergedEvent).provider!} size={8} className="shrink-0" />}
+                          {(span.event as MergedEvent).isShared && <Users className="h-2 w-2 shrink-0" />}
                           <span className="truncate">{span.isStart ? (isMobile ? span.event.title : `(終日) ${span.event.title}`) : span.event.title}</span>
                         </span>
                       </div>

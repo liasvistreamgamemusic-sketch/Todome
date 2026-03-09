@@ -3,6 +3,7 @@
 import { memo, useCallback } from 'react';
 import { clsx } from 'clsx';
 import { format, parseISO } from 'date-fns';
+import { Users } from 'lucide-react';
 import type { CalendarProvider } from '@todome/db';
 import { ProviderIcon } from './provider-icon';
 
@@ -25,6 +26,8 @@ type Props = {
   onClick?: (event: EventLike) => void;
   /** If external, show provider icon */
   provider?: CalendarProvider;
+  /** If shared calendar event, show shared indicator */
+  isShared?: boolean;
 };
 
 const EVENT_COLORS: Record<string, { bg: string; border: string; text: string }> = {
@@ -54,6 +57,7 @@ export const CalendarEventBlock = memo(function CalendarEventBlock({
   totalColumns = 1,
   onClick,
   provider,
+  isShared,
 }: Props) {
   const colorClasses = getColorClasses(event.color);
 
@@ -94,6 +98,7 @@ export const CalendarEventBlock = memo(function CalendarEventBlock({
     >
       <p className={clsx('truncate font-medium leading-tight flex items-center gap-1', colorClasses.text)}>
         {provider && <ProviderIcon provider={provider} size={10} className="shrink-0" />}
+        {isShared && <Users className="h-2.5 w-2.5 shrink-0" />}
         <span className="truncate">{event.is_all_day ? `(終日) ${event.title}` : event.title}</span>
       </p>
       {startTime && endTime && (

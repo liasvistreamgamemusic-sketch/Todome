@@ -17,14 +17,14 @@ import { BookOpen, CheckSquare } from 'lucide-react';
 import { useCalendarStore, useSubscriptionStore } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
-import { useCalendarEvents, useTodos } from '@/hooks/queries';
+import { useCalendarEvents, useTodos, useSharedCalendarEvents } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { CalendarEventBlock } from './calendar-event-block';
 import { isHoliday } from '@/lib/japanese-holidays';
 import { computeEventLayouts } from '@/lib/event-layout';
 
-/** Unified event shape for rendering both local and external events. */
+/** Unified event shape for rendering local, external, and shared events. */
 type MergedEvent = {
   id: string;
   title: string;
@@ -35,6 +35,7 @@ type MergedEvent = {
   is_deleted?: boolean;
   location?: string | null;
   provider?: CalendarProvider;
+  isShared?: boolean;
 };
 
 type Props = {
@@ -53,6 +54,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
   const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
+  const { data: sharedEvents = [] } = useSharedCalendarEvents();
   const { data: allTodos = [] } = useTodos();
   const selectDate = useCalendarStore((s) => s.selectDate);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -77,8 +79,11 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
       ...e,
       is_deleted: false,
     }));
-    return [...local, ...external];
-  }, [events, externalEvents]);
+    const shared: MergedEvent[] = sharedEvents
+      .filter((e) => !e.is_deleted)
+      .map((e) => ({ ...e, provider: undefined, isShared: true }));
+    return [...local, ...external, ...shared];
+  }, [events, externalEvents, sharedEvents]);
 
   const allDayEvents = useMemo(() => {
     const dayS = startOfDay(selectedDate);
@@ -212,6 +217,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
                 event={event}
                 onClick={onSelectEvent}
                 provider={event.provider}
+                isShared={event.isShared}
               />
             ))}
           </div>
@@ -277,6 +283,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
                 totalColumns={layout.totalColumns}
                 onClick={onSelectEvent}
                 provider={event.provider}
+                isShared={event.isShared}
               />
             );
           })}

@@ -20,6 +20,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
 import { exportToJSON, exportToMarkdown } from './export-data';
 import { SubscriptionManager } from './subscription-manager';
+import { SharedCalendarManager } from './shared-calendar-manager';
 
 type SettingsSectionProps = {
   title: string;
@@ -348,6 +349,11 @@ export const SettingsView = () => {
             />
           </SettingsRow>
           <SubscriptionManager />
+        </SettingsSection>
+
+        {/* Shared Calendars */}
+        <SettingsSection title="共有カレンダー" description="他のユーザーとカレンダーを共有して予定を管理できます">
+          <SharedCalendarManager />
         </SettingsSection>
 
         {/* Data */}

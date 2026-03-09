@@ -113,6 +113,49 @@ export function useRealtimeSync(): void {
           });
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shared_calendars',
+        },
+        () => {
+          queryClient.refetchQueries({
+            queryKey: queryKeys.sharedCalendars.all(userId),
+          });
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shared_calendar_members',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          queryClient.refetchQueries({
+            queryKey: queryKeys.sharedCalendars.all(userId),
+          });
+          queryClient.refetchQueries({
+            queryKey: queryKeys.sharedCalendars.events(userId),
+          });
+        },
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'shared_calendar_events',
+        },
+        () => {
+          queryClient.refetchQueries({
+            queryKey: queryKeys.sharedCalendars.events(userId),
+          });
+        },
+      )
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           console.debug('[realtime] subscribed to db-changes');

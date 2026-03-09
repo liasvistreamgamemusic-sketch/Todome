@@ -3,6 +3,7 @@
 import { memo, useState, useRef, useCallback, useEffect } from 'react';
 import { Pin, MoreVertical, Archive, ArchiveRestore, FolderOpen, Trash2, FileText, FileDown } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useDraggable } from '@dnd-kit/core';
 import type { NoteSummary, Folder } from '@todome/store';
 import { formatRelativeDate } from '@/lib/format-date';
 
@@ -37,6 +38,8 @@ export const NoteCard = memo(function NoteCard({
   onExportText,
   onExportPdf,
 }: NoteCardProps) {
+  const { attributes, listeners, setNodeRef: setDragRef, transform, isDragging } = useDraggable({ id: note.id });
+
   const [open, setOpen] = useState(false);
   const [folderSub, setFolderSub] = useState(false);
   const [exportSub, setExportSub] = useState(false);
@@ -78,17 +81,20 @@ export const NoteCard = memo(function NoteCard({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
+      ref={setDragRef}
+      {...attributes}
       className={clsx(
         'w-full text-left rounded-lg border border-border p-3 group relative',
         'transition-colors duration-100 cursor-pointer select-none',
         'hover:bg-bg-secondary',
         isActive && 'bg-bg-tertiary ring-1 ring-accent',
+        isDragging && 'opacity-50',
       )}
+      style={{ transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined }}
       onClick={() => onClick(note.id)}
       onKeyDown={(e) => e.key === 'Enter' && onClick(note.id)}
       onContextMenu={(e) => onContextMenu(e, note.id)}
+      {...listeners}
     >
       <div className="flex items-center gap-1 pr-6">
         {note.is_pinned && <Pin className="h-3 w-3 text-text-secondary shrink-0 fill-current" />}

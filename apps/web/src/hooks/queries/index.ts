@@ -42,4 +42,26 @@ export {
   useDeleteCalendarSubscription,
 } from './use-calendar-subscriptions';
 
+export {
+  useSharedCalendars,
+  useCreateSharedCalendar,
+  useUpdateSharedCalendar,
+  useDeleteSharedCalendar,
+} from './use-shared-calendars';
+
+export {
+  useSharedCalendarMembers,
+  useCreateInvite,
+  useClaimInvite,
+  useRemoveSharedCalendarMember,
+  useToggleMemberVisibility,
+} from './use-shared-calendar-members';
+
+export {
+  useSharedCalendarEvents,
+  useCreateSharedCalendarEvent,
+  useUpdateSharedCalendarEvent,
+  useDeleteSharedCalendarEvent,
+} from './use-shared-calendar-events';
+
 export { useRealtimeSync } from './use-realtime';

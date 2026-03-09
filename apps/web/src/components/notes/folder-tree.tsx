@@ -14,6 +14,7 @@ import {
   Palette,
 } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useDroppable } from '@dnd-kit/core';
 import { useNoteStore } from '@todome/store';
 import type { Folder } from '@todome/db';
 import { useClickOutside } from '@todome/hooks';
@@ -46,6 +47,7 @@ function FolderNode({
   onContextMenu,
   getNoteCounts,
 }: FolderNodeProps) {
+  const { isOver, setNodeRef } = useDroppable({ id: folder.id });
   const isExpanded = expandedIds.has(folder.id);
   const isSelected = selectedFolderId === folder.id;
   const hasChildren = children.length > 0;
@@ -53,11 +55,13 @@ function FolderNode({
   return (
     <div>
       <button
+        ref={setNodeRef}
         type="button"
         className={clsx(
           'w-full flex items-center gap-1.5 px-2 py-1 text-sm rounded-md',
           'hover:bg-bg-secondary transition-colors cursor-pointer',
           isSelected && 'bg-bg-tertiary font-medium',
+          isOver && 'bg-accent/10 ring-1 ring-accent/30',
         )}
         style={{ paddingLeft: `${8 + depth * 16}px` }}
         onClick={() => onSelect(folder.id)}
@@ -244,15 +248,19 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
     setContextMenu((s) => ({ ...s, visible: false }));
   }, [contextMenu.folderId, deleteFolderMutation]);
 
+  const { isOver: isOverAll, setNodeRef: setAllRef } = useDroppable({ id: '__all__' });
+
   return (
     <div className="flex flex-col h-full text-sm">
       {/* All Notes */}
       <button
+        ref={setAllRef}
         type="button"
         className={clsx(
           'w-full flex items-center gap-1.5 px-2 py-1 rounded-md',
           'hover:bg-bg-secondary transition-colors cursor-pointer',
           noteFilter === 'active' && selectedFolderId === null && 'bg-bg-tertiary font-medium',
+          isOverAll && 'bg-accent/10 ring-1 ring-accent/30',
         )}
         onClick={() => { setNoteFilter('active'); handleSelect(null); }}
       >

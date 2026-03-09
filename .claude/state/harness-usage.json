@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-03-09T06:42:32.663Z",
+  "updatedAt": "2026-03-09T22:23:25.570Z",
   "skills": {
     "commit": {
       "count": 1,
@@ -53,14 +53,14 @@
   },
   "hooks": {
     "session-init": {
-      "triggered": 80,
+      "triggered": 82,
       "blocked": 0,
-      "lastTriggered": "2026-03-09T06:35:25.870Z"
+      "lastTriggered": "2026-03-09T16:45:54.599Z"
     },
     "pretooluse-guard": {
-      "triggered": 339,
-      "blocked": 339,
-      "lastTriggered": "2026-03-09T06:42:32.662Z"
+      "triggered": 433,
+      "blocked": 433,
+      "lastTriggered": "2026-03-09T22:23:25.570Z"
     }
   }
 }

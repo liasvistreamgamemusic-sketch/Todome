@@ -3,6 +3,7 @@
 import { memo, useState, useRef, useCallback, useEffect } from 'react';
 import { Pin, MoreVertical, Archive, ArchiveRestore, FolderOpen, Trash2, FileText, FileDown } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useDraggable } from '@dnd-kit/core';
 import type { NoteSummary, Folder } from '@todome/store';
 import { formatRelativeDate } from '@/lib/format-date';
 
@@ -37,6 +38,8 @@ export const NoteListItem = memo(function NoteListItem({
   onExportText,
   onExportPdf,
 }: NoteListItemProps) {
+  const { attributes, listeners, setNodeRef: setDragRef, transform, isDragging } = useDraggable({ id: note.id });
+
   const [open, setOpen] = useState(false);
   const [folderSub, setFolderSub] = useState(false);
   const [exportSub, setExportSub] = useState(false);
@@ -79,17 +82,20 @@ export const NoteListItem = memo(function NoteListItem({
 
   return (
     <div
-      role="button"
-      tabIndex={0}
+      ref={setDragRef}
+      {...attributes}
       className={clsx(
         'w-full text-left px-3 py-1.5 border-b border-border group relative',
         'transition-colors duration-100 cursor-pointer select-none',
         'hover:bg-bg-secondary',
         isActive && 'bg-bg-tertiary',
+        isDragging && 'opacity-50',
       )}
+      style={{ transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined }}
       onClick={() => onClick(note.id)}
       onKeyDown={(e) => e.key === 'Enter' && onClick(note.id)}
       onContextMenu={(e) => onContextMenu(e, note.id)}
+      {...listeners}
     >
       <div className="flex items-start gap-1.5 pr-6">
         <div className="flex-1 min-w-0">

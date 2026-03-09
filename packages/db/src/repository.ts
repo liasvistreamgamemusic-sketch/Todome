@@ -13,6 +13,9 @@ import type {
   CalendarEvent,
   CalendarSubscription,
   Diary,
+  SharedCalendar,
+  SharedCalendarMember,
+  SharedCalendarEvent,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -285,6 +288,178 @@ export async function updateCalendarSubscription(
 export async function deleteCalendarSubscription(id: string): Promise<void> {
   const { error } = await supabase
     .from('calendar_subscriptions')
+    .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Shared Calendars
+// ---------------------------------------------------------------------------
+
+export async function loadSharedCalendars(
+  userId: string,
+): Promise<SharedCalendar[]> {
+  const [owned, member] = await Promise.all([
+    supabase
+      .from('shared_calendars')
+      .select('*')
+      .eq('owner_id', userId)
+      .order('created_at'),
+    supabase
+      .from('shared_calendar_members')
+      .select('shared_calendar_id, shared_calendars(*)')
+      .eq('user_id', userId)
+      .eq('status', 'active'),
+  ]);
+
+  if (owned.error) throw owned.error;
+  if (member.error) throw member.error;
+
+  const map = new Map<string, SharedCalendar>();
+  for (const cal of owned.data as SharedCalendar[]) {
+    map.set(cal.id, cal);
+  }
+  for (const row of member.data as { shared_calendar_id: string; shared_calendars: SharedCalendar }[]) {
+    if (row.shared_calendars && !map.has(row.shared_calendar_id)) {
+      map.set(row.shared_calendar_id, row.shared_calendars);
+    }
+  }
+
+  return Array.from(map.values());
+}
+
+export async function createSharedCalendar(cal: SharedCalendar): Promise<void> {
+  const { error } = await supabase.from('shared_calendars').insert(cal as never);
+  if (error) throw error;
+}
+
+export async function updateSharedCalendar(
+  id: string,
+  patch: Partial<SharedCalendar>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('shared_calendars')
+    .update(patch as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteSharedCalendar(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('shared_calendars')
+    .delete()
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Shared Calendar Members
+// ---------------------------------------------------------------------------
+
+export async function loadSharedCalendarMembers(
+  calendarId: string,
+): Promise<SharedCalendarMember[]> {
+  const { data, error } = await supabase
+    .from('shared_calendar_members')
+    .select('*')
+    .eq('shared_calendar_id', calendarId)
+    .order('created_at');
+
+  if (error) throw error;
+  return data as SharedCalendarMember[];
+}
+
+export async function createInviteToken(
+  calendarId: string,
+): Promise<SharedCalendarMember> {
+  const { data, error } = await supabase
+    .from('shared_calendar_members')
+    .insert({ shared_calendar_id: calendarId } as never)
+    .select('*')
+    .single();
+
+  if (error) throw error;
+  return data as SharedCalendarMember;
+}
+
+export async function claimInvite(
+  token: string,
+  userId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('shared_calendar_members')
+    .update({ user_id: userId, status: 'active' } as never)
+    .eq('invite_token', token)
+    .is('user_id', null)
+    .eq('status', 'pending');
+  if (error) throw error;
+}
+
+export async function removeSharedCalendarMember(
+  memberId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('shared_calendar_members')
+    .update({ status: 'removed', updated_at: new Date().toISOString() } as never)
+    .eq('id', memberId);
+  if (error) throw error;
+}
+
+export async function updateMemberVisibility(
+  memberId: string,
+  isVisible: boolean,
+): Promise<void> {
+  const { error } = await supabase
+    .from('shared_calendar_members')
+    .update({ is_visible: isVisible } as never)
+    .eq('id', memberId);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Shared Calendar Events
+// ---------------------------------------------------------------------------
+
+export async function loadSharedCalendarEvents(
+  calendarIds: string[],
+): Promise<SharedCalendarEvent[]> {
+  if (calendarIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('shared_calendar_events')
+    .select('*')
+    .in('shared_calendar_id', calendarIds)
+    .eq('is_deleted', false)
+    .order('start_at');
+
+  if (error) throw error;
+  return data as SharedCalendarEvent[];
+}
+
+export async function createSharedCalendarEvent(
+  event: SharedCalendarEvent,
+): Promise<void> {
+  const { error } = await supabase
+    .from('shared_calendar_events')
+    .insert(event as never);
+  if (error) throw error;
+}
+
+export async function updateSharedCalendarEvent(
+  id: string,
+  patch: Partial<SharedCalendarEvent>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('shared_calendar_events')
+    .update(patch as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteSharedCalendarEvent(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('shared_calendar_events')
     .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
     .eq('id', id);
   if (error) throw error;

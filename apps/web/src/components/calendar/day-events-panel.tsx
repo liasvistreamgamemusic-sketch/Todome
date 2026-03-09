@@ -5,11 +5,12 @@ import { clsx } from 'clsx';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { X, Plus, ChevronLeft, Trash2 } from 'lucide-react';
 import { useCalendarStore, useSubscriptionStore } from '@todome/store';
-import type { CalendarEvent, ExternalCalendarEvent } from '@todome/db';
+import type { CalendarEvent, ExternalCalendarEvent, SharedCalendarEvent, SharedCalendar } from '@todome/db';
 import { Button } from '@todome/ui';
-import { useCalendarEvents, useDeleteCalendarEvent, useCalendarSubscriptions } from '@/hooks/queries';
+import { useCalendarEvents, useDeleteCalendarEvent, useCalendarSubscriptions, useSharedCalendarEvents, useSharedCalendars } from '@/hooks/queries';
 import { EventDetail } from './event-detail';
 import { ExternalEventDetail } from './external-event-detail';
+import { SharedEventDetail } from './shared-event-detail';
 import { ProviderIcon } from './provider-icon';
 
 type Props = {
@@ -18,18 +19,22 @@ type Props = {
   onSelectExternalEvent: (event: { id: string }) => void;
 };
 
-type PanelMode = 'list' | 'detail' | 'create' | 'external-detail';
+type PanelMode = 'list' | 'detail' | 'create' | 'external-detail' | 'shared-detail';
 
 export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) => {
   const [mode, setMode] = useState<PanelMode>('list');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedExternalEvent, setSelectedExternalEvent] = useState<ExternalCalendarEvent | null>(null);
+  const [selectedSharedEvent, setSelectedSharedEvent] = useState<SharedCalendarEvent | null>(null);
+  const [selectedSharedCalendar, setSelectedSharedCalendar] = useState<SharedCalendar | undefined>(undefined);
 
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
   const allExternalEvents = useSubscriptionStore((s) => s.allExternalEvents);
   const deleteCalendarEvent = useDeleteCalendarEvent();
   const { data: subscriptions = [] } = useCalendarSubscriptions();
+  const { data: sharedCalendarEvents = [] } = useSharedCalendarEvents();
+  const { data: sharedCalendars = [] } = useSharedCalendars();
 
   const dayEvents = useMemo(() => {
     const dayS = startOfDay(date);
@@ -41,7 +46,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
         const eventEnd = parseISO(e.end_at);
         return eventStart <= dayE && eventEnd >= dayS;
       })
-      .map((e) => ({ ...e, isExternal: false as const }));
+      .map((e) => ({ ...e, isExternal: false as const, isShared: false as const }));
     const external = Object.values(externalEventsMap)
       .flat()
       .filter((e) => {
@@ -49,14 +54,22 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
         const eventEnd = parseISO(e.end_at);
         return eventStart <= dayE && eventEnd >= dayS;
       })
-      .map((e) => ({ ...e, isExternal: true as const }));
-    return [...local, ...external].sort(
+      .map((e) => ({ ...e, isExternal: true as const, isShared: false as const }));
+    const shared = sharedCalendarEvents
+      .filter((e) => {
+        if (e.is_deleted) return false;
+        const eventStart = parseISO(e.start_at);
+        const eventEnd = parseISO(e.end_at);
+        return eventStart <= dayE && eventEnd >= dayS;
+      })
+      .map((e) => ({ ...e, isExternal: false as const, isShared: true as const }));
+    return [...local, ...external, ...shared].sort(
       (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime(),
     );
-  }, [events, externalEventsMap, date]);
+  }, [events, externalEventsMap, sharedCalendarEvents, date]);
 
   const handleSelectEvent = useCallback(
-    (event: { id: string; isExternal: boolean }) => {
+    (event: { id: string; isExternal: boolean; isShared: boolean }) => {
       if (event.isExternal) {
         const full = allExternalEvents().find((e) => e.id === event.id);
         if (full) {
@@ -65,10 +78,20 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
         }
         return;
       }
+      if (event.isShared) {
+        const full = sharedCalendarEvents.find((e) => e.id === event.id);
+        if (full) {
+          const calendar = sharedCalendars.find((c) => c.id === full.shared_calendar_id);
+          setSelectedSharedEvent(full);
+          setSelectedSharedCalendar(calendar);
+          setMode('shared-detail');
+        }
+        return;
+      }
       setSelectedEventId(event.id);
       setMode('detail');
     },
-    [allExternalEvents],
+    [allExternalEvents, sharedCalendarEvents, sharedCalendars],
   );
 
   const handleDelete = useCallback(
@@ -82,6 +105,8 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
   const handleBackToList = useCallback(() => {
     setSelectedEventId(null);
     setSelectedExternalEvent(null);
+    setSelectedSharedEvent(null);
+    setSelectedSharedCalendar(undefined);
     setMode('list');
   }, []);
 
@@ -153,7 +178,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
                               : `${format(parseISO(event.start_at), 'H:mm')} - ${format(parseISO(event.end_at), 'H:mm')}`}
                           </p>
                         </div>
-                        {!event.isExternal && (
+                        {!event.isExternal && !event.isShared && (
                           <button
                             type="button"
                             onClick={(e) => handleDelete(e, event.id)}
@@ -223,6 +248,30 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
               <ExternalEventDetail
                 event={selectedExternalEvent}
                 subscription={subscriptions.find((s) => s.id === selectedExternalEvent.subscription_id)}
+                embedded
+              />
+            </div>
+          </>
+        )}
+
+        {mode === 'shared-detail' && selectedSharedEvent && (
+          <>
+            <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
+              <button
+                type="button"
+                onClick={handleBackToList}
+                className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                {'戻る'}
+              </button>
+              <span className="text-sm text-text-tertiary">{dateStr}</span>
+            </div>
+            <div className="flex-1 overflow-y-auto">
+              <SharedEventDetail
+                event={selectedSharedEvent}
+                calendar={selectedSharedCalendar}
+                onClose={handleBackToList}
                 embedded
               />
             </div>

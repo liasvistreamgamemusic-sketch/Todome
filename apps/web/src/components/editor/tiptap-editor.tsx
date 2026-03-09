@@ -277,7 +277,7 @@ export const TiptapEditor = ({
   }
 
   return (
-    <div className="tiptap-editor rounded-xl glass border">
+    <div className="tiptap-editor">
       {editable && !hideToolbar && <EditorToolbar editor={editor} />}
       <EditorContent editor={editor} />
     </div>

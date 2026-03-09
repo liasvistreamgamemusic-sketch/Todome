@@ -12,12 +12,12 @@ import {
   format,
   parseISO,
 } from 'date-fns';
-import { MapPin, Clock } from 'lucide-react';
+import { MapPin, Clock, Users } from 'lucide-react';
 import { useCalendarStore, useSubscriptionStore } from '@todome/store';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
-import { useCalendarEvents, useTodos } from '@/hooks/queries';
+import { useCalendarEvents, useTodos, useSharedCalendarEvents } from '@/hooks/queries';
 import { isHoliday } from '@/lib/japanese-holidays';
 import { ProviderIcon } from './provider-icon';
 
@@ -31,6 +31,7 @@ type MergedEvent = {
   color: string | null;
   location?: string | null;
   provider?: CalendarProvider;
+  isShared?: boolean;
 };
 
 type Props = {
@@ -55,6 +56,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
   const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
+  const { data: sharedEvents = [] } = useSharedCalendarEvents();
   const { data: allTodos = [] } = useTodos();
   const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
@@ -79,7 +81,16 @@ export const ListView = ({ onSelectEvent }: Props) => {
       return eventStart <= rangeEnd && eventEnd >= rangeStart;
     });
 
-    const allActiveEvents = [...activeLocal, ...activeExternal];
+    const activeShared: MergedEvent[] = sharedEvents
+      .filter((e) => {
+        if (e.is_deleted) return false;
+        const eventStart = parseISO(e.start_at);
+        const eventEnd = parseISO(e.end_at);
+        return eventStart <= rangeEnd && eventEnd >= rangeStart;
+      })
+      .map((e) => ({ ...e, provider: undefined, isShared: true }));
+
+    const allActiveEvents = [...activeLocal, ...activeExternal, ...activeShared];
 
     const activeTodos = allTodos.filter(
       (t: Todo) =>
@@ -140,7 +151,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
     );
 
     return sortedEntries;
-  }, [selectedDate, events, externalEvents, allTodos]);
+  }, [selectedDate, events, externalEvents, sharedEvents, allTodos]);
 
   if (groupedItems.length === 0) {
     return (
@@ -247,6 +258,7 @@ const EventListItem = ({
         <div className="flex flex-1 flex-col gap-0.5 min-w-0">
           <span className="text-sm font-medium text-text-primary truncate flex items-center gap-1">
             {event.provider && <ProviderIcon provider={event.provider} size={12} className="shrink-0" />}
+            {event.isShared && <Users className="h-3 w-3 shrink-0 text-text-tertiary" />}
             {event.title}
           </span>
           <div className="flex items-center gap-3 text-xs text-text-secondary">
