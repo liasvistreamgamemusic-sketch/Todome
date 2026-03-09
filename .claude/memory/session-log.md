@@ -979,3 +979,25 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-09T06:31:17Z
+
+- session_id: `6E72CE8E-9720-477E-951D-5B550A0D254A`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-09T06:30:23Z`
+- ended_at: `2026-03-09T06:31:17Z`
+- duration_minutes: 540
+- changes: 2
+
+### 変更ファイル
+- `apps/web/src/components/editor/tiptap-editor.tsx`
+- `apps/web/src/components/notes/note-editor.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

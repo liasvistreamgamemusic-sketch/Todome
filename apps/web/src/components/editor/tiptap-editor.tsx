@@ -181,10 +181,15 @@ export const TiptapEditor = ({
   }, [editor, onEditorReady]);
 
   // Auto-focus on mount when editable
+  // Suppress onChange during focus to prevent spurious saves when opening a memo
   useEffect(() => {
     if (editor && editable) {
       const timer = setTimeout(() => {
+        suppressOnChangeRef.current = true;
         editor.commands.focus('end');
+        queueMicrotask(() => {
+          suppressOnChangeRef.current = false;
+        });
       }, 100);
       return () => clearTimeout(timer);
     }

@@ -108,9 +108,10 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
     lastSyncedAtRef.current = note.updated_at;
     setSaveStatus('saved');
     // Release initialLoad guard after Tiptap finishes processing setContent
-    requestAnimationFrame(() => {
+    // and auto-focus (100ms + microtask), so we wait 200ms to be safe
+    setTimeout(() => {
       initialLoadRef.current = false;
-    });
+    }, 200);
   }, [noteId, note, purgeAndPersist]);
 
   // Purge on unmount (when navigating away from notes page)
