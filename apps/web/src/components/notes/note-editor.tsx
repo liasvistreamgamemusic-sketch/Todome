@@ -34,7 +34,7 @@ type NoteEditorProps = {
 type SaveStatus = 'saved' | 'saving' | 'error';
 
 export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorProps) {
-  const { data: noteData } = useNote(noteId);
+  const { data: noteData, isPlaceholderData } = useNote(noteId);
   const { data: allSummaries } = useNoteSummaries();
   const { data: folders = [] } = useFolders();
   const updateNoteMutation = useUpdateNote();
@@ -467,13 +467,23 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
 
       {/* Editor (scrollable) */}
       <div className="flex-1 min-h-0 px-4 md:px-6 pb-4 md:pb-6 overflow-y-auto">
-        <TiptapEditor
-          content={note.content}
-          onChange={handleContentChange}
-          contentKey={noteId}
-          hideToolbar
-          onEditorReady={setEditorInstance}
-        />
+        {isPlaceholderData ? (
+          <div className="space-y-3 pt-4 animate-pulse">
+            <div className="h-4 bg-bg-secondary rounded w-full" />
+            <div className="h-4 bg-bg-secondary rounded w-5/6" />
+            <div className="h-4 bg-bg-secondary rounded w-4/6" />
+            <div className="h-4 bg-bg-secondary rounded w-full" />
+            <div className="h-4 bg-bg-secondary rounded w-3/6" />
+          </div>
+        ) : (
+          <TiptapEditor
+            content={note.content}
+            onChange={handleContentChange}
+            contentKey={noteId}
+            hideToolbar
+            onEditorReady={setEditorInstance}
+          />
+        )}
       </div>
     </div>
   );

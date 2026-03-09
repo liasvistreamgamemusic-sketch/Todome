@@ -6,7 +6,7 @@ import { NoteEditor } from '@/components/notes/note-editor';
 import { useNoteStore } from '@todome/store';
 import { useIsMobile } from '@todome/hooks';
 import type { Note } from '@todome/db';
-import { useNotes, useCreateNote, useUserId } from '@/hooks/queries';
+import { useNoteSummaries, useCreateNote, useUserId } from '@/hooks/queries';
 import { filterAndSortNotes } from '@/lib/note-filters';
 
 export default function NotesPage() {
@@ -19,7 +19,7 @@ export default function NotesPage() {
   const noteFilter = useNoteStore((s) => s.noteFilter);
 
   const userId = useUserId();
-  const { data: notes } = useNotes();
+  const { data: notes } = useNoteSummaries();
   const createNote = useCreateNote();
 
   const [drawerOpen, setDrawerOpen] = useState(false);

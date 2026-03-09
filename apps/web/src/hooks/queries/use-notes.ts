@@ -42,10 +42,22 @@ export function useNoteSummaries() {
 }
 
 export function useNote(noteId: string | null) {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+
   return useQuery({
     queryKey: queryKeys.notes.detail(noteId ?? ''),
     queryFn: () => loadNoteById(noteId!),
     enabled: !!noteId,
+    placeholderData: () => {
+      if (!noteId || !userId) return undefined;
+      const summaries = queryClient.getQueryData<NoteSummary[]>(
+        queryKeys.notes.summaries(userId),
+      );
+      const summary = summaries?.find((n) => n.id === noteId);
+      if (!summary) return undefined;
+      return { ...summary, content: null } as Note;
+    },
   });
 }
 
@@ -66,19 +78,28 @@ export function useCreateNote() {
   return useMutation({
     mutationFn: (note: Note) => createNote(note),
     onMutate: async (note) => {
-      const key = queryKeys.notes.all(userId!);
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Note[]>(key);
-      queryClient.setQueryData<Note[]>(key, (old) => [note, ...(old ?? [])]);
-      return { previous };
+      const allKey = queryKeys.notes.all(userId!);
+      const sumKey = queryKeys.notes.summaries(userId!);
+      await queryClient.cancelQueries({ queryKey: allKey });
+      await queryClient.cancelQueries({ queryKey: sumKey });
+      const previousAll = queryClient.getQueryData<Note[]>(allKey);
+      const previousSum = queryClient.getQueryData<NoteSummary[]>(sumKey);
+      queryClient.setQueryData<Note[]>(allKey, (old) => [note, ...(old ?? [])]);
+      const { content: _, ...summary } = note;
+      queryClient.setQueryData<NoteSummary[]>(sumKey, (old) => [summary, ...(old ?? [])]);
+      return { previousAll, previousSum };
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKeys.notes.all(userId!), context.previous);
+      if (context?.previousAll) {
+        queryClient.setQueryData(queryKeys.notes.all(userId!), context.previousAll);
+      }
+      if (context?.previousSum) {
+        queryClient.setQueryData(queryKeys.notes.summaries(userId!), context.previousSum);
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
     },
   });
 }
@@ -91,21 +112,31 @@ export function useUpdateNote() {
     mutationFn: ({ id, patch }: { id: string; patch: Partial<Note> }) =>
       updateNote(id, patch),
     onMutate: async ({ id, patch }) => {
-      const key = queryKeys.notes.all(userId!);
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Note[]>(key);
-      queryClient.setQueryData<Note[]>(key, (old) =>
+      const allKey = queryKeys.notes.all(userId!);
+      const sumKey = queryKeys.notes.summaries(userId!);
+      await queryClient.cancelQueries({ queryKey: allKey });
+      await queryClient.cancelQueries({ queryKey: sumKey });
+      const previousAll = queryClient.getQueryData<Note[]>(allKey);
+      const previousSum = queryClient.getQueryData<NoteSummary[]>(sumKey);
+      queryClient.setQueryData<Note[]>(allKey, (old) =>
         (old ?? []).map((n) => (n.id === id ? { ...n, ...patch } : n)),
       );
-      return { previous };
+      queryClient.setQueryData<NoteSummary[]>(sumKey, (old) =>
+        (old ?? []).map((n) => (n.id === id ? { ...n, ...patch } : n)),
+      );
+      return { previousAll, previousSum };
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKeys.notes.all(userId!), context.previous);
+      if (context?.previousAll) {
+        queryClient.setQueryData(queryKeys.notes.all(userId!), context.previousAll);
+      }
+      if (context?.previousSum) {
+        queryClient.setQueryData(queryKeys.notes.summaries(userId!), context.previousSum);
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
     },
   });
 }
@@ -117,21 +148,31 @@ export function useDeleteNote() {
   return useMutation({
     mutationFn: (id: string) => deleteNote(id),
     onMutate: async (id) => {
-      const key = queryKeys.notes.all(userId!);
-      await queryClient.cancelQueries({ queryKey: key });
-      const previous = queryClient.getQueryData<Note[]>(key);
-      queryClient.setQueryData<Note[]>(key, (old) =>
+      const allKey = queryKeys.notes.all(userId!);
+      const sumKey = queryKeys.notes.summaries(userId!);
+      await queryClient.cancelQueries({ queryKey: allKey });
+      await queryClient.cancelQueries({ queryKey: sumKey });
+      const previousAll = queryClient.getQueryData<Note[]>(allKey);
+      const previousSum = queryClient.getQueryData<NoteSummary[]>(sumKey);
+      queryClient.setQueryData<Note[]>(allKey, (old) =>
         (old ?? []).filter((n) => n.id !== id),
       );
-      return { previous };
+      queryClient.setQueryData<NoteSummary[]>(sumKey, (old) =>
+        (old ?? []).filter((n) => n.id !== id),
+      );
+      return { previousAll, previousSum };
     },
     onError: (_err, _vars, context) => {
-      if (context?.previous) {
-        queryClient.setQueryData(queryKeys.notes.all(userId!), context.previous);
+      if (context?.previousAll) {
+        queryClient.setQueryData(queryKeys.notes.all(userId!), context.previousAll);
+      }
+      if (context?.previousSum) {
+        queryClient.setQueryData(queryKeys.notes.summaries(userId!), context.previousSum);
       }
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
     },
   });
 }

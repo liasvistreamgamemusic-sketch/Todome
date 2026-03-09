@@ -253,25 +253,43 @@ export const TiptapEditor = ({
     handleContentUpdate(content);
   }, [content, handleContentUpdate]);
 
-  // Apply deferred remote content when editor loses focus
+  // Apply deferred remote content when editor loses focus.
+  // Use a short delay so toolbar clicks (which refocus the editor via
+  // editor.chain().focus()) don't cause a stale content overwrite.
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     if (!editor) return;
 
     const handleBlur = () => {
-      const pending = latestContentRef.current;
-      if (!pending) return;
-      latestContentRef.current = null;
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+      blurTimerRef.current = setTimeout(() => {
+        if (editor.isFocused || editor.isDestroyed) return;
 
-      suppressOnChangeRef.current = true;
-      editor.commands.setContent(pending);
-      queueMicrotask(() => {
-        suppressOnChangeRef.current = false;
-      });
+        const pending = latestContentRef.current;
+        if (!pending) return;
+        latestContentRef.current = null;
+
+        suppressOnChangeRef.current = true;
+        editor.commands.setContent(pending);
+        queueMicrotask(() => {
+          suppressOnChangeRef.current = false;
+        });
+      }, 150);
+    };
+
+    const handleFocus = () => {
+      if (blurTimerRef.current) {
+        clearTimeout(blurTimerRef.current);
+        blurTimerRef.current = null;
+      }
     };
 
     editor.on('blur', handleBlur);
+    editor.on('focus', handleFocus);
     return () => {
       editor.off('blur', handleBlur);
+      editor.off('focus', handleFocus);
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
     };
   }, [editor]);
 
