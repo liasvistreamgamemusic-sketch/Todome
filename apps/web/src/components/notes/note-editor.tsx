@@ -52,8 +52,6 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const folderMenuRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevNoteIdRef = useRef<string>(noteId);
-  // Guard: skip onChange during initial content load to prevent spurious saves
-  const initialLoadRef = useRef(true);
   // Track the updated_at we last wrote to distinguish our saves from remote changes
   const lastLocalSaveAtRef = useRef<string | null>(null);
   // Track the last updated_at we synced from to detect new remote versions
@@ -84,7 +82,6 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
     if (prevNoteIdRef.current !== noteId) {
       purgeAndPersist(prevNoteIdRef.current);
       prevNoteIdRef.current = noteId;
-      initialLoadRef.current = true;
       lastLocalSaveAtRef.current = null;
       lastSyncedAtRef.current = null;
     }
@@ -107,11 +104,6 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
     setTitle(note.title);
     lastSyncedAtRef.current = note.updated_at;
     setSaveStatus('saved');
-    // Release initialLoad guard after Tiptap finishes processing setContent
-    // and auto-focus (100ms + microtask), so we wait 200ms to be safe
-    setTimeout(() => {
-      initialLoadRef.current = false;
-    }, 200);
   }, [noteId, note, purgeAndPersist]);
 
   // Purge on unmount (when navigating away from notes page)
@@ -190,7 +182,6 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
 
   const handleContentChange = useCallback(
     (content: Record<string, unknown>, plainText: string) => {
-      if (initialLoadRef.current) return;
       debouncedSave({
         content: content as unknown as Note['content'],
         plain_text: plainText,

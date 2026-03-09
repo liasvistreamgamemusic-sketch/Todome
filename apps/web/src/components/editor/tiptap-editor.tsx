@@ -50,7 +50,6 @@ export const TiptapEditor = ({
   onEditorReady,
   contentKey,
 }: TiptapEditorProps) => {
-  const suppressOnChangeRef = useRef(false);
   const latestContentRef = useRef<JSONContent | null>(null);
   const prevContentKeyRef = useRef<string | undefined>(contentKey);
 
@@ -166,8 +165,8 @@ export const TiptapEditor = ({
         return false;
       },
     },
-    onUpdate: ({ editor: currentEditor }) => {
-      if (suppressOnChangeRef.current) return;
+    onUpdate: ({ editor: currentEditor, transaction }) => {
+      if (transaction.getMeta('preventUpdate')) return;
       onChange(currentEditor.getJSON(), currentEditor.getText());
     },
     immediatelyRender: false,
@@ -181,15 +180,10 @@ export const TiptapEditor = ({
   }, [editor, onEditorReady]);
 
   // Auto-focus on mount when editable
-  // Suppress onChange during focus to prevent spurious saves when opening a memo
   useEffect(() => {
     if (editor && editable) {
       const timer = setTimeout(() => {
-        suppressOnChangeRef.current = true;
         editor.commands.focus('end');
-        queueMicrotask(() => {
-          suppressOnChangeRef.current = false;
-        });
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -217,17 +211,7 @@ export const TiptapEditor = ({
       // null content → clear the editor (e.g. switching to a new diary)
       if (!newContent) {
         if (!editor.isEmpty) {
-          suppressOnChangeRef.current = true;
-          queueMicrotask(() => {
-            if (!editor.isDestroyed) {
-              editor.commands.clearContent();
-              queueMicrotask(() => {
-                suppressOnChangeRef.current = false;
-              });
-            } else {
-              suppressOnChangeRef.current = false;
-            }
-          });
+          editor.commands.clearContent();
         }
         return;
       }
@@ -238,18 +222,7 @@ export const TiptapEditor = ({
         return;
       }
 
-      // Apply content update with proper suppress timing
-      suppressOnChangeRef.current = true;
-      queueMicrotask(() => {
-        if (!editor.isDestroyed) {
-          editor.commands.setContent(newContent);
-          queueMicrotask(() => {
-            suppressOnChangeRef.current = false;
-          });
-        } else {
-          suppressOnChangeRef.current = false;
-        }
-      });
+      editor.commands.setContent(newContent);
     },
     [editor, contentKey],
   );
@@ -274,11 +247,7 @@ export const TiptapEditor = ({
         if (!pending) return;
         latestContentRef.current = null;
 
-        suppressOnChangeRef.current = true;
         editor.commands.setContent(pending);
-        queueMicrotask(() => {
-          suppressOnChangeRef.current = false;
-        });
       }, 150);
     };
 
