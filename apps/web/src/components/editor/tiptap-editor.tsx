@@ -192,7 +192,7 @@ export const TiptapEditor = ({
   // Update editable state
   useEffect(() => {
     if (editor) {
-      editor.setEditable(editable);
+      editor.setEditable(editable, false);
     }
   }, [editor, editable]);
 
