@@ -327,7 +327,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
       ref={toolbarRef}
       className="sticky top-0 z-20 border-b border-border bg-bg-primary/80 backdrop-blur-sm"
     >
-      <div className="flex items-center gap-0.5 px-2 py-1 overflow-x-auto scrollbar-thin">
+      <div className="flex items-center gap-0.5 px-2 py-1 flex-wrap">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
