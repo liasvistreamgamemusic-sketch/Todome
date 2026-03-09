@@ -311,6 +311,7 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
               content={diary.events_text}
               onChange={handleEventsTextChange}
               placeholder="何があったか、どう思ったか..."
+              contentKey={`${diaryId}-events`}
             />
           </div>
 
@@ -327,6 +328,7 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
               content={diary.summary}
               onChange={handleSummaryChange}
               placeholder="今日を振り返って..."
+              contentKey={`${diaryId}-summary`}
             />
           </div>
 

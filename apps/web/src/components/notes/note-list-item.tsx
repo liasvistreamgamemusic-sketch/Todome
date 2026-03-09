@@ -43,7 +43,7 @@ export const NoteListItem = memo(function NoteListItem({
   const menuRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  const previewText = (note.plain_text ?? '').slice(0, 120).replace(/\n/g, ' ');
+  const previewText = (note.plain_text ?? '').slice(0, 80).replace(/\n/g, ' ');
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -82,7 +82,7 @@ export const NoteListItem = memo(function NoteListItem({
       role="button"
       tabIndex={0}
       className={clsx(
-        'w-full text-left px-3 py-1.5 border-b border-border group relative',
+        'w-full text-left px-3 py-0.5 border-b border-border group relative',
         'transition-colors duration-100 cursor-pointer select-none',
         'hover:bg-bg-secondary',
         isActive && 'bg-bg-tertiary',
@@ -94,15 +94,15 @@ export const NoteListItem = memo(function NoteListItem({
       <div className="flex items-start gap-1.5 pr-6">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1">
-            {note.is_pinned && <Pin className="h-3 w-3 text-text-secondary shrink-0 fill-current" />}
-            <span className="text-sm font-semibold text-text-primary truncate block flex-1">
+            {note.is_pinned && <Pin className="h-2.5 w-2.5 text-text-secondary shrink-0 fill-current" />}
+            <span className="text-xs font-semibold text-text-primary truncate block flex-1">
               {note.title || '無題のメモ'}
             </span>
             <span className="text-[10px] text-text-tertiary whitespace-nowrap shrink-0 ml-1">
               {formatRelativeDate(note.updated_at)}
             </span>
           </div>
-          <p className="text-xs text-text-secondary mt-0.5 truncate leading-snug w-full">
+          <p className="text-[10px] text-text-secondary truncate leading-snug w-full">
             {previewText || '\u00A0'}
           </p>
         </div>

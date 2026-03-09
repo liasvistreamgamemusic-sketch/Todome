@@ -327,7 +327,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
       ref={toolbarRef}
       className="sticky top-0 z-20 border-b border-border bg-bg-primary/80 backdrop-blur-sm"
     >
-      <div className="flex items-center gap-0.5 px-2 py-1 flex-wrap">
+      <div className="flex items-center gap-0.5 px-2 py-1 overflow-x-auto scrollbar-thin">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
@@ -819,7 +819,7 @@ const ToolbarButton = ({
 }: ToolbarButtonProps) => (
   <button
     type="button"
-    className={`flex items-center justify-center h-7 min-w-[28px] px-1 rounded transition-colors ${
+    className={`flex items-center justify-center h-7 min-w-[28px] px-1 rounded transition-colors shrink-0 ${
       isActive
         ? 'bg-bg-tertiary text-accent'
         : 'text-text-secondary hover:bg-bg-secondary hover:text-text-primary'
@@ -833,7 +833,7 @@ const ToolbarButton = ({
 
 /* Toolbar divider */
 const ToolbarDivider = () => (
-  <div className="w-px h-4 bg-border mx-0.5" />
+  <div className="w-px h-4 bg-border mx-1 shrink-0" />
 );
 
 /* Popover wrapper */

@@ -20,6 +20,17 @@ export function useRealtimeSync(): void {
   useEffect(() => {
     if (!userId) return;
 
+    // Debounce notes refetch to batch rapid save echo-backs (2s)
+    let notesDebounceTimer: ReturnType<typeof setTimeout> | undefined;
+    const debouncedNotesRefetch = () => {
+      if (notesDebounceTimer) clearTimeout(notesDebounceTimer);
+      notesDebounceTimer = setTimeout(() => {
+        queryClient.refetchQueries({
+          queryKey: queryKeys.notes.all(userId),
+        });
+      }, 2000);
+    };
+
     const channel = supabase
       .channel('db-changes')
       .on(
@@ -30,11 +41,7 @@ export function useRealtimeSync(): void {
           table: 'notes',
           filter: `user_id=eq.${userId}`,
         },
-        () => {
-          queryClient.refetchQueries({
-            queryKey: queryKeys.notes.all(userId),
-          });
-        },
+        debouncedNotesRefetch,
       )
       .on(
         'postgres_changes',
@@ -117,6 +124,7 @@ export function useRealtimeSync(): void {
       });
 
     return () => {
+      if (notesDebounceTimer) clearTimeout(notesDebounceTimer);
       supabase.removeChannel(channel);
     };
   }, [userId, queryClient]);

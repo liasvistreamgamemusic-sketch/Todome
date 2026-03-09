@@ -20,6 +20,8 @@ import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { Note } from '@todome/db';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
+import type { Editor } from '@/components/editor/tiptap-editor';
+import { EditorToolbar } from '@/components/editor/editor-toolbar';
 import { useNotes, useFolders, useUpdateNote, useDeleteNote } from '@/hooks/queries';
 
 type NoteEditorProps = {
@@ -44,12 +46,13 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showFolderMenu, setShowFolderMenu] = useState(false);
+  const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const folderMenuRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevNoteIdRef = useRef<string>(noteId);
-  // Track whether the user has manually edited the title (disables auto-title from content)
-  const hasManualTitleRef = useRef(false);
+  // Guard: skip onChange during initial content load to prevent spurious saves
+  const initialLoadRef = useRef(true);
   // Track the updated_at we last wrote to distinguish our saves from remote changes
   const lastLocalSaveAtRef = useRef<string | null>(null);
   // Track the last updated_at we synced from to detect new remote versions
@@ -80,7 +83,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
     if (prevNoteIdRef.current !== noteId) {
       purgeAndPersist(prevNoteIdRef.current);
       prevNoteIdRef.current = noteId;
-      hasManualTitleRef.current = false;
+      initialLoadRef.current = true;
       lastLocalSaveAtRef.current = null;
       lastSyncedAtRef.current = null;
     }
@@ -101,11 +104,12 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
       saveTimerRef.current = null;
     }
     setTitle(note.title);
-    if (!note.title.trim()) {
-      hasManualTitleRef.current = false;
-    }
     lastSyncedAtRef.current = note.updated_at;
     setSaveStatus('saved');
+    // Release initialLoad guard after Tiptap finishes processing setContent
+    requestAnimationFrame(() => {
+      initialLoadRef.current = false;
+    });
   }, [noteId, note, purgeAndPersist]);
 
   // Purge on unmount (when navigating away from notes page)
@@ -166,7 +170,6 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const handleTitleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const newTitle = e.target.value;
-      hasManualTitleRef.current = true;
       setTitle(newTitle);
       if (!isComposingRef.current) {
         debouncedSave({ title: newTitle });
@@ -185,21 +188,13 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
 
   const handleContentChange = useCallback(
     (content: Record<string, unknown>, plainText: string) => {
-      const autoTitle = !title.trim() && !hasManualTitleRef.current
-        ? plainText.split('\n')[0]?.slice(0, 100) ?? ''
-        : undefined;
-
+      if (initialLoadRef.current) return;
       debouncedSave({
         content: content as unknown as Note['content'],
         plain_text: plainText,
-        ...(autoTitle !== undefined ? { title: autoTitle } : {}),
       });
-
-      if (autoTitle !== undefined) {
-        setTitle(autoTitle);
-      }
     },
-    [debouncedSave, title],
+    [debouncedSave],
   );
 
   const handleTogglePin = useCallback(() => {
@@ -462,11 +457,21 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
         </div>
       </div>
 
-      {/* Editor */}
+      {/* Editor toolbar (fixed, outside scroll area) */}
+      {editorInstance && (
+        <div className="shrink-0">
+          <EditorToolbar editor={editorInstance} />
+        </div>
+      )}
+
+      {/* Editor (scrollable) */}
       <div className="flex-1 min-h-0 px-4 md:px-6 pb-4 md:pb-6 overflow-y-auto">
         <TiptapEditor
           content={note.content}
           onChange={handleContentChange}
+          contentKey={noteId}
+          hideToolbar
+          onEditorReady={setEditorInstance}
         />
       </div>
     </div>

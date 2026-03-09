@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
-import type { JSONContent } from '@tiptap/react';
+import type { Editor, JSONContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Underline from '@tiptap/extension-underline';
 import TextStyle from '@tiptap/extension-text-style';
@@ -29,11 +29,16 @@ import './editor-styles.css';
 
 const lowlight = createLowlight(common);
 
+export { type Editor } from '@tiptap/react';
+
 interface TiptapEditorProps {
   content: JSONContent | null;
   onChange: (content: JSONContent, plainText: string) => void;
   placeholder?: string;
   editable?: boolean;
+  hideToolbar?: boolean;
+  onEditorReady?: (editor: Editor) => void;
+  contentKey?: string;
 }
 
 export const TiptapEditor = ({
@@ -41,38 +46,28 @@ export const TiptapEditor = ({
   onChange,
   placeholder = 'Start writing...',
   editable = true,
+  hideToolbar = false,
+  onEditorReady,
+  contentKey,
 }: TiptapEditorProps) => {
-  // Suppress onChange during programmatic content updates (e.g. remote sync)
   const suppressOnChangeRef = useRef(false);
-  // Store pending remote content to apply when editor loses focus
   const latestContentRef = useRef<JSONContent | null>(null);
+  const prevContentKeyRef = useRef<string | undefined>(contentKey);
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        heading: {
-          levels: [1, 2, 3, 4],
-        },
+        heading: { levels: [1, 2, 3, 4] },
         codeBlock: false,
-        dropcursor: {
-          width: 2,
-        },
-        bulletList: {
-          keepMarks: true,
-          keepAttributes: false,
-        },
-        orderedList: {
-          keepMarks: true,
-          keepAttributes: false,
-        },
+        dropcursor: { width: 2 },
+        bulletList: { keepMarks: true, keepAttributes: false },
+        orderedList: { keepMarks: true, keepAttributes: false },
       }),
       Underline,
       TextStyle,
       Color,
       FontSize,
-      Highlight.configure({
-        multicolor: true,
-      }),
+      Highlight.configure({ multicolor: true }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
         alignments: ['left', 'center', 'right', 'justify'],
@@ -83,23 +78,17 @@ export const TiptapEditor = ({
         emptyEditorClass: 'is-editor-empty',
       }),
       TaskList,
-      TaskItem.configure({
-        nested: true,
-      }),
+      TaskItem.configure({ nested: true }),
       Link.configure({
         openOnClick: false,
         autolink: true,
         linkOnPaste: true,
-        HTMLAttributes: {
-          rel: 'noopener noreferrer',
-        },
+        HTMLAttributes: { rel: 'noopener noreferrer' },
       }),
       ResizableImage.configure({
         inline: false,
         allowBase64: true,
-        HTMLAttributes: {
-          loading: 'lazy',
-        },
+        HTMLAttributes: { loading: 'lazy' },
       }),
       ResizableTable.configure({
         resizable: true,
@@ -112,16 +101,10 @@ export const TiptapEditor = ({
       TableRow,
       TableCell,
       TableHeader,
-      CodeBlockLowlight.configure({
-        lowlight,
-        defaultLanguage: null,
-      }),
+      CodeBlockLowlight.configure({ lowlight, defaultLanguage: null }),
       Mathematics.configure({
         regex: /\$([^$]*)\$/g,
-        katexOptions: {
-          throwOnError: false,
-          displayMode: false,
-        },
+        katexOptions: { throwOnError: false, displayMode: false },
       }),
       DragHandle,
       AudioNode,
@@ -190,6 +173,13 @@ export const TiptapEditor = ({
     immediatelyRender: false,
   });
 
+  // Notify parent when editor is ready
+  useEffect(() => {
+    if (editor && onEditorReady) {
+      onEditorReady(editor);
+    }
+  }, [editor, onEditorReady]);
+
   // Auto-focus on mount when editable
   useEffect(() => {
     if (editor && editable) {
@@ -207,18 +197,29 @@ export const TiptapEditor = ({
     }
   }, [editor, editable]);
 
-  // Update content from outside (remote sync) without triggering onChange
+  // Update content from outside (remote sync / document switch) without triggering onChange
   const handleContentUpdate = useCallback(
     (newContent: JSONContent | null) => {
       if (!editor) return;
 
+      // Detect document switch via contentKey
+      const isDocumentSwitch = contentKey !== undefined && contentKey !== prevContentKeyRef.current;
+      if (isDocumentSwitch) {
+        prevContentKeyRef.current = contentKey;
+        latestContentRef.current = null;
+      }
+
       // null content → clear the editor (e.g. switching to a new diary)
       if (!newContent) {
         if (!editor.isEmpty) {
+          suppressOnChangeRef.current = true;
           queueMicrotask(() => {
             if (!editor.isDestroyed) {
-              suppressOnChangeRef.current = true;
               editor.commands.clearContent();
+              queueMicrotask(() => {
+                suppressOnChangeRef.current = false;
+              });
+            } else {
               suppressOnChangeRef.current = false;
             }
           });
@@ -226,26 +227,26 @@ export const TiptapEditor = ({
         return;
       }
 
-      // If editor is focused, defer the update to prevent IME/input disruption
-      if (editor.isFocused) {
+      // Only defer for remote sync when focused, not for document switches
+      if (editor.isFocused && !isDocumentSwitch) {
         latestContentRef.current = newContent;
         return;
       }
 
-      const currentContent = JSON.stringify(editor.getJSON());
-      const incomingContent = JSON.stringify(newContent);
-      if (currentContent !== incomingContent) {
-        // Defer to avoid flushSync-during-render error from React/ProseMirror
-        queueMicrotask(() => {
-          if (!editor.isDestroyed) {
-            suppressOnChangeRef.current = true;
-            editor.commands.setContent(newContent);
+      // Apply content update with proper suppress timing
+      suppressOnChangeRef.current = true;
+      queueMicrotask(() => {
+        if (!editor.isDestroyed) {
+          editor.commands.setContent(newContent);
+          queueMicrotask(() => {
             suppressOnChangeRef.current = false;
-          }
-        });
-      }
+          });
+        } else {
+          suppressOnChangeRef.current = false;
+        }
+      });
     },
-    [editor],
+    [editor, contentKey],
   );
 
   useEffect(() => {
@@ -261,13 +262,11 @@ export const TiptapEditor = ({
       if (!pending) return;
       latestContentRef.current = null;
 
-      const currentContent = JSON.stringify(editor.getJSON());
-      const incomingContent = JSON.stringify(pending);
-      if (currentContent !== incomingContent) {
-        suppressOnChangeRef.current = true;
-        editor.commands.setContent(pending);
+      suppressOnChangeRef.current = true;
+      editor.commands.setContent(pending);
+      queueMicrotask(() => {
         suppressOnChangeRef.current = false;
-      }
+      });
     };
 
     editor.on('blur', handleBlur);
@@ -287,7 +286,7 @@ export const TiptapEditor = ({
 
   return (
     <div className="tiptap-editor rounded-xl glass border">
-      {editable && <EditorToolbar editor={editor} />}
+      {editable && !hideToolbar && <EditorToolbar editor={editor} />}
       <EditorContent editor={editor} />
     </div>
   );
