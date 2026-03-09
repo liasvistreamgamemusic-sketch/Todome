@@ -8,10 +8,10 @@ import {
 import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
 import type { NoteSortBy } from '@todome/store';
-import type { Note, Folder } from '@todome/db';
+import type { Note, NoteSummary, Folder } from '@todome/db';
 import { useKeyboardShortcut, useClickOutside } from '@todome/hooks';
 import {
-  useNotes, useFolders, useCreateNote, useUpdateNote,
+  useNoteSummaries, useFolders, useCreateNote, useUpdateNote,
   useDeleteNote, useCreateFolder, useUserId,
 } from '@/hooks/queries';
 import { filterAndSortNotes } from '@/lib/note-filters';
@@ -47,7 +47,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   const setSortBy = useNoteStore((s) => s.setSortBy);
 
   const userId = useUserId();
-  const { data: allNotes } = useNotes();
+  const { data: allNotes } = useNoteSummaries();
   const { data: folders = [] } = useFolders();
   const createNoteMutation = useCreateNote();
   const updateNoteMutation = useUpdateNote();
@@ -72,7 +72,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   useClickOutside(sortMenuRef, () => setShowSortMenu(false));
 
   const { pinned, unpinned } = useMemo(() => {
-    const p: Note[] = [], u: Note[] = [];
+    const p: NoteSummary[] = [], u: NoteSummary[] = [];
     for (const n of notes) (n.is_pinned ? p : u).push(n);
     return { pinned: p, unpinned: u };
   }, [notes]);
@@ -167,7 +167,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
     onExportPdf: handleExportPdf,
   };
 
-  const renderNote = (note: Note) => {
+  const renderNote = (note: NoteSummary) => {
     const props = { ...itemProps, note, isActive: selectedNoteId === note.id };
     return viewMode === 'card'
       ? <NoteCard key={note.id} {...props} />

@@ -1,9 +1,9 @@
-import type { Note } from '@todome/db';
+import type { NoteSummary } from '@todome/db';
 import type { NoteFilter } from '@todome/store';
 
 export type NoteSortBy = 'updated_at' | 'created_at' | 'title' | 'manual';
 
-function sortNotes(notes: Note[], sortBy: NoteSortBy): Note[] {
+function sortNotes(notes: NoteSummary[], sortBy: NoteSortBy): NoteSummary[] {
   const sorted = [...notes];
   switch (sortBy) {
     case 'updated_at':
@@ -18,18 +18,18 @@ function sortNotes(notes: Note[], sortBy: NoteSortBy): Note[] {
 }
 
 export function filterAndSortNotes(
-  notes: Note[],
+  notes: NoteSummary[],
   opts: {
     folderId: string | null;
     searchQuery: string;
     sortBy: NoteSortBy;
     noteFilter?: NoteFilter;
   },
-): Note[] {
+): NoteSummary[] {
   const query = opts.searchQuery.toLowerCase().trim();
   const filter = opts.noteFilter ?? 'active';
 
-  let filtered: Note[];
+  let filtered: NoteSummary[];
   switch (filter) {
     case 'archived':
       filtered = notes.filter((n) => n.is_archived && !n.is_deleted);

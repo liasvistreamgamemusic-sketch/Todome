@@ -955,3 +955,27 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-09T05:46:19Z
+
+- session_id: `7ABB624B-86F6-4278-8E7A-780ABA9C3B51`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-09T05:45:26Z`
+- ended_at: `2026-03-09T05:46:19Z`
+- duration_minutes: 540
+- changes: 5
+
+### 変更ファイル
+- `apps/web/src/components/notes/note-list-item.tsx`
+- `packages/db/src/types.ts`
+- `packages/db/src/repository.ts`
+- `packages/db/src/index.ts`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

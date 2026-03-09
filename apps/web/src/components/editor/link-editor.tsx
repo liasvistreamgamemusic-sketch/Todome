@@ -77,6 +77,7 @@ export const LinkEditor = ({
             <button
               type="submit"
               className="h-6 w-6 flex items-center justify-center rounded hover:bg-bg-tertiary text-text-secondary hover:text-success transition-colors"
+              onMouseDown={(e) => e.preventDefault()}
               title="Apply link"
             >
               <Check size={14} />
@@ -85,6 +86,7 @@ export const LinkEditor = ({
               <button
                 type="button"
                 className="h-6 w-6 flex items-center justify-center rounded hover:bg-bg-tertiary text-text-secondary hover:text-danger transition-colors"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={onRemove}
                 title="Remove link"
               >

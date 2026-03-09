@@ -25,7 +25,7 @@ export function useRealtimeSync(): void {
     const debouncedNotesRefetch = () => {
       if (notesDebounceTimer) clearTimeout(notesDebounceTimer);
       notesDebounceTimer = setTimeout(() => {
-        queryClient.refetchQueries({
+        queryClient.invalidateQueries({
           queryKey: queryKeys.notes.all(userId),
         });
       }, 2000);

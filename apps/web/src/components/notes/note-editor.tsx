@@ -18,11 +18,11 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useNoteStore } from '@todome/store';
-import type { Note } from '@todome/db';
+import type { Note, NoteSummary } from '@todome/db';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
 import type { Editor } from '@/components/editor/tiptap-editor';
 import { EditorToolbar } from '@/components/editor/editor-toolbar';
-import { useNotes, useFolders, useUpdateNote, useDeleteNote } from '@/hooks/queries';
+import { useNote, useNoteSummaries, useFolders, useUpdateNote, useDeleteNote } from '@/hooks/queries';
 
 type NoteEditorProps = {
   noteId: string;
@@ -34,13 +34,14 @@ type NoteEditorProps = {
 type SaveStatus = 'saved' | 'saving' | 'error';
 
 export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorProps) {
-  const { data: allNotes } = useNotes();
+  const { data: noteData } = useNote(noteId);
+  const { data: allSummaries } = useNoteSummaries();
   const { data: folders = [] } = useFolders();
   const updateNoteMutation = useUpdateNote();
   const deleteNoteMutation = useDeleteNote();
   const selectNote = useNoteStore((s) => s.selectNote);
 
-  const note = allNotes?.find((n) => n.id === noteId) ?? null;
+  const note = noteData ?? null;
 
   const [title, setTitle] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
@@ -59,7 +60,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const lastSyncedAtRef = useRef<string | null>(null);
 
   // Check if a note is empty (no title and no content)
-  const isNoteEmpty = useCallback((n: Note | null): boolean => {
+  const isNoteEmpty = useCallback((n: Note | NoteSummary | null): boolean => {
     if (!n) return true;
     const hasTitle = n.title.trim().length > 0;
     const hasContent = (n.plain_text ?? '').trim().length > 0;
@@ -69,13 +70,13 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   // Delete empty note from DB
   const purgeAndPersist = useCallback(
     (id: string) => {
-      const targetNote = allNotes?.find((n) => n.id === id) ?? null;
+      const targetNote = allSummaries?.find((n) => n.id === id) ?? null;
       if (targetNote?.is_archived) return;
       if (isNoteEmpty(targetNote)) {
         deleteNoteMutation.mutate(id);
       }
     },
-    [allNotes, isNoteEmpty, deleteNoteMutation],
+    [allSummaries, isNoteEmpty, deleteNoteMutation],
   );
 
   // Sync local state when noteId changes or remote data arrives

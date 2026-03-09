@@ -7,6 +7,8 @@ import {
 } from '@tanstack/react-query';
 import {
   loadNotes,
+  loadNoteSummaries,
+  loadNoteById,
   loadFolders,
   createNote,
   updateNote,
@@ -15,7 +17,7 @@ import {
   updateFolder,
   deleteFolder,
 } from '@todome/db';
-import type { Note, Folder } from '@todome/db';
+import type { Note, NoteSummary, Folder } from '@todome/db';
 import { queryKeys } from './keys';
 import { useUserId } from './use-auth';
 
@@ -26,6 +28,24 @@ export function useNotes() {
     queryKey: queryKeys.notes.all(userId ?? ''),
     queryFn: () => loadNotes(userId!),
     enabled: !!userId,
+  });
+}
+
+export function useNoteSummaries() {
+  const userId = useUserId();
+
+  return useQuery({
+    queryKey: queryKeys.notes.summaries(userId ?? ''),
+    queryFn: () => loadNoteSummaries(userId!),
+    enabled: !!userId,
+  });
+}
+
+export function useNote(noteId: string | null) {
+  return useQuery({
+    queryKey: queryKeys.notes.detail(noteId ?? ''),
+    queryFn: () => loadNoteById(noteId!),
+    enabled: !!noteId,
   });
 }
 

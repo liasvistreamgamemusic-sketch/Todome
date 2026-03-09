@@ -1,6 +1,7 @@
 // Types
 export type {
   Note,
+  NoteSummary,
   Folder,
   Todo,
   TodoStatus,

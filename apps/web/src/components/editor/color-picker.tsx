@@ -59,6 +59,7 @@ export const ColorPicker = ({
             type="button"
             className="group relative w-full aspect-square rounded-md border border-border transition-all hover:scale-110 focus:outline-none focus:ring-1 focus:ring-accent"
             style={{ backgroundColor: color }}
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => onSelect(color)}
             title={color}
           >
@@ -88,6 +89,7 @@ export const ColorPicker = ({
         <button
           type="button"
           className="flex-1 h-7 text-xs rounded border border-border bg-bg-secondary text-text-secondary hover:bg-bg-tertiary transition-colors"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={onReset}
         >
           Reset
@@ -95,6 +97,7 @@ export const ColorPicker = ({
         <button
           type="button"
           className="flex-1 h-7 text-xs rounded border border-border bg-bg-secondary text-text-secondary hover:bg-bg-tertiary transition-colors"
+          onMouseDown={(e) => e.preventDefault()}
           onClick={() => setShowCustom(!showCustom)}
         >
           Custom

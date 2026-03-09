@@ -372,6 +372,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             type="button"
             className="flex items-center gap-0.5 h-7 px-2 text-xs rounded border border-transparent hover:bg-bg-tertiary text-text-primary transition-colors"
             onClick={() => togglePopover('fontSize')}
+            onMouseDown={(e) => e.preventDefault()}
             title="Font size"
           >
             <span className="min-w-[32px] text-center">{getCurrentFontSize()}</span>
@@ -389,6 +390,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                         ? 'text-accent font-medium bg-bg-secondary'
                         : 'text-text-primary'
                     }`}
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => handleSetFontSize(size)}
                   >
                     {size}
@@ -452,6 +454,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             type="button"
             className="flex items-center gap-0.5 h-7 px-2 text-xs rounded border border-transparent hover:bg-bg-tertiary text-text-primary font-medium transition-colors"
             onClick={() => togglePopover('heading')}
+            onMouseDown={(e) => e.preventDefault()}
             title="Heading"
           >
             <span className="min-w-[20px]">{currentHeadingLabel()}</span>
@@ -465,6 +468,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                   className={`w-full px-3 py-1.5 text-sm text-left hover:bg-bg-tertiary transition-colors ${
                     !editor.isActive('heading') ? 'text-accent font-medium' : 'text-text-primary'
                   }`}
+                  onMouseDown={(e) => e.preventDefault()}
                   onClick={handleSetParagraph}
                 >
                   Paragraph
@@ -482,6 +486,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                       fontSize: `${1.4 - level * 0.15}em`,
                       fontWeight: 600,
                     }}
+                    onMouseDown={(e) => e.preventDefault()}
                     onClick={() => handleSetHeading(level)}
                   >
                     Heading {level}
@@ -656,6 +661,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                 type="button"
                 className="flex items-center gap-0.5 h-7 px-2 text-xs rounded border border-transparent hover:bg-bg-tertiary text-text-primary transition-colors"
                 onClick={() => togglePopover('codeLanguage')}
+                onMouseDown={(e) => e.preventDefault()}
                 title="Code language"
               >
                 <span>
@@ -677,6 +683,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                             ? 'text-accent font-medium bg-bg-secondary'
                             : 'text-text-primary'
                         }`}
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={() => handleSetCodeLanguage(lang.value)}
                       >
                         {lang.label}
@@ -825,6 +832,7 @@ const ToolbarButton = ({
         : 'text-text-secondary hover:bg-bg-secondary hover:text-text-primary'
     }`}
     onClick={onClick}
+    onMouseDown={(e) => e.preventDefault()}
     title={title}
   >
     {children}

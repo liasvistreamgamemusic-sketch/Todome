@@ -107,6 +107,7 @@ export const EmojiPicker = ({ onSelect }: EmojiPickerProps) => {
             key={`${emoji}-${index}`}
             type="button"
             className="w-7 h-7 flex items-center justify-center rounded text-base hover:bg-bg-tertiary transition-colors"
+            onMouseDown={(e) => e.preventDefault()}
             onClick={() => handleSelect(emoji)}
             title={emoji}
           >

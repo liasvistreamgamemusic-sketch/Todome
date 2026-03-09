@@ -42,6 +42,7 @@ export const TableCreator = ({ onCreateTable }: TableCreatorProps) => {
               <button
                 key={`${row}-${col}`}
                 type="button"
+                onMouseDown={(e) => e.preventDefault()}
                 className={`w-5 h-5 rounded-sm border transition-colors ${
                   isHighlighted
                     ? 'bg-accent/20 border-accent/40'

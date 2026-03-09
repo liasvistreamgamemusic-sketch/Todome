@@ -3,11 +3,11 @@
 import { memo, useState, useRef, useCallback, useEffect } from 'react';
 import { Pin, MoreVertical, Archive, ArchiveRestore, FolderOpen, Trash2, FileText, FileDown } from 'lucide-react';
 import { clsx } from 'clsx';
-import type { Note, Folder } from '@todome/store';
+import type { NoteSummary, Folder } from '@todome/store';
 import { formatRelativeDate } from '@/lib/format-date';
 
 type NoteListItemProps = {
-  note: Note;
+  note: NoteSummary;
   isActive: boolean;
   folders: Folder[];
   isArchiveView?: boolean;
@@ -82,7 +82,7 @@ export const NoteListItem = memo(function NoteListItem({
       role="button"
       tabIndex={0}
       className={clsx(
-        'w-full text-left px-3 py-0.5 border-b border-border group relative',
+        'w-full text-left px-3 py-1.5 border-b border-border group relative',
         'transition-colors duration-100 cursor-pointer select-none',
         'hover:bg-bg-secondary',
         isActive && 'bg-bg-tertiary',
@@ -95,7 +95,7 @@ export const NoteListItem = memo(function NoteListItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1">
             {note.is_pinned && <Pin className="h-2.5 w-2.5 text-text-secondary shrink-0 fill-current" />}
-            <span className="text-xs font-semibold text-text-primary truncate block flex-1">
+            <span className="text-sm font-semibold text-text-primary truncate block flex-1">
               {note.title || '無題のメモ'}
             </span>
             <span className="text-[10px] text-text-tertiary whitespace-nowrap shrink-0 ml-1">
