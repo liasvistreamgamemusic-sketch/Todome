@@ -1,17 +1,24 @@
 /**
  * Tauri build script — Windows + macOS compatible.
  *
- * Next.js static export (output: 'export') cannot include API routes.
- * This script moves api/ aside during build, then restores it.
+ * Next.js static export (output: 'export') cannot include API routes
+ * or dynamic routes without generateStaticParams.
+ * This script moves them aside during build, then restores them.
  *
- * _api_bak/ is in .gitignore so it can never be accidentally committed.
+ * _build_bak/ is in .gitignore so it can never be accidentally committed.
  */
 
-import { renameSync, cpSync, rmSync, existsSync } from 'node:fs';
+import { renameSync, cpSync, rmSync, existsSync, mkdirSync } from 'node:fs';
 import { execSync } from 'node:child_process';
+import { join, dirname } from 'node:path';
 
-const API_DIR = 'src/app/api';
-const BAK_DIR = 'src/app/_api_bak';
+const BAK_ROOT = 'src/app/_build_bak';
+
+// Directories incompatible with static export (API routes, dynamic routes)
+const EXCLUDE_DIRS = [
+  'src/app/api',
+  'src/app/invite',
+];
 
 function moveDir(src, dest) {
   try {
@@ -22,10 +29,19 @@ function moveDir(src, dest) {
   }
 }
 
-if (existsSync(API_DIR)) {
-  if (existsSync(BAK_DIR)) rmSync(BAK_DIR, { recursive: true, force: true });
-  moveDir(API_DIR, BAK_DIR);
-  console.log('[build-tauri] API routes moved aside.');
+// Clean previous backup
+if (existsSync(BAK_ROOT)) rmSync(BAK_ROOT, { recursive: true, force: true });
+
+const movedDirs = [];
+
+for (const dir of EXCLUDE_DIRS) {
+  if (existsSync(dir)) {
+    const bakDest = join(BAK_ROOT, dir);
+    mkdirSync(dirname(bakDest), { recursive: true });
+    moveDir(dir, bakDest);
+    movedDirs.push(dir);
+    console.log(`[build-tauri] Moved aside: ${dir}`);
+  }
 }
 
 try {
@@ -34,9 +50,13 @@ try {
     env: { ...process.env, NEXT_BUILD_TARGET: 'tauri' },
   });
 } finally {
-  if (existsSync(BAK_DIR)) {
-    if (existsSync(API_DIR)) rmSync(API_DIR, { recursive: true, force: true });
-    moveDir(BAK_DIR, API_DIR);
-    console.log('[build-tauri] API routes restored.');
+  for (const dir of movedDirs) {
+    const bakSrc = join(BAK_ROOT, dir);
+    if (existsSync(bakSrc)) {
+      if (existsSync(dir)) rmSync(dir, { recursive: true, force: true });
+      moveDir(bakSrc, dir);
+      console.log(`[build-tauri] Restored: ${dir}`);
+    }
   }
+  if (existsSync(BAK_ROOT)) rmSync(BAK_ROOT, { recursive: true, force: true });
 }

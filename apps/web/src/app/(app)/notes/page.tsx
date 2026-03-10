@@ -100,7 +100,9 @@ export default function NotesPage() {
 
     if (visible.length > 0 && visible[0]) {
       selectNote(visible[0].id);
-    } else if (noteFilter === 'active' && !autoCreatedRef.current) {
+    } else if (noteFilter === 'active' && !autoCreatedRef.current && !selectedFolderId) {
+      // Only auto-create when no folder is selected (root level).
+      // Empty folders should not trigger auto-creation.
       autoCreatedRef.current = true;
       const now = new Date().toISOString();
       const newNote: Note = {
@@ -109,7 +111,7 @@ export default function NotesPage() {
         title: '',
         content: { type: 'doc', content: [] },
         plain_text: '',
-        folder_id: selectedFolderId,
+        folder_id: null,
         is_pinned: false,
         is_archived: false,
         is_deleted: false,
@@ -120,7 +122,7 @@ export default function NotesPage() {
       justCreatedNoteIdRef.current = newNote.id;
       createNote.mutate(newNote);
       selectNote(newNote.id);
-    } else if (noteFilter !== 'active') {
+    } else if (visible.length === 0) {
       selectNote(null);
     }
   }, [notes, userId, selectedNoteId, selectedFolderId, searchQuery, sortBy, noteFilter, selectNote, createNote]);

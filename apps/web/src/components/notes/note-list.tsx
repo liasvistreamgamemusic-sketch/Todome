@@ -210,10 +210,17 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
             </button>
 
             <button type="button" title="フォルダ"
-              onClick={() => setShowFolderSection((v) => !v)}
+              onClick={() => {
+                if (folders.length === 0) {
+                  setEditingFolderId(null);
+                  setFolderDialogOpen(true);
+                } else {
+                  setShowFolderSection((v) => !v);
+                }
+              }}
               className={clsx(
                 'p-2 md:p-1 rounded transition-colors',
-                showFolderSection ? 'text-accent hover:bg-accent/10' : 'text-text-tertiary hover:bg-bg-secondary',
+                showFolderSection && folders.length > 0 ? 'text-accent hover:bg-accent/10' : 'text-text-tertiary hover:bg-bg-secondary',
               )}>
               <FolderPlus className="h-4 w-4 md:h-3.5 md:w-3.5" />
             </button>

@@ -2,6 +2,12 @@
 -- 006 – Shared Calendars
 -- ==========================================================================
 
+-- Clean up any partial state from a previous failed run
+DROP TABLE IF EXISTS public.shared_calendar_events CASCADE;
+DROP TABLE IF EXISTS public.shared_calendar_members CASCADE;
+DROP TABLE IF EXISTS public.shared_calendars CASCADE;
+DROP FUNCTION IF EXISTS public.is_shared_calendar_participant(UUID);
+
 -- --------------------------------------------------------------------------
 -- Table: shared_calendars
 -- --------------------------------------------------------------------------
@@ -19,14 +25,6 @@ ALTER TABLE public.shared_calendars ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY sc_owner_all ON public.shared_calendars
   FOR ALL USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());
-
-CREATE POLICY sc_member_select ON public.shared_calendars
-  FOR SELECT USING (
-    id IN (
-      SELECT shared_calendar_id FROM public.shared_calendar_members
-      WHERE user_id = auth.uid() AND status = 'active'
-    )
-  );
 
 CREATE TRIGGER trg_shared_calendars_updated_at
   BEFORE UPDATE ON public.shared_calendars
@@ -52,6 +50,16 @@ CREATE UNIQUE INDEX idx_scm_calendar_user ON public.shared_calendar_members(shar
 CREATE UNIQUE INDEX idx_scm_invite_token ON public.shared_calendar_members(invite_token);
 CREATE INDEX idx_scm_user ON public.shared_calendar_members(user_id);
 ALTER TABLE public.shared_calendar_members ENABLE ROW LEVEL SECURITY;
+
+-- RLS policy on shared_calendars that references shared_calendar_members
+-- (placed after members table creation to avoid "relation does not exist" error)
+CREATE POLICY sc_member_select ON public.shared_calendars
+  FOR SELECT USING (
+    id IN (
+      SELECT shared_calendar_id FROM public.shared_calendar_members
+      WHERE user_id = auth.uid() AND status = 'active'
+    )
+  );
 
 CREATE POLICY scm_owner_all ON public.shared_calendar_members
   FOR ALL USING (

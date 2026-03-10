@@ -14,8 +14,9 @@ apps/desktop/src-tauri/target/
 # Next.js static export (Tauri build output)
 apps/web/out/
 
-# Tauri build temporary backup (build-tauri.mjs moves api/ here during static export)
+# Tauri build temporary backup (build-tauri.mjs moves dirs here during static export)
 apps/web/src/app/_api_bak/
+apps/web/src/app/_build_bak/
 
 # Environment
 .env

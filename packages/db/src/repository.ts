@@ -313,6 +313,10 @@ export async function loadSharedCalendars(
       .eq('status', 'active'),
   ]);
 
+  // Graceful fallback when tables don't exist yet (migration not applied)
+  if (owned.error?.code === 'PGRST205' || member.error?.code === 'PGRST205') {
+    return [];
+  }
   if (owned.error) throw owned.error;
   if (member.error) throw member.error;
 
@@ -433,6 +437,7 @@ export async function loadSharedCalendarEvents(
     .eq('is_deleted', false)
     .order('start_at');
 
+  if (error?.code === 'PGRST205') return [];
   if (error) throw error;
   return data as SharedCalendarEvent[];
 }

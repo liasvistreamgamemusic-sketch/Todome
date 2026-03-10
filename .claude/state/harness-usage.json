@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updatedAt": "2026-03-09T22:23:25.570Z",
+  "updatedAt": "2026-03-10T00:06:41.524Z",
   "skills": {
     "commit": {
       "count": 1,
@@ -58,9 +58,9 @@
       "lastTriggered": "2026-03-09T16:45:54.599Z"
     },
     "pretooluse-guard": {
-      "triggered": 433,
-      "blocked": 433,
-      "lastTriggered": "2026-03-09T22:23:25.570Z"
+      "triggered": 439,
+      "blocked": 439,
+      "lastTriggered": "2026-03-10T00:06:41.523Z"
     }
   }
 }

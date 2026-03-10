@@ -9,7 +9,6 @@ import {
   Archive,
   Trash2,
   FileText,
-  Plus,
   Pencil,
   Palette,
 } from 'lucide-react';
@@ -295,18 +294,6 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
           );
         })}
       </div>
-
-      {/* New folder */}
-      {onNewFolder && (
-        <button
-          type="button"
-          onClick={onNewFolder}
-          className="flex items-center gap-1.5 px-2 py-1 text-xs text-text-tertiary hover:text-text-secondary transition-colors mt-1"
-        >
-          <Plus className="h-3 w-3" />
-          新規フォルダ
-        </button>
-      )}
 
       {/* Bottom items */}
       <div className="border-t border-border mt-2 pt-1 space-y-0.5">
