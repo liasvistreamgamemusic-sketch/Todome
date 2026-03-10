@@ -23,6 +23,7 @@ import { EventDetail } from './event-detail';
 import { ExternalEventDetail } from './external-event-detail';
 import { SharedEventDetail } from './shared-event-detail';
 import { DayEventsPanel } from './day-events-panel';
+import { CalendarSelector } from './calendar-selector';
 
 const VIEW_MODE_LABELS: Record<CalendarViewMode, string> = {
   month: '月',
@@ -192,6 +193,8 @@ export const CalendarView = () => {
           >
             今日
           </button>
+
+          <CalendarSelector />
 
           {/* Date display */}
           <h1 className="ml-2 truncate text-base font-semibold text-text-primary">

@@ -28,7 +28,11 @@ import {
   useTodos,
   useNotes,
   useUserId,
+  useSharedCalendars,
+  useCreateSharedCalendarEvent,
 } from '@/hooks/queries';
+import type { SharedCalendarEvent } from '@todome/db';
+import { Users } from 'lucide-react';
 
 type Props = {
   eventId: string | null;
@@ -89,6 +93,8 @@ type FormState = {
   repeatUntil: string;
   linkedTodoIds: string[];
   linkedNoteIds: string[];
+  includePersonalCalendar: boolean;
+  targetSharedCalendarIds: string[];
 };
 
 const computeRemindAt = (
@@ -116,6 +122,8 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
   const deleteCalendarEvent = useDeleteCalendarEvent();
   const userId = useUserId();
   const selectEvent = useCalendarStore((s) => s.selectEvent);
+  const { data: sharedCalendars = [] } = useSharedCalendars();
+  const createSharedCalendarEvent = useCreateSharedCalendarEvent();
 
   const existingEvent = useMemo(
     () => (eventId ? (events ?? []).find((e) => e.id === eventId) ?? null : null),
@@ -150,6 +158,8 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
         repeatUntil: format(addHours(new Date(), 24 * 365), 'yyyy-MM-dd'),
         linkedTodoIds: existingEvent.todo_ids,
         linkedNoteIds: existingEvent.note_ids ?? [],
+        includePersonalCalendar: true,
+        targetSharedCalendarIds: [],
       };
     }
     return {
@@ -171,6 +181,8 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
       repeatUntil: format(addHours(new Date(), 24 * 365), 'yyyy-MM-dd'),
       linkedTodoIds: [],
       linkedNoteIds: [],
+      includePersonalCalendar: true,
+      targetSharedCalendarIds: [],
     };
   });
 
@@ -198,6 +210,8 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
       repeatUntil: format(addHours(new Date(), 24 * 365), 'yyyy-MM-dd'),
       linkedTodoIds: existingEvent.todo_ids,
       linkedNoteIds: existingEvent.note_ids ?? [],
+      includePersonalCalendar: true,
+      targetSharedCalendarIds: [],
     });
   }, [existingEvent]);
 
@@ -282,27 +296,49 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
         },
       });
     } else {
-      const newEvent: CalendarEvent = {
-        id: crypto.randomUUID(),
-        user_id: userId ?? '',
-        title: form.title.trim(),
-        description: form.description.trim() || null,
-        start_at: startAt,
-        end_at: endAt,
-        is_all_day: form.isAllDay,
-        location: form.location.trim() || null,
-        color: form.color,
-        diary_content: null,
-        remind_at: remindAt,
-        repeat_rule: repeatRule,
-        repeat_parent_id: null,
-        todo_ids: form.linkedTodoIds,
-        note_ids: form.linkedNoteIds,
-        is_deleted: false,
-        created_at: now,
-        updated_at: now,
-      };
-      createCalendarEvent.mutate(newEvent);
+      // Create on personal calendar if selected
+      if (form.includePersonalCalendar) {
+        const newEvent: CalendarEvent = {
+          id: crypto.randomUUID(),
+          user_id: userId ?? '',
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          start_at: startAt,
+          end_at: endAt,
+          is_all_day: form.isAllDay,
+          location: form.location.trim() || null,
+          color: form.color,
+          diary_content: null,
+          remind_at: remindAt,
+          repeat_rule: repeatRule,
+          repeat_parent_id: null,
+          todo_ids: form.linkedTodoIds,
+          note_ids: form.linkedNoteIds,
+          is_deleted: false,
+          created_at: now,
+          updated_at: now,
+        };
+        createCalendarEvent.mutate(newEvent);
+      }
+      // Create on each selected shared calendar
+      for (const calId of form.targetSharedCalendarIds) {
+        const sharedEvent: SharedCalendarEvent = {
+          id: crypto.randomUUID(),
+          shared_calendar_id: calId,
+          created_by: userId ?? '',
+          title: form.title.trim(),
+          description: form.description.trim() || null,
+          start_at: startAt,
+          end_at: endAt,
+          is_all_day: form.isAllDay,
+          location: form.location.trim() || null,
+          color: form.color,
+          is_deleted: false,
+          created_at: now,
+          updated_at: now,
+        };
+        createSharedCalendarEvent.mutate(sharedEvent);
+      }
     }
 
     selectEvent(null);
@@ -314,6 +350,7 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
     userId,
     updateCalendarEvent,
     createCalendarEvent,
+    createSharedCalendarEvent,
     selectEvent,
     onClose,
     buildRepeatRule,
@@ -389,6 +426,38 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
             className="text-lg font-semibold"
             autoFocus
           />
+
+          {/* Calendar selector (new events only, multi-select) */}
+          {!isEditing && sharedCalendars.length > 0 && (
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium text-text-secondary">
+                <Users className="mr-1 inline h-3.5 w-3.5" />
+                追加先カレンダー
+              </label>
+              <div className="rounded-lg border border-[var(--border)] p-2 space-y-1">
+                <Checkbox
+                  label="個人カレンダー"
+                  checked={form.includePersonalCalendar}
+                  onChange={(e) => updateField('includePersonalCalendar', e.target.checked)}
+                  wrapperClassName="py-0.5"
+                />
+                {sharedCalendars.map((cal) => (
+                  <Checkbox
+                    key={cal.id}
+                    label={cal.title}
+                    checked={form.targetSharedCalendarIds.includes(cal.id)}
+                    onChange={() => {
+                      const ids = form.targetSharedCalendarIds.includes(cal.id)
+                        ? form.targetSharedCalendarIds.filter((id) => id !== cal.id)
+                        : [...form.targetSharedCalendarIds, cal.id];
+                      updateField('targetSharedCalendarIds', ids);
+                    }}
+                    wrapperClassName="py-0.5"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* All-day toggle */}
           <Checkbox
@@ -755,7 +824,7 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
               variant="primary"
               size="sm"
               onClick={handleSave}
-              disabled={!form.title.trim()}
+              disabled={!form.title.trim() || (!isEditing && sharedCalendars.length > 0 && !form.includePersonalCalendar && form.targetSharedCalendarIds.length === 0)}
             >
               {isEditing ? '更新' : '保存'}
             </Button>

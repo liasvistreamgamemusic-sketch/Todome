@@ -35,29 +35,36 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
   const { data: subscriptions = [] } = useCalendarSubscriptions();
   const { data: sharedCalendarEvents = [] } = useSharedCalendarEvents();
   const { data: sharedCalendars = [] } = useSharedCalendars();
+  const showPersonalCalendar = useCalendarStore((s) => s.showPersonalCalendar);
+  const hiddenSharedCalendarIds = useCalendarStore((s) => s.hiddenSharedCalendarIds);
 
   const dayEvents = useMemo(() => {
     const dayS = startOfDay(date);
     const dayE = endOfDay(date);
-    const local = events
-      .filter((e: CalendarEvent) => {
-        if (e.is_deleted) return false;
-        const eventStart = parseISO(e.start_at);
-        const eventEnd = parseISO(e.end_at);
-        return eventStart <= dayE && eventEnd >= dayS;
-      })
-      .map((e) => ({ ...e, isExternal: false as const, isShared: false as const }));
-    const external = Object.values(externalEventsMap)
-      .flat()
-      .filter((e) => {
-        const eventStart = parseISO(e.start_at);
-        const eventEnd = parseISO(e.end_at);
-        return eventStart <= dayE && eventEnd >= dayS;
-      })
-      .map((e) => ({ ...e, isExternal: true as const, isShared: false as const }));
+    const local = showPersonalCalendar
+      ? events
+          .filter((e: CalendarEvent) => {
+            if (e.is_deleted) return false;
+            const eventStart = parseISO(e.start_at);
+            const eventEnd = parseISO(e.end_at);
+            return eventStart <= dayE && eventEnd >= dayS;
+          })
+          .map((e) => ({ ...e, isExternal: false as const, isShared: false as const }))
+      : [];
+    const external = showPersonalCalendar
+      ? Object.values(externalEventsMap)
+          .flat()
+          .filter((e) => {
+            const eventStart = parseISO(e.start_at);
+            const eventEnd = parseISO(e.end_at);
+            return eventStart <= dayE && eventEnd >= dayS;
+          })
+          .map((e) => ({ ...e, isExternal: true as const, isShared: false as const }))
+      : [];
     const shared = sharedCalendarEvents
       .filter((e) => {
         if (e.is_deleted) return false;
+        if (hiddenSharedCalendarIds.has(e.shared_calendar_id)) return false;
         const eventStart = parseISO(e.start_at);
         const eventEnd = parseISO(e.end_at);
         return eventStart <= dayE && eventEnd >= dayS;
@@ -66,7 +73,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
     return [...local, ...external, ...shared].sort(
       (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime(),
     );
-  }, [events, externalEventsMap, sharedCalendarEvents, date]);
+  }, [events, externalEventsMap, sharedCalendarEvents, date, showPersonalCalendar, hiddenSharedCalendarIds]);
 
   const handleSelectEvent = useCallback(
     (event: { id: string; isExternal: boolean; isShared: boolean }) => {

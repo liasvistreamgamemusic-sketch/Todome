@@ -60,6 +60,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
   const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
   const { data: sharedEvents = [] } = useSharedCalendarEvents();
+  const showPersonalCalendar = useCalendarStore((s) => s.showPersonalCalendar);
+  const hiddenSharedCalendarIds = useCalendarStore((s) => s.hiddenSharedCalendarIds);
   const selectDate = useCalendarStore((s) => s.selectDate);
   const weekStart = useUiStore((s) => s.calendarWeekStart);
   const { data: allTodos = [] } = useTodos();
@@ -95,18 +97,19 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
   }, [calendarDays]);
 
   const allActiveEvents = useMemo(() => {
-    const activeLocal: MergedEvent[] = events
-      .filter((e: CalendarEvent) => !e.is_deleted)
-      .map((e) => ({ ...e, provider: undefined }));
-    const activeExternal: MergedEvent[] = externalEvents.map((e) => ({
-      ...e,
-      is_deleted: false,
-    }));
+    const activeLocal: MergedEvent[] = showPersonalCalendar
+      ? events
+          .filter((e: CalendarEvent) => !e.is_deleted)
+          .map((e) => ({ ...e, provider: undefined }))
+      : [];
+    const activeExternal: MergedEvent[] = showPersonalCalendar
+      ? externalEvents.map((e) => ({ ...e, is_deleted: false }))
+      : [];
     const activeShared: MergedEvent[] = sharedEvents
-      .filter((e) => !e.is_deleted)
+      .filter((e) => !e.is_deleted && !hiddenSharedCalendarIds.has(e.shared_calendar_id))
       .map((e) => ({ ...e, provider: undefined, isShared: true }));
     return [...activeLocal, ...activeExternal, ...activeShared];
-  }, [events, externalEvents, sharedEvents]);
+  }, [events, externalEvents, sharedEvents, showPersonalCalendar, hiddenSharedCalendarIds]);
 
   // Dynamic event capacity based on measured cell height
   const gridRef = useRef<HTMLDivElement>(null);

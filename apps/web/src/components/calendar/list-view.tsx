@@ -57,6 +57,8 @@ export const ListView = ({ onSelectEvent }: Props) => {
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
   const externalEvents = useMemo(() => Object.values(externalEventsMap).flat(), [externalEventsMap]);
   const { data: sharedEvents = [] } = useSharedCalendarEvents();
+  const showPersonalCalendar = useCalendarStore((s) => s.showPersonalCalendar);
+  const hiddenSharedCalendarIds = useCalendarStore((s) => s.hiddenSharedCalendarIds);
   const { data: allTodos = [] } = useTodos();
   const navigateMonthPrev = useCalendarStore((s) => s.navigateMonthPrev);
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
@@ -66,24 +68,29 @@ export const ListView = ({ onSelectEvent }: Props) => {
     const rangeStart = startOfDay(selectedDate);
     const rangeEnd = endOfDay(addDays(selectedDate, DAYS_AHEAD - 1));
 
-    const activeLocal: MergedEvent[] = events
-      .filter((e: CalendarEvent) => {
-        if (e.is_deleted) return false;
-        const eventStart = parseISO(e.start_at);
-        const eventEnd = parseISO(e.end_at);
-        return eventStart <= rangeEnd && eventEnd >= rangeStart;
-      })
-      .map((e) => ({ ...e, provider: undefined }));
+    const activeLocal: MergedEvent[] = showPersonalCalendar
+      ? events
+          .filter((e: CalendarEvent) => {
+            if (e.is_deleted) return false;
+            const eventStart = parseISO(e.start_at);
+            const eventEnd = parseISO(e.end_at);
+            return eventStart <= rangeEnd && eventEnd >= rangeStart;
+          })
+          .map((e) => ({ ...e, provider: undefined }))
+      : [];
 
-    const activeExternal: MergedEvent[] = externalEvents.filter((e) => {
-      const eventStart = parseISO(e.start_at);
-      const eventEnd = parseISO(e.end_at);
-      return eventStart <= rangeEnd && eventEnd >= rangeStart;
-    });
+    const activeExternal: MergedEvent[] = showPersonalCalendar
+      ? externalEvents.filter((e) => {
+          const eventStart = parseISO(e.start_at);
+          const eventEnd = parseISO(e.end_at);
+          return eventStart <= rangeEnd && eventEnd >= rangeStart;
+        })
+      : [];
 
     const activeShared: MergedEvent[] = sharedEvents
       .filter((e) => {
         if (e.is_deleted) return false;
+        if (hiddenSharedCalendarIds.has(e.shared_calendar_id)) return false;
         const eventStart = parseISO(e.start_at);
         const eventEnd = parseISO(e.end_at);
         return eventStart <= rangeEnd && eventEnd >= rangeStart;
@@ -151,7 +158,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
     );
 
     return sortedEntries;
-  }, [selectedDate, events, externalEvents, sharedEvents, allTodos]);
+  }, [selectedDate, events, externalEvents, sharedEvents, allTodos, showPersonalCalendar, hiddenSharedCalendarIds]);
 
   if (groupedItems.length === 0) {
     return (
