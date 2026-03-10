@@ -80,6 +80,7 @@ export function useCreateNote() {
     onMutate: async (note) => {
       const allKey = queryKeys.notes.all(userId!);
       const sumKey = queryKeys.notes.summaries(userId!);
+      const detailKey = queryKeys.notes.detail(note.id);
       await queryClient.cancelQueries({ queryKey: allKey });
       await queryClient.cancelQueries({ queryKey: sumKey });
       const previousAll = queryClient.getQueryData<Note[]>(allKey);
@@ -87,6 +88,8 @@ export function useCreateNote() {
       queryClient.setQueryData<Note[]>(allKey, (old) => [note, ...(old ?? [])]);
       const { content: _, ...summary } = note;
       queryClient.setQueryData<NoteSummary[]>(sumKey, (old) => [summary, ...(old ?? [])]);
+      // Seed detail cache so NoteEditor renders immediately
+      queryClient.setQueryData<Note>(detailKey, note);
       return { previousAll, previousSum };
     },
     onError: (_err, _vars, context) => {
@@ -97,9 +100,10 @@ export function useCreateNote() {
         queryClient.setQueryData(queryKeys.notes.summaries(userId!), context.previousSum);
       }
     },
-    onSettled: () => {
+    onSettled: (_data, _err, note) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.notes.detail(note.id) });
     },
   });
 }

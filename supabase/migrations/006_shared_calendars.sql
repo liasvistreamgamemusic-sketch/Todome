@@ -7,6 +7,37 @@ DROP TABLE IF EXISTS public.shared_calendar_events CASCADE;
 DROP TABLE IF EXISTS public.shared_calendar_members CASCADE;
 DROP TABLE IF EXISTS public.shared_calendars CASCADE;
 DROP FUNCTION IF EXISTS public.is_shared_calendar_participant(UUID);
+DROP FUNCTION IF EXISTS public.is_shared_calendar_owner(UUID);
+
+-- --------------------------------------------------------------------------
+-- Helper functions (SECURITY DEFINER — bypass RLS to prevent recursion)
+-- --------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.is_shared_calendar_owner(cal_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.shared_calendars WHERE id = cal_id AND owner_id = auth.uid()
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+CREATE OR REPLACE FUNCTION public.is_shared_calendar_member(cal_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM public.shared_calendar_members
+    WHERE shared_calendar_id = cal_id AND user_id = auth.uid() AND status = 'active'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
+
+CREATE OR REPLACE FUNCTION public.is_shared_calendar_participant(cal_id UUID)
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN public.is_shared_calendar_owner(cal_id)
+      OR public.is_shared_calendar_member(cal_id);
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
 -- --------------------------------------------------------------------------
 -- Table: shared_calendars
@@ -25,6 +56,10 @@ ALTER TABLE public.shared_calendars ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY sc_owner_all ON public.shared_calendars
   FOR ALL USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());
+
+-- Members can SELECT calendars they belong to (uses SECURITY DEFINER to avoid recursion)
+CREATE POLICY sc_member_select ON public.shared_calendars
+  FOR SELECT USING (public.is_shared_calendar_member(id));
 
 CREATE TRIGGER trg_shared_calendars_updated_at
   BEFORE UPDATE ON public.shared_calendars
@@ -51,22 +86,9 @@ CREATE UNIQUE INDEX idx_scm_invite_token ON public.shared_calendar_members(invit
 CREATE INDEX idx_scm_user ON public.shared_calendar_members(user_id);
 ALTER TABLE public.shared_calendar_members ENABLE ROW LEVEL SECURITY;
 
--- RLS policy on shared_calendars that references shared_calendar_members
--- (placed after members table creation to avoid "relation does not exist" error)
-CREATE POLICY sc_member_select ON public.shared_calendars
-  FOR SELECT USING (
-    id IN (
-      SELECT shared_calendar_id FROM public.shared_calendar_members
-      WHERE user_id = auth.uid() AND status = 'active'
-    )
-  );
-
+-- Owner can manage all members (uses SECURITY DEFINER to avoid recursion)
 CREATE POLICY scm_owner_all ON public.shared_calendar_members
-  FOR ALL USING (
-    shared_calendar_id IN (
-      SELECT id FROM public.shared_calendars WHERE owner_id = auth.uid()
-    )
-  );
+  FOR ALL USING (public.is_shared_calendar_owner(shared_calendar_id));
 
 CREATE POLICY scm_member_select ON public.shared_calendar_members
   FOR SELECT USING (user_id = auth.uid());
@@ -85,21 +107,6 @@ CREATE POLICY scm_pending_select ON public.shared_calendar_members
 CREATE TRIGGER trg_scm_updated_at
   BEFORE UPDATE ON public.shared_calendar_members
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-
--- --------------------------------------------------------------------------
--- Helper function
--- --------------------------------------------------------------------------
-CREATE OR REPLACE FUNCTION public.is_shared_calendar_participant(cal_id UUID)
-RETURNS BOOLEAN AS $$
-BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM public.shared_calendars WHERE id = cal_id AND owner_id = auth.uid()
-    UNION ALL
-    SELECT 1 FROM public.shared_calendar_members
-    WHERE shared_calendar_id = cal_id AND user_id = auth.uid() AND status = 'active'
-  );
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER STABLE;
 
 -- --------------------------------------------------------------------------
 -- Table: shared_calendar_events
@@ -134,20 +141,17 @@ CREATE POLICY sce_participant_insert ON public.shared_calendar_events
     public.is_shared_calendar_participant(shared_calendar_id)
   );
 
+-- Owner and creator can edit/delete (uses SECURITY DEFINER to avoid recursion)
 CREATE POLICY sce_edit ON public.shared_calendar_events
   FOR UPDATE USING (
     created_by = auth.uid() OR
-    shared_calendar_id IN (
-      SELECT id FROM public.shared_calendars WHERE owner_id = auth.uid()
-    )
+    public.is_shared_calendar_owner(shared_calendar_id)
   );
 
 CREATE POLICY sce_delete ON public.shared_calendar_events
   FOR DELETE USING (
     created_by = auth.uid() OR
-    shared_calendar_id IN (
-      SELECT id FROM public.shared_calendars WHERE owner_id = auth.uid()
-    )
+    public.is_shared_calendar_owner(shared_calendar_id)
   );
 
 CREATE TRIGGER trg_sce_updated_at
