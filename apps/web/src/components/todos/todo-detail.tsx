@@ -22,37 +22,35 @@ import type {
   RemindRepeat,
 } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
+import { useTranslation } from '@todome/store';
 import { useTodos, useUpdateTodo, useDeleteTodo } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { TodoSubtasks, type Subtask } from './todo-subtasks';
 
-const STATUS_OPTIONS: { value: TodoStatus; label: string; color: string }[] = [
-  { value: 'pending', label: '未着手', color: 'bg-[#90CAF9]' },
-  { value: 'in_progress', label: '進行中', color: 'bg-[#F57C00]' },
-  { value: 'completed', label: '完了', color: 'bg-[#388E3C]' },
-  { value: 'cancelled', label: 'キャンセル', color: 'bg-[#9E9E9E]' },
-];
-
-const PRIORITY_OPTIONS: {
-  value: TodoPriority;
-  label: string;
-  color: string;
-}[] = [
-  { value: 1, label: '低', color: 'bg-[#388E3C]' },
-  { value: 2, label: '中', color: 'bg-[#F9A825]' },
-  { value: 3, label: '高', color: 'bg-[#F57C00]' },
-  { value: 4, label: '緊急', color: 'bg-[#D32F2F]' },
-];
-
-const REPEAT_OPTIONS: { value: RemindRepeat; label: string }[] = [
-  { value: 'none', label: 'なし' },
-  { value: 'daily', label: '毎日' },
-  { value: 'weekly', label: '毎週' },
-  { value: 'monthly', label: '毎月' },
-  { value: 'yearly', label: '毎年' },
-];
-
 export const TodoDetail = () => {
+  const { t } = useTranslation();
+
+  const STATUS_OPTIONS: { value: TodoStatus; label: string; color: string }[] = [
+    { value: 'pending', label: t('todos.status.notStarted'), color: 'bg-[#90CAF9]' },
+    { value: 'in_progress', label: t('todos.status.inProgress'), color: 'bg-[#F57C00]' },
+    { value: 'completed', label: t('todos.status.completed'), color: 'bg-[#388E3C]' },
+    { value: 'cancelled', label: t('todos.status.cancelled'), color: 'bg-[#9E9E9E]' },
+  ];
+
+  const PRIORITY_OPTIONS: { value: TodoPriority; label: string; color: string }[] = [
+    { value: 1, label: t('todos.priority.low'), color: 'bg-[#388E3C]' },
+    { value: 2, label: t('todos.priority.medium'), color: 'bg-[#F9A825]' },
+    { value: 3, label: t('todos.priority.high'), color: 'bg-[#F57C00]' },
+    { value: 4, label: t('todos.priority.urgent'), color: 'bg-[#D32F2F]' },
+  ];
+
+  const REPEAT_OPTIONS: { value: RemindRepeat; label: string }[] = [
+    { value: 'none', label: t('common.none') },
+    { value: 'daily', label: t('todos.repeat.daily') },
+    { value: 'weekly', label: t('todos.repeat.weekly') },
+    { value: 'monthly', label: t('todos.repeat.monthly') },
+    { value: 'yearly', label: t('todos.repeat.yearly') },
+  ];
   const selectedTodoId = useTodoStore((s) => s.selectedTodoId);
   const selectTodo = useTodoStore((s) => s.selectTodo);
 
@@ -268,7 +266,7 @@ export const TodoDetail = () => {
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
             <FileText className="h-4 w-4" />
-            ステータス
+            {t('todos.status')}
           </label>
           <div className="flex flex-wrap gap-2">
             {STATUS_OPTIONS.map((opt) => (
@@ -296,7 +294,7 @@ export const TodoDetail = () => {
         {/* Priority */}
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
-            優先度
+            {t('todos.priority')}
           </label>
           <div className="flex gap-2">
             {PRIORITY_OPTIONS.map((opt) => (
@@ -325,7 +323,7 @@ export const TodoDetail = () => {
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
             <Calendar className="h-4 w-4" />
-            期限日
+            {t('todos.dueDate')}
           </label>
           <input
             type="date"
@@ -396,7 +394,7 @@ export const TodoDetail = () => {
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
             <Tag className="h-4 w-4" />
-            タグ
+            {t('todos.tag')}
           </label>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {todo.tags.map((tag) => (

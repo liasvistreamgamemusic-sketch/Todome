@@ -17,7 +17,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { clsx } from 'clsx';
-import { useNoteStore } from '@todome/store';
+import { useNoteStore, useTranslation } from '@todome/store';
 import type { Note, NoteSummary } from '@todome/db';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
 import type { Editor } from '@/components/editor/tiptap-editor';
@@ -34,6 +34,7 @@ type NoteEditorProps = {
 type SaveStatus = 'saved' | 'saving' | 'error';
 
 export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorProps) {
+  const { t } = useTranslation();
   const { data: noteData, isPlaceholderData } = useNote(noteId);
   const { data: allSummaries } = useNoteSummaries();
   const { data: folders = [] } = useFolders();
@@ -220,7 +221,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   if (!note) {
     return (
       <div className="flex items-center justify-center h-full text-text-tertiary">
-        メモが見つかりません
+        {t('notes.notFound')}
       </div>
     );
   }
@@ -237,7 +238,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
               type="button"
               onClick={onMenu}
               className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors mr-1"
-              aria-label="メモ一覧"
+              aria-label={t('notes.noteList')}
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -247,7 +248,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
               type="button"
               onClick={onBack}
               className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors mr-1"
-              aria-label="戻る"
+              aria-label={t('common.back')}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -257,19 +258,19 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
             {saveStatus === 'saving' && (
               <>
                 <Save className="h-3 w-3 animate-pulse" />
-                <span>保存中...</span>
+                <span>{t('notes.saving')}</span>
               </>
             )}
             {saveStatus === 'saved' && (
               <>
                 <Save className="h-3 w-3" />
-                <span>保存済み</span>
+                <span>{t('notes.saved')}</span>
               </>
             )}
             {saveStatus === 'error' && (
               <>
                 <AlertCircle className="h-3 w-3 text-red-500" />
-                <span className="text-red-500">保存エラー</span>
+                <span className="text-red-500">{t('notes.saveError')}</span>
               </>
             )}
           </div>
@@ -281,7 +282,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
               type="button"
               onClick={onCreateNote}
               className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
-              title="新規メモ"
+              title={t('notes.newNote')}
             >
               <Plus className="h-4 w-4" />
             </button>
@@ -292,7 +293,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                 type="button"
                 onClick={handleRestore}
                 className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
-                title="復元"
+                title={t('common.restore')}
               >
                 <ArchiveRestore className="h-4 w-4" />
               </button>
@@ -301,7 +302,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                 type="button"
                 onClick={handleDelete}
                 className="p-1.5 rounded-md text-text-tertiary hover:bg-red-500/10 hover:text-red-500 transition-colors"
-                title="完全に削除"
+                title={t('common.deletePermanently')}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -317,7 +318,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                     ? 'text-accent hover:bg-accent/10'
                     : 'text-text-tertiary hover:bg-bg-secondary',
                 )}
-                title={note.is_pinned ? 'ピン解除' : 'ピン留め'}
+                title={note.is_pinned ? t('notes.unpin') : t('notes.pin')}
               >
                 {note.is_pinned ? (
                   <PinOff className="h-4 w-4" />
@@ -330,7 +331,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                 type="button"
                 onClick={handleArchive}
                 className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
-                title="アーカイブ"
+                title={t('notes.archive')}
               >
                 <Archive className="h-4 w-4" />
               </button>
@@ -339,7 +340,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                 type="button"
                 onClick={handleDelete}
                 className="p-1.5 rounded-md text-text-tertiary hover:bg-red-500/10 hover:text-red-500 transition-colors"
-                title="削除"
+                title={t('common.delete')}
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -350,7 +351,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                   type="button"
                   onClick={() => setShowMoreMenu((v) => !v)}
                   className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
-                  title="その他"
+                  title={t('notes.more')}
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </button>
@@ -363,7 +364,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                       className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2"
                     >
                       <Pin className="h-4 w-4" />
-                      {note.is_pinned ? 'ピン解除' : 'ピン留め'}
+                      {note.is_pinned ? t('notes.unpin') : t('notes.pin')}
                     </button>
                     <button
                       type="button"
@@ -371,7 +372,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                       className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2"
                     >
                       <Archive className="h-4 w-4" />
-                      アーカイブ
+                      {t('notes.archive')}
                     </button>
                     <div className="border-t border-border my-1" />
                     <button
@@ -380,7 +381,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                       className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500"
                     >
                       <Trash2 className="h-4 w-4" />
-                      削除
+                      {t('common.delete')}
                     </button>
                   </div>
                 )}
@@ -398,7 +399,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
           onChange={handleTitleChange}
           onCompositionStart={() => { isComposingRef.current = true; }}
           onCompositionEnd={handleTitleCompositionEnd}
-          placeholder="タイトル"
+          placeholder={t('notes.title')}
           className="w-full text-xl md:text-2xl font-bold text-text-primary bg-transparent border-none outline-none placeholder:text-text-tertiary"
         />
 
@@ -410,7 +411,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
             className="flex items-center gap-1 text-xs text-text-tertiary hover:text-text-secondary transition-colors"
           >
             <FolderOpen className="h-3 w-3" />
-            <span>{currentFolder?.name ?? '未分類'}</span>
+            <span>{currentFolder?.name ?? t('notes.uncategorized')}</span>
             <ChevronDown className="h-3 w-3" />
           </button>
 
@@ -424,7 +425,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                   !note.folder_id && 'bg-bg-secondary font-medium',
                 )}
               >
-                未分類
+                {t('notes.uncategorized')}
               </button>
               {folders.map((folder) => (
                 <button

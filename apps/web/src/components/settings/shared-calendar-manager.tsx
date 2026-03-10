@@ -18,6 +18,7 @@ import {
   Pencil,
 } from 'lucide-react';
 import { Button } from '@todome/ui';
+import { useTranslation } from '@todome/store';
 import type { SharedCalendar, SharedCalendarMember } from '@todome/db';
 import {
   useSharedCalendars,
@@ -48,6 +49,7 @@ type MemberListProps = {
 };
 
 const MemberList = ({ calendarId, isOwner }: MemberListProps) => {
+  const { t } = useTranslation();
   const { data: members = [] } = useSharedCalendarMembers(calendarId);
   const removeMember = useRemoveSharedCalendarMember();
 
@@ -55,14 +57,14 @@ const MemberList = ({ calendarId, isOwner }: MemberListProps) => {
 
   if (activeMembers.length === 0) {
     return (
-      <p className="text-xs text-text-tertiary">メンバーはまだいません</p>
+      <p className="text-xs text-text-tertiary">{t('sharedCal.noMembers')}</p>
     );
   }
 
   return (
     <div className="space-y-1">
       <p className="text-xs font-medium text-text-secondary">
-        メンバー ({activeMembers.length})
+        {t('sharedCal.members')} ({activeMembers.length})
       </p>
       {activeMembers.map((member) => (
         <div
@@ -70,14 +72,14 @@ const MemberList = ({ calendarId, isOwner }: MemberListProps) => {
           className="flex items-center justify-between rounded-md bg-bg-secondary px-3 py-2"
         >
           <span className="text-xs text-text-primary truncate">
-            {member.user_id ?? '不明'}
+            {member.user_id ?? t('sharedCal.unknown')}
           </span>
           {isOwner && (
             <button
               type="button"
               onClick={() => removeMember.mutate(member.id)}
               className="rounded-md p-1 text-text-tertiary hover:text-[#D32F2F] hover:bg-bg-primary transition-colors"
-              title="メンバーを削除"
+              title={t('sharedCal.removeMember')}
             >
               <UserMinus className="h-3.5 w-3.5" />
             </button>
@@ -93,6 +95,7 @@ type InviteLinkButtonProps = {
 };
 
 const InviteLinkButton = ({ calendarId }: InviteLinkButtonProps) => {
+  const { t } = useTranslation();
   const createInvite = useCreateInvite();
   const [inviteUrl, setInviteUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -129,7 +132,7 @@ const InviteLinkButton = ({ calendarId }: InviteLinkButtonProps) => {
                 ? 'text-[#34A853] bg-bg-secondary'
                 : 'text-text-tertiary hover:bg-bg-secondary',
             )}
-            title="コピー"
+            title={t('sharedCal.copy')}
           >
             {copied ? (
               <Check className="h-3.5 w-3.5" />
@@ -146,7 +149,7 @@ const InviteLinkButton = ({ calendarId }: InviteLinkButtonProps) => {
           loading={createInvite.isPending}
         >
           <Link className="h-3.5 w-3.5" />
-          招待リンクを生成
+          {t('sharedCal.generateInvite')}
         </Button>
       )}
     </div>
@@ -164,6 +167,7 @@ type CalendarRowProps = {
 };
 
 const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
+  const { t } = useTranslation();
   const updateCal = useUpdateSharedCalendar();
   const deleteCal = useDeleteSharedCalendar();
   const removeMember = useRemoveSharedCalendarMember();
@@ -242,12 +246,12 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
             {isOwner ? (
               <>
                 <Crown className="h-2.5 w-2.5" />
-                オーナー
+                {t('sharedCal.owner')}
               </>
             ) : (
               <>
                 <Users className="h-2.5 w-2.5" />
-                メンバー
+                {t('sharedCal.member')}
               </>
             )}
           </span>
@@ -284,7 +288,7 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
               {editing ? (
                 <div className="space-y-2">
                   <div>
-                    <label className="text-xs text-text-secondary">タイトル</label>
+                    <label className="text-xs text-text-secondary">{t('sharedCal.calTitle')}</label>
                     <input
                       type="text"
                       value={editTitle}
@@ -297,7 +301,7 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
                     />
                   </div>
                   <div>
-                    <label className="text-xs text-text-secondary">色</label>
+                    <label className="text-xs text-text-secondary">{t('subscription.color')}</label>
                     <div className="mt-1 flex gap-2">
                       {PRESET_COLORS.map((color) => (
                         <button
@@ -315,7 +319,7 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
                   </div>
                   <div className="flex gap-2">
                     <Button size="sm" onClick={handleSaveEdit} disabled={!editTitle.trim()}>
-                      保存
+                      {t('common.save')}
                     </Button>
                     <Button
                       variant="secondary"
@@ -326,7 +330,7 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
                         setEditColor(calendar.color);
                       }}
                     >
-                      キャンセル
+                      {t('common.cancel')}
                     </Button>
                   </div>
                 </div>
@@ -337,7 +341,7 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
                   className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-text-primary transition-colors"
                 >
                   <Pencil className="h-3 w-3" />
-                  タイトル・色を編集
+                  {t('sharedCal.editTitleColor')}
                 </button>
               )}
 
@@ -355,7 +359,7 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
                   onClick={handleDelete}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
-                  {confirmDelete ? '本当に削除しますか？' : 'カレンダーを削除'}
+                  {confirmDelete ? t('sharedCal.confirmDelete') : t('sharedCal.deleteCalendar')}
                 </Button>
               </div>
             </>
@@ -372,7 +376,7 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
                   onClick={handleLeave}
                 >
                   <LogOut className="h-3.5 w-3.5" />
-                  退出
+                  {t('sharedCal.leave')}
                 </Button>
               </div>
             </>
@@ -388,6 +392,7 @@ const CalendarRow = ({ calendar, isOwner, member }: CalendarRowProps) => {
 // ---------------------------------------------------------------------------
 
 export const SharedCalendarManager = () => {
+  const { t } = useTranslation();
   const userId = useUserId();
   const { data: calendars = [] } = useSharedCalendars();
   const createCal = useCreateSharedCalendar();
@@ -439,7 +444,7 @@ export const SharedCalendarManager = () => {
         <div className="space-y-3 rounded-lg border border-[var(--border)] bg-bg-primary p-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-text-primary">
-              共有カレンダーを作成
+              {t('sharedCal.createCalendar')}
             </span>
             <button
               type="button"
@@ -455,14 +460,14 @@ export const SharedCalendarManager = () => {
           <div className="space-y-2">
             <div>
               <label className="text-xs text-text-secondary" htmlFor="shared-cal-title">
-                タイトル
+                {t('sharedCal.calTitle')}
               </label>
               <input
                 id="shared-cal-title"
                 type="text"
                 value={addTitle}
                 onChange={(e) => setAddTitle(e.target.value)}
-                placeholder="共有カレンダー名"
+                placeholder={t('sharedCal.calendarName')}
                 className={clsx(
                   'mt-1 w-full rounded-lg border border-[var(--border)] bg-bg-secondary px-3 py-2 text-sm text-text-primary',
                   'placeholder:text-text-tertiary',
@@ -472,7 +477,7 @@ export const SharedCalendarManager = () => {
             </div>
 
             <div>
-              <label className="text-xs text-text-secondary">色</label>
+              <label className="text-xs text-text-secondary">{t('subscription.color')}</label>
               <div className="mt-1 flex gap-2">
                 {PRESET_COLORS.map((color) => (
                   <button
@@ -497,7 +502,7 @@ export const SharedCalendarManager = () => {
             disabled={!addTitle.trim() || !userId}
             className="w-full"
           >
-            作成
+            {t('sharedCal.create')}
           </Button>
         </div>
       ) : (
@@ -510,7 +515,7 @@ export const SharedCalendarManager = () => {
           )}
         >
           <Plus className="h-4 w-4" />
-          共有カレンダーを作成
+          {t('sharedCal.createCalendar')}
         </button>
       )}
     </div>

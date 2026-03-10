@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { Plus, BookOpen } from 'lucide-react';
 import { format } from 'date-fns';
-import { useDiaryStore } from '@todome/store';
+import { useDiaryStore, useTranslation } from '@todome/store';
 import type { Diary } from '@todome/db';
 import { useDiaries, useCreateDiary, useDeleteDiary, useUserId } from '@/hooks/queries';
 import { DiaryListItem } from './diary-list-item';
@@ -13,6 +13,7 @@ type Props = {
 };
 
 export function DiaryList({ onSelectDiary }: Props = {}) {
+  const { t } = useTranslation();
   const selectedDiaryId = useDiaryStore((s) => s.selectedDiaryId);
   const selectDiary = useDiaryStore((s) => s.selectDiary);
 
@@ -74,7 +75,7 @@ export function DiaryList({ onSelectDiary }: Props = {}) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <BookOpen className="h-4 w-4 text-text-secondary" />
-            <span className="text-sm font-semibold text-text-primary">日記</span>
+            <span className="text-sm font-semibold text-text-primary">{t('diary.title')}</span>
           </div>
           <button
             type="button"
@@ -82,7 +83,7 @@ export function DiaryList({ onSelectDiary }: Props = {}) {
             className="flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
-            今日の日記
+            {t('diary.todaysDiary')}
           </button>
         </div>
       </div>
@@ -92,13 +93,13 @@ export function DiaryList({ onSelectDiary }: Props = {}) {
         {diaries.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-6 text-center">
             <BookOpen className="h-8 w-8 text-text-tertiary mb-2 opacity-40" />
-            <p className="text-text-tertiary text-sm mb-2">日記がありません</p>
+            <p className="text-text-tertiary text-sm mb-2">{t('diary.noDiaries')}</p>
             <button
               type="button"
               onClick={handleNewDiary}
               className="text-xs text-accent hover:text-accent/80 transition-colors"
             >
-              今日の日記を書く
+              {t('diary.writeTodaysDiary')}
             </button>
           </div>
         ) : (

@@ -17,7 +17,7 @@ import {
   format,
   parseISO,
 } from 'date-fns';
-import { useCalendarStore, useUiStore, useSubscriptionStore } from '@todome/store';
+import { useCalendarStore, useUiStore, useSubscriptionStore, useTranslation } from '@todome/store';
 import { useIsMobile } from '@todome/hooks';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
@@ -54,6 +54,7 @@ const DAY_LABELS_SUN: string[] = ['日', '月', '火', '水', '木', '金', '土
 const DAY_LABELS_MON: string[] = ['月', '火', '水', '木', '金', '土', '日'];
 
 export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDayEvents }: Props) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
@@ -358,7 +359,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                         >
                           {span.event.provider && <ProviderIcon provider={(span.event as MergedEvent).provider!} size={8} className="shrink-0" />}
                           {(span.event as MergedEvent).isShared && <Users className="h-2 w-2 shrink-0" />}
-                          <span className="truncate">{span.isStart ? (isMobile ? span.event.title : `(終日) ${span.event.title}`) : span.event.title}</span>
+                          <span className="truncate">{span.isStart ? (isMobile ? span.event.title : `(${t('calendar.allDay')}) ${span.event.title}`) : span.event.title}</span>
                         </span>
                       </div>
                     );

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useTodoStore } from '@todome/store/src/todo-store';
 import type { TodoViewMode, TodoSortBy, TodoGroupBy } from '@todome/store/src/todo-store';
+import { useTranslation } from '@todome/store';
 import { useIsMobile } from '@todome/hooks';
 import { TodoQuickAdd } from './todo-quick-add';
 import { TodoList } from './todo-list';
@@ -23,39 +24,8 @@ import { TodoDueDateView } from './todo-due-date-view';
 import { TodoFilters } from './todo-filters';
 import { TodoDetail } from './todo-detail';
 
-const VIEW_MODE_OPTIONS: {
-  value: TodoViewMode;
-  label: string;
-  icon: React.ReactNode;
-}[] = [
-  { value: 'list', label: 'リスト', icon: <List className="h-4 w-4" /> },
-  {
-    value: 'board',
-    label: 'ボード',
-    icon: <LayoutGrid className="h-4 w-4" />,
-  },
-  {
-    value: 'due-date',
-    label: '期限別',
-    icon: <CalendarDays className="h-4 w-4" />,
-  },
-];
-
-const SORT_OPTIONS: { value: TodoSortBy; label: string }[] = [
-  { value: 'priority', label: '優先度' },
-  { value: 'due_date', label: '期限日' },
-  { value: 'created_at', label: '作成日' },
-  { value: 'manual', label: '手動' },
-];
-
-const GROUP_OPTIONS: { value: TodoGroupBy; label: string }[] = [
-  { value: 'status', label: 'ステータス' },
-  { value: 'priority', label: '優先度' },
-  { value: 'tag', label: 'タグ' },
-  { value: 'none', label: 'なし' },
-];
-
 export const TodoView = () => {
+  const { t } = useTranslation();
   const viewMode = useTodoStore((s) => s.viewMode);
   const setViewMode = useTodoStore((s) => s.setViewMode);
   const sortBy = useTodoStore((s) => s.sortBy);
@@ -65,6 +35,30 @@ export const TodoView = () => {
   const showCompleted = useTodoStore((s) => s.showCompleted);
   const toggleShowCompleted = useTodoStore((s) => s.toggleShowCompleted);
   const selectedTodoId = useTodoStore((s) => s.selectedTodoId);
+
+  const VIEW_MODE_OPTIONS: {
+    value: TodoViewMode;
+    label: string;
+    icon: React.ReactNode;
+  }[] = [
+    { value: 'list', label: t('todos.list'), icon: <List className="h-4 w-4" /> },
+    { value: 'board', label: t('todos.board'), icon: <LayoutGrid className="h-4 w-4" /> },
+    { value: 'due-date', label: t('todos.byDueDate'), icon: <CalendarDays className="h-4 w-4" /> },
+  ];
+
+  const SORT_OPTIONS: { value: TodoSortBy; label: string }[] = [
+    { value: 'priority', label: t('todos.priority') },
+    { value: 'due_date', label: t('todos.dueDate') },
+    { value: 'created_at', label: t('todos.createdDate') },
+    { value: 'manual', label: t('todos.manual') },
+  ];
+
+  const GROUP_OPTIONS: { value: TodoGroupBy; label: string }[] = [
+    { value: 'status', label: t('todos.status') },
+    { value: 'priority', label: t('todos.priority') },
+    { value: 'tag', label: t('todos.tag') },
+    { value: 'none', label: t('common.none') },
+  ];
 
   const isMobile = useIsMobile();
   const hasUserChangedView = useRef(false);

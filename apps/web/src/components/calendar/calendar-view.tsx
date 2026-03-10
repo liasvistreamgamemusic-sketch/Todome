@@ -9,7 +9,7 @@ import {
   ChevronRight,
   Plus,
 } from 'lucide-react';
-import { useCalendarStore, useSubscriptionStore } from '@todome/store';
+import { useCalendarStore, useSubscriptionStore, useTranslation } from '@todome/store';
 import type { CalendarViewMode } from '@todome/store';
 import type { ExternalCalendarEvent, CalendarSubscription, SharedCalendarEvent, SharedCalendar } from '@todome/db';
 import { Button } from '@todome/ui';
@@ -25,16 +25,10 @@ import { SharedEventDetail } from './shared-event-detail';
 import { DayEventsPanel } from './day-events-panel';
 import { CalendarSelector } from './calendar-selector';
 
-const VIEW_MODE_LABELS: Record<CalendarViewMode, string> = {
-  month: '月',
-  week: '週',
-  day: '日',
-  list: 'リスト',
-};
-
 const VIEW_MODES: CalendarViewMode[] = ['month', 'week', 'day', 'list'];
 
 export const CalendarView = () => {
+  const { t, locale } = useTranslation();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const viewMode = useCalendarStore((s) => s.viewMode);
   const setViewMode = useCalendarStore((s) => s.setViewMode);
@@ -148,15 +142,17 @@ export const CalendarView = () => {
   }, [handleCreateEvent, selectedDate]);
 
   const dateDisplay = (() => {
+    const yearMonthFmt = locale === 'ja' ? 'yyyy年M月' : 'MMM yyyy';
+    const yearMonthDayFmt = locale === 'ja' ? 'yyyy年M月d日' : 'MMM d, yyyy';
     switch (effectiveViewMode) {
       case 'month':
-        return format(selectedDate, 'yyyy年M月');
+        return format(selectedDate, yearMonthFmt);
       case 'week':
-        return format(selectedDate, 'yyyy年M月');
+        return format(selectedDate, yearMonthFmt);
       case 'day':
-        return format(selectedDate, 'yyyy年M月d日');
+        return format(selectedDate, yearMonthDayFmt);
       case 'list':
-        return format(selectedDate, 'yyyy年M月');
+        return format(selectedDate, yearMonthFmt);
     }
   })();
 
@@ -168,14 +164,14 @@ export const CalendarView = () => {
           {/* Navigation */}
           <IconButton
             icon={<ChevronLeft />}
-            label="前へ"
+            label={t('calendar.nav.prev')}
             size="sm"
             variant="ghost"
             onClick={handlePrev}
           />
           <IconButton
             icon={<ChevronRight />}
-            label="次へ"
+            label={t('calendar.nav.next')}
             size="sm"
             variant="ghost"
             onClick={handleNext}
@@ -191,7 +187,7 @@ export const CalendarView = () => {
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
             )}
           >
-            今日
+            {t('calendar.nav.today')}
           </button>
 
           <CalendarSelector />
@@ -218,7 +214,7 @@ export const CalendarView = () => {
                     : 'text-text-secondary hover:bg-bg-secondary',
                 )}
               >
-                {VIEW_MODE_LABELS[mode]}
+                {t(`calendar.view.${mode}` as const)}
               </button>
             ))}
           </div>
@@ -226,7 +222,7 @@ export const CalendarView = () => {
           {/* New event button */}
           <Button size="sm" onClick={handleNewEvent}>
             <Plus className="h-3.5 w-3.5" />
-            <span className="hidden md:inline">新規予定</span>
+            <span className="hidden md:inline">{t('calendar.newEvent')}</span>
           </Button>
         </div>
       </div>

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useDroppable } from '@dnd-kit/core';
-import { useNoteStore } from '@todome/store';
+import { useNoteStore, useTranslation } from '@todome/store';
 import type { Folder } from '@todome/db';
 import { useClickOutside } from '@todome/hooks';
 import { useNotes, useFolders, useDeleteFolder } from '@/hooks/queries';
@@ -154,6 +154,7 @@ type FolderTreeProps = {
 };
 
 export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
+  const { t } = useTranslation();
   const { data: folders = [] } = useFolders();
   const { data: notes = [] } = useNotes();
   const selectedFolderId = useNoteStore((s) => s.selectedFolderId);
@@ -272,7 +273,7 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
         onClick={() => { setNoteFilter('active'); handleSelect(null); }}
       >
         <FileText className="h-3.5 w-3.5 text-text-tertiary shrink-0" />
-        <span className="flex-1 text-left text-text-primary">すべてのメモ</span>
+        <span className="flex-1 text-left text-text-primary">{t('notes.allNotes')}</span>
         <span className="text-[10px] text-text-tertiary tabular-nums">
           {totalActiveNotes}
         </span>
@@ -312,7 +313,7 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
             onClick={onNewFolder}
           >
             <Plus className="h-3.5 w-3.5 shrink-0" />
-            <span className="flex-1 text-left">新規フォルダ</span>
+            <span className="flex-1 text-left">{t('notes.newFolder')}</span>
           </button>
         )}
         <button
@@ -325,7 +326,7 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
           onClick={() => setNoteFilter('archived')}
         >
           <Archive className="h-3.5 w-3.5 shrink-0" />
-          <span className="flex-1 text-left">アーカイブ</span>
+          <span className="flex-1 text-left">{t('notes.archive')}</span>
           {archivedCount > 0 && (
             <span className="text-[10px] text-text-tertiary tabular-nums">
               {archivedCount}
@@ -347,7 +348,7 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
             className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2"
           >
             <Pencil className="h-4 w-4" />
-            名前変更
+            {t('notes.rename')}
           </button>
           <button
             type="button"
@@ -355,7 +356,7 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
             className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2"
           >
             <Palette className="h-4 w-4" />
-            色・アイコン変更
+            {t('notes.changeColorIcon')}
           </button>
           <div className="border-t border-border my-1" />
           <button
@@ -364,7 +365,7 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
             className="w-full text-left px-3 py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500"
           >
             <Trash2 className="h-4 w-4" />
-            削除
+            {t('common.delete')}
           </button>
         </div>,
         document.body,

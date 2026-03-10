@@ -12,7 +12,7 @@ import {
   useDeleteCalendarSubscription,
   useUserId,
 } from '@/hooks/queries';
-import { useSubscriptionStore } from '@todome/store';
+import { useSubscriptionStore, useTranslation } from '@todome/store';
 import { useIcsSync } from '@/hooks/use-ics-sync';
 import { detectProvider, inferSubscriptionName } from '@/lib/ics-parser';
 import { fetchIcs } from '@/lib/ics-fetch';
@@ -26,6 +26,7 @@ const PRESET_COLORS: string[] = [
 const DEFAULT_SUB_COLOR = '#7986CB';
 
 export const SubscriptionManager = () => {
+  const { t } = useTranslation();
   const userId = useUserId();
   const { data: subscriptions = [] } = useCalendarSubscriptions();
   const createSub = useCreateCalendarSubscription();
@@ -69,7 +70,7 @@ export const SubscriptionManager = () => {
     try {
       const result = await fetchIcs(addUrl, null);
       if (!result) {
-        setAddError('カレンダーデータを取得できませんでした');
+        setAddError(t('subscription.fetchError'));
         setAddLoading(false);
         return;
       }
@@ -103,7 +104,7 @@ export const SubscriptionManager = () => {
       // Sync immediately
       setTimeout(() => syncSubscription(sub), 500);
     } catch (err) {
-      setAddError(err instanceof Error ? err.message : '追加に失敗しました');
+      setAddError(err instanceof Error ? err.message : t('subscription.addError'));
     } finally {
       setAddLoading(false);
     }
@@ -137,9 +138,9 @@ export const SubscriptionManager = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-medium text-text-primary">外部カレンダー</p>
+          <p className="text-sm font-medium text-text-primary">{t('subscription.title')}</p>
           <p className="text-xs text-text-secondary mt-0.5">
-            ICS URLで他のカレンダーの予定を表示
+            {t('subscription.description')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -150,7 +151,7 @@ export const SubscriptionManager = () => {
               onClick={syncAll}
             >
               <RefreshCw className="h-3.5 w-3.5" />
-              全て同期
+              {t('subscription.syncAll')}
             </Button>
           )}
         </div>
@@ -178,13 +179,13 @@ export const SubscriptionManager = () => {
               </span>
               <span className="text-[10px] text-text-tertiary truncate">
                 {sub.last_synced_at
-                  ? `最終同期: ${new Date(sub.last_synced_at).toLocaleString('ja-JP')}`
-                  : '未同期'}
-                {status === 'syncing' && ' (同期中...)'}
+                  ? t('subscription.lastSync', { time: new Date(sub.last_synced_at).toLocaleString('ja-JP') })
+                  : t('subscription.notSynced')}
+                {status === 'syncing' && ` (${t('subscription.syncing')})`}
               </span>
               {sub.provider === 'outlook' && (
                 <span className="text-[10px] text-amber-600 dark:text-amber-400">
-                  Outlookの共有設定により予定名が非表示の場合があります
+                  {t('subscription.outlookNote')}
                 </span>
               )}
               {sub.error_message && (
@@ -221,7 +222,7 @@ export const SubscriptionManager = () => {
                 onClick={() => syncSubscription(sub)}
                 disabled={status === 'syncing'}
                 className="rounded-md p-1.5 text-text-tertiary hover:bg-bg-secondary transition-colors disabled:opacity-50"
-                title="同期"
+                title={t('subscription.sync')}
               >
                 <RefreshCw className={clsx('h-3.5 w-3.5', status === 'syncing' && 'animate-spin')} />
               </button>
@@ -231,7 +232,7 @@ export const SubscriptionManager = () => {
                 type="button"
                 onClick={() => handleDelete(sub.id)}
                 className="rounded-md p-1.5 text-text-tertiary hover:text-[#D32F2F] hover:bg-bg-secondary transition-colors"
-                title="削除"
+                title={t('common.delete')}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -244,7 +245,7 @@ export const SubscriptionManager = () => {
       {showAddForm ? (
         <div className="space-y-3 rounded-lg border border-[var(--border)] bg-bg-primary p-4">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-text-primary">カレンダーを追加</span>
+            <span className="text-sm font-medium text-text-primary">{t('subscription.addCalendar')}</span>
             <button
               type="button"
               onClick={() => {
@@ -282,7 +283,7 @@ export const SubscriptionManager = () => {
             </div>
 
             <div>
-              <label className="text-xs text-text-secondary" htmlFor="ics-name">名前</label>
+              <label className="text-xs text-text-secondary" htmlFor="ics-name">{t('subscription.name')}</label>
               <input
                 id="ics-name"
                 type="text"
@@ -298,7 +299,7 @@ export const SubscriptionManager = () => {
             </div>
 
             <div>
-              <label className="text-xs text-text-secondary">色</label>
+              <label className="text-xs text-text-secondary">{t('subscription.color')}</label>
               <div className="mt-1 flex gap-2">
                 {PRESET_COLORS.map((color) => (
                   <button
@@ -330,7 +331,7 @@ export const SubscriptionManager = () => {
             disabled={!addUrl.trim() || !addName.trim() || !userId}
             className="w-full"
           >
-            追加
+            {t('subscription.add')}
           </Button>
         </div>
       ) : (
@@ -343,7 +344,7 @@ export const SubscriptionManager = () => {
           )}
         >
           <Plus className="h-4 w-4" />
-          カレンダーを追加
+          {t('subscription.addCalendar')}
         </button>
       )}
     </div>

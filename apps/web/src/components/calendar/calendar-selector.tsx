@@ -4,11 +4,12 @@ import { useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar, ChevronDown, User, Users } from 'lucide-react';
 import { clsx } from 'clsx';
-import { useCalendarStore } from '@todome/store';
+import { useCalendarStore, useTranslation } from '@todome/store';
 import { useClickOutside } from '@todome/hooks';
 import { useSharedCalendars } from '@/hooks/queries';
 
 export function CalendarSelector() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -61,14 +62,14 @@ export function CalendarSelector() {
           }}
         >
           <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-            カレンダー
+            {t('calendar.selector')}
           </div>
 
           {/* Personal calendar */}
           <CalendarRow
             icon={<User className="h-3.5 w-3.5" />}
             color="var(--accent)"
-            label="個人カレンダー"
+            label={t('calendar.personal')}
             checked={showPersonalCalendar}
             onChange={() => setShowPersonalCalendar(!showPersonalCalendar)}
           />
@@ -78,7 +79,7 @@ export function CalendarSelector() {
             <>
               <div className="border-t border-[var(--border)] my-1" />
               <div className="px-3 py-1.5 text-[10px] font-medium uppercase tracking-wider text-text-tertiary">
-                共有カレンダー
+                {t('calendar.shared')}
               </div>
               {sharedCalendars.map((cal) => (
                 <CalendarRow

@@ -14,7 +14,7 @@ import {
   FileText,
 } from 'lucide-react';
 import type { CalendarEvent } from '@todome/db';
-import { useCalendarStore } from '@todome/store';
+import { useCalendarStore, useTranslation } from '@todome/store';
 import { Button } from '@todome/ui';
 import { Input } from '@todome/ui';
 import { Textarea } from '@todome/ui';
@@ -50,24 +50,6 @@ const PRESET_COLORS = [
   '#46BDC6',
   '#7986CB',
   '#E67C73',
-];
-
-const REMINDER_OPTIONS: { label: string; value: string | null }[] = [
-  { label: 'なし', value: null },
-  { label: '5分前', value: '5m' },
-  { label: '15分前', value: '15m' },
-  { label: '30分前', value: '30m' },
-  { label: '1時間前', value: '1h' },
-  { label: '1日前', value: '1d' },
-];
-
-const REPEAT_OPTIONS: { label: string; value: string }[] = [
-  { label: 'なし', value: 'none' },
-  { label: '毎日', value: 'daily' },
-  { label: '毎週', value: 'weekly' },
-  { label: '毎月', value: 'monthly' },
-  { label: '毎年', value: 'yearly' },
-  { label: 'カスタム', value: 'custom' },
 ];
 
 const WEEKDAY_LABELS = ['月', '火', '水', '木', '金', '土', '日'];
@@ -114,6 +96,26 @@ const computeRemindAt = (
 };
 
 export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }: Props) => {
+  const { t } = useTranslation();
+
+  const REMINDER_OPTIONS = useMemo<{ label: string; value: string | null }[]>(() => [
+    { label: t('common.none'), value: null },
+    { label: t('event.reminder.5m'), value: '5m' },
+    { label: t('event.reminder.15m'), value: '15m' },
+    { label: t('event.reminder.30m'), value: '30m' },
+    { label: t('event.reminder.1h'), value: '1h' },
+    { label: t('event.reminder.1d'), value: '1d' },
+  ], [t]);
+
+  const REPEAT_OPTIONS = useMemo<{ label: string; value: string }[]>(() => [
+    { label: t('common.none'), value: 'none' },
+    { label: t('event.repeat.daily'), value: 'daily' },
+    { label: t('event.repeat.weekly'), value: 'weekly' },
+    { label: t('event.repeat.monthly'), value: 'monthly' },
+    { label: t('event.repeat.yearly'), value: 'yearly' },
+    { label: t('event.repeat.custom'), value: 'custom' },
+  ], [t]);
+
   const { data: events } = useCalendarEvents();
   const { data: todos } = useTodos();
   const { data: notes } = useNotes();

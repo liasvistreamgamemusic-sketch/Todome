@@ -10,12 +10,9 @@ import {
   AlertCircle,
   CalendarDays,
 } from 'lucide-react';
-import { clsx } from 'clsx';
 import { format, parse } from 'date-fns';
-import { ja } from 'date-fns/locale';
-import { useDiaryStore } from '@todome/store';
+import { useDiaryStore, useTranslation } from '@todome/store';
 import type { Diary, DiaryMood, DiaryWeather, TiptapDocument } from '@todome/db';
-import { TiptapEditor } from '@/components/editor/tiptap-editor';
 import { useDiaries, useUpdateDiary, useDeleteDiary } from '@/hooks/queries';
 import { DiaryRating } from './diary-rating';
 import { DiaryMoodPicker } from './diary-mood-picker';
@@ -23,6 +20,36 @@ import { DiaryWeatherPicker } from './diary-weather-picker';
 import { DiaryGratitude } from './diary-gratitude';
 import { DiaryAutoEvents } from './diary-auto-events';
 import { DiaryAutoTodos } from './diary-auto-todos';
+
+/** Extract plain text from a TiptapDocument JSON structure */
+function tiptapToPlainText(doc: TiptapDocument | null): string {
+  if (!doc || !doc.content) return '';
+  const lines: string[] = [];
+  for (const node of doc.content) {
+    if (node.type === 'paragraph' || node.type === 'heading') {
+      const texts: string[] = [];
+      if ('content' in node && Array.isArray((node as { content?: unknown[] }).content)) {
+        for (const child of (node as { content: { type: string; text?: string }[] }).content) {
+          if (child.type === 'text' && child.text) texts.push(child.text);
+        }
+      }
+      lines.push(texts.join(''));
+    }
+  }
+  return lines.join('\n');
+}
+
+/** Wrap plain text into a minimal TiptapDocument structure */
+function plainTextToTiptap(text: string): TiptapDocument {
+  const lines = text.split('\n');
+  return {
+    type: 'doc',
+    content: lines.map((line) => ({
+      type: 'paragraph' as const,
+      ...(line ? { content: [{ type: 'text' as const, text: line }] } : {}),
+    })),
+  } as TiptapDocument;
+}
 
 type Props = {
   diaryId: string;
@@ -35,6 +62,7 @@ type SaveStatus = 'saved' | 'saving' | 'error';
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
+  const { t, locale } = useTranslation();
   const { data: allDiaries } = useDiaries();
   const updateDiaryMutation = useUpdateDiary();
   const deleteDiaryMutation = useDeleteDiary();
@@ -47,6 +75,8 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
   const [mood, setMood] = useState<DiaryMood | null>(null);
   const [weather, setWeather] = useState<DiaryWeather | null>(null);
   const [gratitude, setGratitude] = useState<string[]>([]);
+  const [eventsText, setEventsText] = useState('');
+  const [summaryText, setSummaryText] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -79,6 +109,8 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
     setMood(diary.mood);
     setWeather(diary.weather);
     setGratitude(diary.gratitude);
+    setEventsText(tiptapToPlainText(diary.events_text));
+    setSummaryText(tiptapToPlainText(diary.summary));
     lastSyncedAtRef.current = diary.updated_at;
     setSaveStatus('saved');
   }, [diaryId, diary]);
@@ -143,15 +175,19 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
   );
 
   const handleEventsTextChange = useCallback(
-    (content: Record<string, unknown>, _plainText: string) => {
-      debouncedSave({ events_text: content as unknown as TiptapDocument });
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const text = e.target.value;
+      setEventsText(text);
+      debouncedSave({ events_text: plainTextToTiptap(text) });
     },
     [debouncedSave],
   );
 
   const handleSummaryChange = useCallback(
-    (content: Record<string, unknown>, _plainText: string) => {
-      debouncedSave({ summary: content as unknown as TiptapDocument });
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const text = e.target.value;
+      setSummaryText(text);
+      debouncedSave({ summary: plainTextToTiptap(text) });
     },
     [debouncedSave],
   );
@@ -180,7 +216,7 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
               type="button"
               onClick={onMenu}
               className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors"
-              aria-label="日記一覧"
+              aria-label={t('diary.list')}
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -189,7 +225,7 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
         <div className="flex-1 flex items-center justify-center text-text-tertiary">
           <div className="text-center">
             <BookOpen className="h-8 w-8 mx-auto mb-2 opacity-40" />
-            <p className="text-sm">日記を選択してください</p>
+            <p className="text-sm">{t('diary.selectDiary')}</p>
           </div>
         </div>
       </div>
@@ -210,7 +246,7 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
               type="button"
               onClick={onMenu}
               className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors mr-1"
-              aria-label="日記一覧"
+              aria-label={t('diary.list')}
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -220,7 +256,7 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
               type="button"
               onClick={onBack}
               className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors mr-1"
-              aria-label="戻る"
+              aria-label={t('common.back')}
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -229,19 +265,19 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
             {saveStatus === 'saving' && (
               <>
                 <Save className="h-3 w-3 animate-pulse" />
-                <span>保存中...</span>
+                <span>{t('diary.saving')}</span>
               </>
             )}
             {saveStatus === 'saved' && (
               <>
                 <Save className="h-3 w-3" />
-                <span>保存済み</span>
+                <span>{t('diary.saved')}</span>
               </>
             )}
             {saveStatus === 'error' && (
               <>
                 <AlertCircle className="h-3 w-3 text-red-500" />
-                <span className="text-red-500">保存エラー</span>
+                <span className="text-red-500">{t('diary.saveError')}</span>
               </>
             )}
           </div>
@@ -251,7 +287,7 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
             type="button"
             onClick={handleDelete}
             className="p-1.5 rounded-md text-text-tertiary hover:bg-red-500/10 hover:text-red-500 transition-colors"
-            title="削除"
+            title={t('common.delete')}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -266,13 +302,13 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
             <BookOpen className="h-5 w-5 text-text-secondary" />
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-text-primary">
-                {format(dateObj, 'yyyy年M月d日', { locale: ja })} ({dayOfWeek})
+                {locale === 'ja' ? format(dateObj, 'yyyy年M月d日') : format(dateObj, 'MMMM d, yyyy')} ({dayOfWeek})
               </h1>
               <button
                 type="button"
                 onClick={() => setShowDatePicker((v) => !v)}
                 className="p-1 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
-                title="日付を変更"
+                title={t('diary.changeDate')}
               >
                 <CalendarDays className="h-4 w-4" />
               </button>
@@ -306,12 +342,13 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
 
           {/* Events text (今日の出来事) */}
           <div className="space-y-2">
-            <h2 className="text-sm font-medium text-text-secondary">今日の出来事</h2>
-            <TiptapEditor
-              content={diary.events_text}
+            <h2 className="text-sm font-medium text-text-secondary">{t('diary.todaysEvents')}</h2>
+            <textarea
+              value={eventsText}
               onChange={handleEventsTextChange}
-              placeholder="何があったか、どう思ったか..."
-              contentKey={`${diaryId}-events`}
+              placeholder={t('diary.placeholder')}
+              rows={6}
+              className="w-full resize-y rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors"
             />
           </div>
 
@@ -323,12 +360,13 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
 
           {/* Summary (総括) */}
           <div className="space-y-2">
-            <h2 className="text-sm font-medium text-text-secondary">総括</h2>
-            <TiptapEditor
-              content={diary.summary}
+            <h2 className="text-sm font-medium text-text-secondary">{t('diary.summary')}</h2>
+            <textarea
+              value={summaryText}
               onChange={handleSummaryChange}
-              placeholder="今日を振り返って..."
-              contentKey={`${diaryId}-summary`}
+              placeholder={t('diary.summaryPlaceholder')}
+              rows={4}
+              className="w-full resize-y rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors"
             />
           </div>
 

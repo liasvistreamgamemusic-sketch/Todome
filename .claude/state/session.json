@@ -1,13 +1,13 @@
 {
-  "session_id": "399BAF7F-1233-40C2-B1CA-556E3EE5CF70",
-  "started_at": "2026-03-09T16:45:54Z",
+  "session_id": "A298F22B-1B1F-458C-B84C-3D28EB1B689E",
+  "started_at": "2026-03-10T05:44:19Z",
   "cwd": "/Users/nitandatomoya/repository/github/Todome",
   "project_name": "Todome",
-  "prompt_seq": 11,
+  "prompt_seq": 2,
   "git": {
     "branch": "main",
-    "uncommitted_changes": 0,
-    "last_commit": "68060ac"
+    "uncommitted_changes": 4,
+    "last_commit": "d03ff7a"
   },
   "plans": {
     "exists": false,
@@ -19,794 +19,1382 @@
   },
   "changes_this_session": [
     {
-      "file": "/Users/nitandatomoya/.claude/plans/zany-riding-dahl.md",
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:45:11Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:45:35Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:45:52Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:45:59Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:46:07Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:46:21Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:47:52Z",
+      "important": false
+    },
+    {
+      "file": "/Users/nitandatomoya/.claude/plans/pure-chasing-tarjan.md",
       "action": "Write",
-      "timestamp": "2026-03-09T17:00:46Z",
+      "timestamp": "2026-03-10T05:50:54Z",
       "important": false
     },
     {
-      "file": "/Users/nitandatomoya/.claude/plans/zany-riding-dahl.md",
+      "file": "/Users/nitandatomoya/.claude/plans/pure-chasing-tarjan.md",
       "action": "Write",
-      "timestamp": "2026-03-09T17:06:09Z",
+      "timestamp": "2026-03-10T05:54:20Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/editor/tiptap-editor.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:06:56Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/editor/editor-styles.css",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:06:57Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:08:50Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:08:55Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:09:01Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:09:08Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:09:15Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:09:23Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:09:32Z",
-      "important": false
-    },
-    {
-      "file": "supabase/migrations/006_shared_calendars.sql",
+      "file": "packages/store/src/i18n/ja.ts",
       "action": "Write",
-      "timestamp": "2026-03-09T17:09:35Z",
+      "timestamp": "2026-03-10T05:58:03Z",
       "important": false
     },
     {
-      "file": "packages/db/src/types.ts",
+      "file": "apps/desktop/src-tauri/Cargo.toml",
       "action": "Edit",
-      "timestamp": "2026-03-09T17:09:39Z",
+      "timestamp": "2026-03-10T05:58:17Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/notes/note-list.tsx",
+      "file": "apps/desktop/src-tauri/src/lib.rs",
       "action": "Edit",
-      "timestamp": "2026-03-09T17:09:39Z",
+      "timestamp": "2026-03-10T05:58:19Z",
       "important": false
     },
     {
-      "file": "packages/db/src/repository.ts",
+      "file": "apps/desktop/src-tauri/capabilities/default.json",
       "action": "Edit",
-      "timestamp": "2026-03-09T17:09:44Z",
+      "timestamp": "2026-03-10T05:58:20Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:09:44Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:09:55Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:10:00Z",
-      "important": false
-    },
-    {
-      "file": "packages/db/src/repository.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:10:03Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:10:04Z",
-      "important": false
-    },
-    {
-      "file": "packages/db/src/index.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:10:08Z",
-      "important": false
-    },
-    {
-      "file": "packages/db/src/index.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:10:12Z",
-      "important": false
-    },
-    {
-      "file": "packages/db/src/index.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:10:18Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:11:27Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:11:33Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:11:40Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:00Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list-item.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:07Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list-item.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:17Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/hooks/queries/keys.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:17Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list-item.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:25Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/hooks/queries/use-shared-calendars.ts",
+      "file": "packages/store/src/i18n/en.ts",
       "action": "Write",
-      "timestamp": "2026-03-09T17:12:27Z",
+      "timestamp": "2026-03-10T05:58:26Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/notes/note-list-item.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:31Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/hooks/queries/use-shared-calendar-members.ts",
+      "file": "apps/web/src/lib/notifications.ts",
       "action": "Write",
-      "timestamp": "2026-03-09T17:12:33Z",
+      "timestamp": "2026-03-10T05:58:27Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/notes/note-list-item.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:35Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-card.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:41Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/hooks/queries/use-shared-calendar-events.ts",
+      "file": "apps/web/src/lib/sound.ts",
       "action": "Write",
-      "timestamp": "2026-03-09T17:12:43Z",
+      "timestamp": "2026-03-10T05:58:30Z",
       "important": false
     },
     {
-      "file": "apps/web/src/hooks/queries/index.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:46Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-card.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:12:47Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/hooks/use-merged-events.ts",
+      "file": "packages/store/src/i18n/index.ts",
       "action": "Write",
-      "timestamp": "2026-03-09T17:12:52Z",
+      "timestamp": "2026-03-10T05:58:31Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/notes/note-card.tsx",
+      "file": "apps/web/src/hooks/use-settings-effects.ts",
+      "action": "Write",
+      "timestamp": "2026-03-10T05:58:33Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/index.ts",
       "action": "Edit",
-      "timestamp": "2026-03-09T17:12:56Z",
+      "timestamp": "2026-03-10T05:58:38Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/hooks/use-reminder-scheduler.ts",
+      "action": "Write",
+      "timestamp": "2026-03-10T05:58:42Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/app/globals.css",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:44Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/app/globals.css",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:45Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/ui-store.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:47Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/ui-store.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:48Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/ui-store.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:49Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/ui-store.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:51Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/ui-store.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:52Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/app/providers.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:56Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/app/providers.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:57Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/app/providers.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:58:59Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/public/sw.js",
+      "action": "Edit",
+      "timestamp": "2026-03-10T05:59:10Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/i18n/index.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:00:21Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/i18n/en.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:00:29Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/event-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:02Z",
       "important": false
     },
     {
       "file": "apps/web/src/components/notes/folder-tree.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T17:13:02Z",
+      "timestamp": "2026-03-10T06:02:09Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/event-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:10Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/event-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:17Z",
       "important": false
     },
     {
       "file": "apps/web/src/components/notes/folder-tree.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T17:13:13Z",
+      "timestamp": "2026-03-10T06:02:17Z",
       "important": false
     },
     {
       "file": "apps/web/src/components/notes/folder-tree.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T17:13:22Z",
+      "timestamp": "2026-03-10T06:02:22Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
-      "action": "Write",
-      "timestamp": "2026-03-09T17:15:37Z",
+      "file": "apps/web/src/components/calendar/event-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:24Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:26Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/folder-tree.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:26Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:28Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:29Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:30Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/folder-tree.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:30Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/layout/bottom-nav.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:31Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/editor/editor-toolbar.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:32Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/folder-tree.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:35Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/folder-tree.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:39Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:43Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/folder-tree.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:44Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:50Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:51Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:02:55Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:01Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:04Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:05Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:10Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:14Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:14Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:19Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:22Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:23Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:28Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:30Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:32Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:36Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:38Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:40Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:42Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:46Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:47Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:49Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:54Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:03:54Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:00Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:00Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:05Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:05Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:09Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:10Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:14Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:14Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:18Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:19Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:27Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:27Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:33Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:34Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:37Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:38Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:42Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:43Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:47Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:48Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/diary/diary-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:51Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:52Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:04:57Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:01Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/layout/bottom-nav.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:03Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-card.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:05Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/editor/editor-toolbar.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:08Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/editor/editor-toolbar.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:15Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:15Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:21Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:26Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:31Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:35Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:39Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:41Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:44Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:45Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:48Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:50Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/todos/todo-detail.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:54Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:05:55Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:00Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:04Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:09Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:14Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list-item.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:18Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:23Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:28Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:34Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:38Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:42Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:46Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:52Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:06:56Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:00Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:05Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:09Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:27Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:31Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:36Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:40Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:45Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:07:54Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:08:05Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:08:10Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:08:14Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-editor.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:08:23Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/notes/note-list.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:09:08Z",
       "important": false
     },
     {
       "file": "apps/web/src/components/settings/settings-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:15:42Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/settings/settings-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T17:15:48Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/app/invite/[token]/page.tsx",
       "action": "Write",
-      "timestamp": "2026-03-09T22:15:57Z",
+      "timestamp": "2026-03-10T06:10:29Z",
       "important": false
     },
     {
-      "file": "apps/web/src/app/invite/[token]/page.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:16:48Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/app/invite/[token]/page.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:16:59Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/app/invite/[token]/page.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:17:03Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/hooks/queries/use-realtime.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:18:31Z",
-      "important": false
-    },
-    {
-      "file": "packages/store/src/types.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:18:32Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/calendar-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:18:37Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/calendar-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:18:42Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/calendar-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:18:47Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/calendar-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:18:49Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/shared-event-detail.tsx",
+      "file": "apps/web/src/lib/notifications.ts",
       "action": "Write",
-      "timestamp": "2026-03-09T22:19:36Z",
+      "timestamp": "2026-03-10T06:11:33Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/calendar-event-block.tsx",
+      "file": "apps/web/src/components/calendar/calendar-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T22:19:42Z",
+      "timestamp": "2026-03-10T06:13:07Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/calendar-event-block.tsx",
+      "file": "apps/web/src/components/calendar/calendar-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T22:19:44Z",
+      "timestamp": "2026-03-10T06:13:13Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/calendar-event-block.tsx",
+      "file": "apps/web/src/components/calendar/calendar-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T22:19:46Z",
+      "timestamp": "2026-03-10T06:13:18Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/calendar-event-block.tsx",
+      "file": "apps/web/src/components/calendar/calendar-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T22:19:50Z",
+      "timestamp": "2026-03-10T06:13:23Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "file": "apps/web/src/components/calendar/calendar-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T22:20:00Z",
+      "timestamp": "2026-03-10T06:13:27Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "file": "apps/web/src/components/calendar/calendar-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T22:20:02Z",
+      "timestamp": "2026-03-10T06:13:31Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "file": "apps/web/src/components/calendar/calendar-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T22:20:05Z",
+      "timestamp": "2026-03-10T06:13:35Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "file": "apps/web/src/components/calendar/calendar-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-09T22:20:09Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/month-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:20:16Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/month-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:20:19Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:20:25Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:20:27Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:20:29Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:20:32Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:20:38Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:20:46Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:00Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:02Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:10Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:17Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:20Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:22Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:25Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:45Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:47Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/list-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:57Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/list-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:21:59Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/list-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:02Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/list-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:05Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/list-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:12Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/list-view.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:14Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:24Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:26Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:30Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:45Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:51Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:22:59Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:23:04Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:23:14Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-09T22:23:25Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:05:11Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/folder-tree.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:05:20Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/app/(app)/notes/page.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:05:44Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/folder-tree.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:05:52Z",
-      "important": false
-    },
-    {
-      "file": "packages/db/src/repository.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:06:31Z",
-      "important": false
-    },
-    {
-      "file": "packages/db/src/repository.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:06:41Z",
-      "important": false
-    },
-    {
-      "file": "supabase/migrations/006_shared_calendars.sql",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:12:02Z",
-      "important": false
-    },
-    {
-      "file": ".gitignore",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:13:03Z",
-      "important": false
-    },
-    {
-      "file": "supabase/migrations/006_shared_calendars.sql",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:17:57Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/folder-tree.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:23:57Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/folder-tree.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:24:11Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/folder-tree.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:24:24Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/notes/note-list.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:24:33Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/hooks/queries/use-notes.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:54:28Z",
-      "important": false
-    },
-    {
-      "file": "supabase/migrations/006_shared_calendars.sql",
-      "action": "Edit",
-      "timestamp": "2026-03-10T00:57:50Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/hooks/queries/use-notes.ts",
-      "action": "Edit",
-      "timestamp": "2026-03-10T01:47:45Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/event-detail.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T02:10:26Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/event-detail.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T02:10:40Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/event-detail.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T02:10:47Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/event-detail.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T02:10:58Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/event-detail.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T02:11:03Z",
-      "important": false
-    },
-    {
-      "file": "apps/web/src/components/calendar/event-detail.tsx",
-      "action": "Edit",
-      "timestamp": "2026-03-10T02:11:17Z",
+      "timestamp": "2026-03-10T06:13:42Z",
       "important": false
     },
     {
       "file": "apps/web/src/components/calendar/calendar-selector.tsx",
-      "action": "Write",
-      "timestamp": "2026-03-10T02:12:50Z",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:13:47Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/calendar-view.tsx",
+      "file": "apps/web/src/components/calendar/calendar-selector.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:13:02Z",
+      "timestamp": "2026-03-10T06:13:52Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/calendar-view.tsx",
+      "file": "apps/web/src/components/calendar/calendar-selector.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:13:08Z",
+      "timestamp": "2026-03-10T06:13:57Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "file": "apps/web/src/components/calendar/calendar-selector.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:13:23Z",
+      "timestamp": "2026-03-10T06:14:04Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "file": "apps/web/src/components/calendar/calendar-selector.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:13:30Z",
+      "timestamp": "2026-03-10T06:14:08Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:13:58Z",
+      "timestamp": "2026-03-10T06:14:13Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/week-view.tsx",
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:14:10Z",
+      "timestamp": "2026-03-10T06:14:18Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:14:24Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:14:30Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:14:34Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:14:39Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:14:43Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:14:49Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-events-panel.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:14:53Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/list-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:14:58Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/list-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:15:02Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/list-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:15:07Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/list-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:15:12Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/list-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:15:22Z",
       "important": false
     },
     {
       "file": "apps/web/src/components/calendar/day-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:14:15Z",
+      "timestamp": "2026-03-10T06:15:26Z",
       "important": false
     },
     {
       "file": "apps/web/src/components/calendar/day-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:14:22Z",
+      "timestamp": "2026-03-10T06:15:31Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/event-detail.tsx",
+      "file": "apps/web/src/components/calendar/day-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:15:19Z",
+      "timestamp": "2026-03-10T06:15:35Z",
       "important": false
     },
     {
-      "file": "apps/web/src/components/calendar/event-detail.tsx",
+      "file": "apps/web/src/components/calendar/day-view.tsx",
       "action": "Edit",
-      "timestamp": "2026-03-10T02:15:40Z",
+      "timestamp": "2026-03-10T06:15:40Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:15:45Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/day-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:15:57Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/week-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:02Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/week-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:08Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/week-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:13Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/week-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:23Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/week-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:27Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/week-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:32Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:41Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:47Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/calendar/month-view.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:16:52Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/i18n/ja.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:19:58Z",
+      "important": false
+    },
+    {
+      "file": "packages/store/src/i18n/en.ts",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:03Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:08Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:10Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:14Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:16Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:17Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:25Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:26Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:27Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:29Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:30Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:31Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:33Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:34Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:36Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:37Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/subscription-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:38Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:45Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:47Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:48Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:50Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:51Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:57Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:58Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:20:59Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:06Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:10Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:11Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:12Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:14Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:16Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:17Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:19Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:24Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:25Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:27Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:29Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:30Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:31Z",
+      "important": false
+    },
+    {
+      "file": "apps/web/src/components/settings/shared-calendar-manager.tsx",
+      "action": "Edit",
+      "timestamp": "2026-03-10T06:21:32Z",
       "important": false
     }
   ],
-  "intent": "semantic",
-  "ended_at": "2026-03-09T22:40:50Z",
-  "duration_minutes": 894,
+  "intent": "literal",
+  "ended_at": "2026-03-10T05:46:26Z",
+  "duration_minutes": 542,
   "memory_logged": true
 }

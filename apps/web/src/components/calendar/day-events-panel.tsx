@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { clsx } from 'clsx';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { X, Plus, ChevronLeft, Trash2 } from 'lucide-react';
-import { useCalendarStore, useSubscriptionStore } from '@todome/store';
+import { useCalendarStore, useSubscriptionStore, useTranslation } from '@todome/store';
 import type { CalendarEvent, ExternalCalendarEvent, SharedCalendarEvent, SharedCalendar } from '@todome/db';
 import { Button } from '@todome/ui';
 import { useCalendarEvents, useDeleteCalendarEvent, useCalendarSubscriptions, useSharedCalendarEvents, useSharedCalendars } from '@/hooks/queries';
@@ -22,6 +22,7 @@ type Props = {
 type PanelMode = 'list' | 'detail' | 'create' | 'external-detail' | 'shared-detail';
 
 export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) => {
+  const { t } = useTranslation();
   const [mode, setMode] = useState<PanelMode>('list');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedExternalEvent, setSelectedExternalEvent] = useState<ExternalCalendarEvent | null>(null);
@@ -147,7 +148,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
                 type="button"
                 onClick={onClose}
                 className="p-1.5 rounded-md hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
-                aria-label="\u9589\u3058\u308B"
+                aria-label={t('common.close')}
               >
                 <X className="h-4 w-4" />
               </button>
@@ -157,7 +158,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
             <div className="flex-1 overflow-y-auto">
               {dayEvents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-text-tertiary">
-                  <p className="text-sm">{'\u3053\u306E\u65E5\u306E\u4E88\u5B9A\u306F\u3042\u308A\u307E\u305B\u3093'}</p>
+                  <p className="text-sm">{t('calendar.noEvents')}</p>
                 </div>
               ) : (
                 <ul className="divide-y divide-[var(--border)]">
@@ -181,7 +182,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
                           </p>
                           <p className="text-xs text-text-secondary">
                             {event.is_all_day
-                              ? '\u7D42\u65E5'
+                              ? t('calendar.allDay')
                               : `${format(parseISO(event.start_at), 'H:mm')} - ${format(parseISO(event.end_at), 'H:mm')}`}
                           </p>
                         </div>
@@ -190,7 +191,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
                             type="button"
                             onClick={(e) => handleDelete(e, event.id)}
                             className="p-1.5 rounded-md text-text-tertiary hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 transition-colors"
-                            aria-label="\u524A\u9664"
+                            aria-label={t('common.delete')}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
@@ -206,7 +207,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
             <div className="border-t border-[var(--border)] px-4 py-3">
               <Button size="sm" onClick={handleCreate} className="w-full">
                 <Plus className="h-3.5 w-3.5" />
-                {'\u65B0\u898F\u4E88\u5B9A\u3092\u8FFD\u52A0'}
+                {t('calendar.addEvent')}
               </Button>
             </div>
           </>
@@ -222,7 +223,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
                 className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
-                {'\u623B\u308B'}
+                {t('common.back')}
               </button>
               <span className="text-sm text-text-tertiary">{dateStr}</span>
             </div>
@@ -247,7 +248,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
                 className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
-                {'戻る'}
+                {t('common.back')}
               </button>
               <span className="text-sm text-text-tertiary">{dateStr}</span>
             </div>
@@ -270,7 +271,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
                 className="flex items-center gap-1 text-sm text-text-secondary hover:text-text-primary transition-colors"
               >
                 <ChevronLeft className="h-4 w-4" />
-                {'戻る'}
+                {t('common.back')}
               </button>
               <span className="text-sm text-text-tertiary">{dateStr}</span>
             </div>

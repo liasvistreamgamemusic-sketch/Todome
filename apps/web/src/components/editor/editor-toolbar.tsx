@@ -39,6 +39,7 @@ import {
   TableCellsSplit,
   Mic,
 } from 'lucide-react';
+import { useTranslation } from '@todome/store';
 import { ColorPicker } from './color-picker';
 import { EmojiPicker } from './emoji-picker';
 import { TableCreator } from './table-creator';
@@ -101,6 +102,7 @@ type PopoverType =
   | null;
 
 export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
+  const { t } = useTranslation();
   const [activePopover, setActivePopover] = useState<PopoverType>(null);
   const [imageUrl, setImageUrl] = useState('');
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -781,7 +783,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
         <ToolbarButton
           onClick={handleToggleRecording}
           isActive={isRecording}
-          title={isRecording ? '録音停止' : '録音'}
+          title={isRecording ? t('editor.stopRecording') : t('editor.record')}
         >
           <Mic size={15} className={isRecording ? 'text-red-500 animate-pulse' : ''} />
         </ToolbarButton>

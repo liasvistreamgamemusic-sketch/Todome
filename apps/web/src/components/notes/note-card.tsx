@@ -4,6 +4,7 @@ import { memo, useState, useRef, useCallback, useEffect } from 'react';
 import { Pin, MoreVertical, Archive, ArchiveRestore, FolderOpen, Trash2, FileText, FileDown } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useDraggable } from '@dnd-kit/core';
+import { useTranslation } from '@todome/store';
 import type { NoteSummary, Folder } from '@todome/store';
 import { formatRelativeDate } from '@/lib/format-date';
 
@@ -38,6 +39,7 @@ export const NoteCard = memo(function NoteCard({
   onExportText,
   onExportPdf,
 }: NoteCardProps) {
+  const { t } = useTranslation();
   const { attributes, listeners, setNodeRef: setDragRef, transform, isDragging } = useDraggable({ id: note.id });
 
   const [open, setOpen] = useState(false);
@@ -99,12 +101,12 @@ export const NoteCard = memo(function NoteCard({
       <div className="flex items-center gap-1 pr-6">
         {note.is_pinned && <Pin className="h-3 w-3 text-text-secondary shrink-0 fill-current" />}
         <span className="text-sm font-semibold text-text-primary truncate block">
-          {note.title || '無題のメモ'}
+          {note.title || t('notes.untitled')}
         </span>
       </div>
 
       <p className="text-xs text-text-secondary mt-1 line-clamp-2 leading-relaxed">
-        {previewText || 'メモの内容がありません'}
+        {previewText || t('notes.noContent')}
       </p>
 
       <div className="flex items-center justify-end mt-2">
@@ -117,7 +119,7 @@ export const NoteCard = memo(function NoteCard({
       <button
         ref={btnRef}
         type="button"
-        aria-label="メニュー"
+        aria-label={t('notes.menu')}
         onClick={handleMenuBtn}
         className={clsx(
           'absolute right-2 top-2 p-2 md:p-1 rounded z-10',
@@ -141,13 +143,13 @@ export const NoteCard = memo(function NoteCard({
               <button type="button" onClick={act(() => onRestore(note.id))}
                 className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
                 <ArchiveRestore className="h-4 w-4" />
-                復元
+                {t('common.restore')}
               </button>
               <div className="border-t border-border my-1" />
               <button type="button" onClick={act(() => onDelete(note.id))}
                 className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500">
                 <Trash2 className="h-4 w-4" />
-                完全に削除
+                {t('common.deletePermanently')}
               </button>
             </>
           ) : (
@@ -155,25 +157,25 @@ export const NoteCard = memo(function NoteCard({
               <button type="button" onClick={act(() => onPin(note.id))}
                 className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
                 <Pin className="h-4 w-4" />
-                {note.is_pinned ? 'ピン解除' : 'ピン留め'}
+                {note.is_pinned ? t('notes.unpin') : t('notes.pin')}
               </button>
               <button type="button" onClick={act(() => onArchive(note.id))}
                 className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
                 <Archive className="h-4 w-4" />
-                アーカイブ
+                {t('notes.archive')}
               </button>
 
               <div className="relative">
                 <button type="button"
                   onClick={(e) => { e.stopPropagation(); setFolderSub((v) => !v); setExportSub(false); }}
                   className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
-                  <FolderOpen className="h-4 w-4" />フォルダへ移動
+                  <FolderOpen className="h-4 w-4" />{t('notes.moveToFolder')}
                   <span className="ml-auto text-text-tertiary">›</span>
                 </button>
                 {folderSub && (
                   <div className="absolute left-0 top-full md:right-full md:top-0 md:left-auto mr-1 w-40 bg-bg-primary border border-border rounded-lg shadow-xl z-50 py-1">
                     <button type="button" onClick={act(() => onMoveToFolder(note.id, null))}
-                      className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary">未分類</button>
+                      className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary">{t('notes.uncategorized')}</button>
                     {folders.map((f) => (
                       <button key={f.id} type="button" onClick={act(() => onMoveToFolder(note.id, f.id))}
                         className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
@@ -189,18 +191,18 @@ export const NoteCard = memo(function NoteCard({
                 <button type="button"
                   onClick={(e) => { e.stopPropagation(); setExportSub((v) => !v); setFolderSub(false); }}
                   className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
-                  <FileDown className="h-4 w-4" />出力
+                  <FileDown className="h-4 w-4" />{t('notes.output')}
                   <span className="ml-auto text-text-tertiary">›</span>
                 </button>
                 {exportSub && (
                   <div className="absolute left-0 top-full md:right-full md:top-0 md:left-auto mr-1 w-44 bg-bg-primary border border-border rounded-lg shadow-xl z-50 py-1">
                     <button type="button" onClick={act(() => onExportText(note.id))}
                       className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
-                      <FileText className="h-4 w-4" />テキスト (.txt)
+                      <FileText className="h-4 w-4" />{t('notes.exportText')}
                     </button>
                     <button type="button" onClick={act(() => onExportPdf(note.id))}
                       className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
-                      <FileDown className="h-4 w-4" />PDF (印刷)
+                      <FileDown className="h-4 w-4" />{t('notes.exportPdf')}
                     </button>
                   </div>
                 )}
@@ -209,7 +211,7 @@ export const NoteCard = memo(function NoteCard({
               <div className="border-t border-border my-1" />
               <button type="button" onClick={act(() => onDelete(note.id))}
                 className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500">
-                <Trash2 className="h-4 w-4" />削除
+                <Trash2 className="h-4 w-4" />{t('common.delete')}
               </button>
             </>
           )}

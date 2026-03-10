@@ -10,7 +10,7 @@ import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
   type DragStartEvent, type DragEndEvent,
 } from '@dnd-kit/core';
-import { useNoteStore } from '@todome/store';
+import { useNoteStore, useTranslation } from '@todome/store';
 import type { NoteSortBy } from '@todome/store';
 import type { Note, NoteSummary } from '@todome/db';
 import { useKeyboardShortcut, useClickOutside } from '@todome/hooks';
@@ -26,19 +26,20 @@ import { FolderTree } from './folder-tree';
 import { FolderDialog } from './folder-dialog';
 import { exportNoteAsText, exportNoteAsPdf } from '../settings/export-data';
 
-const SORT_OPTIONS: { value: NoteSortBy; label: string }[] = [
-  { value: 'updated_at', label: '更新日' },
-  { value: 'created_at', label: '作成日' },
-  { value: 'title', label: 'タイトル' },
-  { value: 'manual', label: '手動' },
-];
-
 type NoteListProps = {
   onSelectNote?: (id: string) => void;
   onCreateNote?: (id: string) => void;
 };
 
 export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
+  const { t } = useTranslation();
+
+  const sortOptions: { value: NoteSortBy; label: string }[] = useMemo(() => [
+    { value: 'updated_at', label: t('notes.sortBy.updated') },
+    { value: 'created_at', label: t('notes.sortBy.created') },
+    { value: 'title', label: t('notes.sortBy.title') },
+    { value: 'manual', label: t('notes.sortBy.manual') },
+  ], [t]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -190,17 +191,17 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
 
         <div className="flex items-center justify-between">
           {isArchiveView ? (
-            <span className="text-xs font-medium text-text-secondary">アーカイブ</span>
+            <span className="text-xs font-medium text-text-secondary">{t('notes.archive')}</span>
           ) : (
             <button type="button" onClick={handleNewNote}
               className="flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/80 transition-colors">
-              <Plus className="h-3.5 w-3.5" />新規メモ
+              <Plus className="h-3.5 w-3.5" />{t('notes.newNote')}
             </button>
           )}
 
           <div className="flex items-center gap-1">
             <button type="button"
-              title={isArchiveView ? 'すべてのメモ' : 'アーカイブ'}
+              title={isArchiveView ? t('notes.allNotes') : t('notes.archive')}
               onClick={() => setNoteFilter(isArchiveView ? 'active' : 'archived')}
               className={clsx(
                 'p-2 md:p-1 rounded transition-colors',
@@ -222,19 +223,19 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
             <button type="button"
               onClick={() => setViewMode(viewMode === 'list' ? 'card' : 'list')}
               className="p-2 md:p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors"
-              title={viewMode === 'list' ? 'カード表示' : 'リスト表示'}>
+              title={viewMode === 'list' ? t('notes.cardView') : t('notes.listView')}>
               {viewMode === 'list' ? <LayoutGrid className="h-4 w-4 md:h-3.5 md:w-3.5" /> : <List className="h-4 w-4 md:h-3.5 md:w-3.5" />}
             </button>
 
             <div className="relative" ref={sortMenuRef}>
-              <button type="button" title="並び替え"
+              <button type="button" title={t('notes.sort')}
                 onClick={() => setShowSortMenu((v) => !v)}
                 className="p-2 md:p-1 rounded text-text-tertiary hover:bg-bg-secondary transition-colors">
                 <ArrowUpDown className="h-4 w-4 md:h-3.5 md:w-3.5" />
               </button>
               {showSortMenu && (
                 <div className="absolute right-0 top-full mt-1 w-32 bg-bg-primary border border-border rounded-lg shadow-lg z-20 py-1">
-                  {SORT_OPTIONS.map((opt) => (
+                  {sortOptions.map((opt) => (
                     <button key={opt.value} type="button"
                       onClick={() => { setSortBy(opt.value); setShowSortMenu(false); }}
                       className={clsx('w-full text-left px-3 py-1.5 text-xs hover:bg-bg-secondary',
@@ -263,18 +264,18 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
           {notes.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full px-6 text-center">
               <p className="text-text-tertiary text-sm mb-2">
-                {isArchiveView ? 'アーカイブされたメモはありません' : 'メモがありません'}
+                {isArchiveView ? t('notes.noArchivedNotes') : t('notes.noNotes')}
               </p>
               {!isArchiveView && (
                 <button type="button" onClick={handleNewNote}
-                  className="text-xs text-accent hover:text-accent/80 transition-colors">新規メモを作成</button>
+                  className="text-xs text-accent hover:text-accent/80 transition-colors">{t('notes.createNew')}</button>
               )}
             </div>
           ) : viewMode === 'card' ? (
             <div className="px-3 pb-3 space-y-3">
               {pinned.length > 0 && (
                 <>
-                  <p className="text-[10px] uppercase tracking-wider text-text-tertiary px-1 pt-1">ピン留め</p>
+                  <p className="text-[10px] uppercase tracking-wider text-text-tertiary px-1 pt-1">{t('notes.pinned')}</p>
                   <div className="grid grid-cols-1 gap-2">{pinned.map(renderNote)}</div>
                   {unpinned.length > 0 && <div className="border-t border-border" />}
                 </>
@@ -285,7 +286,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
             <div>
               {pinned.length > 0 && (
                 <>
-                  <p className="text-[10px] uppercase tracking-wider text-text-tertiary px-3 py-1.5">ピン留め</p>
+                  <p className="text-[10px] uppercase tracking-wider text-text-tertiary px-3 py-1.5">{t('notes.pinned')}</p>
                   {pinned.map(renderNote)}
                   {unpinned.length > 0 && <div className="border-t border-border" />}
                 </>
@@ -299,7 +300,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
           {activeNote && (
             <div className="w-[260px] rounded-lg border border-border bg-bg-primary shadow-lg px-3 py-2 opacity-90">
               <p className="text-sm font-semibold text-text-primary truncate">
-                {activeNote.title || '無題のメモ'}
+                {activeNote.title || t('notes.untitled')}
               </p>
               <p className="text-[10px] text-text-secondary truncate mt-0.5">
                 {(activeNote.plain_text ?? '').slice(0, 60).replace(/\n/g, ' ') || '\u00A0'}

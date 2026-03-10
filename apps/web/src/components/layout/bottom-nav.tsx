@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FileText, CheckSquare, BookOpen, Calendar, Settings } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useTranslation } from '@todome/store';
 
 type BottomNavItem = {
   href: string;
@@ -13,13 +14,14 @@ type BottomNavItem = {
 
 export const BottomNav = () => {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   const items: BottomNavItem[] = [
-    { href: '/notes', label: 'メモ', icon: FileText },
-    { href: '/todos', label: 'Todo', icon: CheckSquare },
-    { href: '/diary', label: '日記', icon: BookOpen },
-    { href: '/calendar', label: 'カレンダー', icon: Calendar },
-    { href: '/settings', label: '設定', icon: Settings },
+    { href: '/notes', label: t('nav.notes'), icon: FileText },
+    { href: '/todos', label: t('nav.todos'), icon: CheckSquare },
+    { href: '/diary', label: t('nav.diary'), icon: BookOpen },
+    { href: '/calendar', label: t('nav.calendar'), icon: Calendar },
+    { href: '/settings', label: t('nav.settings'), icon: Settings },
   ];
 
   return (

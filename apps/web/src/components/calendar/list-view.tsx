@@ -13,7 +13,7 @@ import {
   parseISO,
 } from 'date-fns';
 import { MapPin, Clock, Users } from 'lucide-react';
-import { useCalendarStore, useSubscriptionStore } from '@todome/store';
+import { useCalendarStore, useSubscriptionStore, useTranslation } from '@todome/store';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
@@ -52,6 +52,7 @@ const DAYS_AHEAD = 30;
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 export const ListView = ({ onSelectEvent }: Props) => {
+  const { t } = useTranslation();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
@@ -164,7 +165,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
     return (
       <div className="flex flex-1 items-center justify-center">
         <p className="text-sm text-text-tertiary">
-          今後30日間に予定はありません
+          {t('calendar.noEventsInRange')}
         </p>
       </div>
     );
@@ -182,8 +183,8 @@ export const ListView = ({ onSelectEvent }: Props) => {
         const isSat = dayOfWeek === 6;
 
         let dateLabel = format(date, 'M月d日');
-        if (today) dateLabel = `今日 - ${dateLabel}`;
-        else if (tomorrow) dateLabel = `明日 - ${dateLabel}`;
+        if (today) dateLabel = `${t('calendar.todayPrefix')}${dateLabel}`;
+        else if (tomorrow) dateLabel = `${t('calendar.tomorrowPrefix')}${dateLabel}`;
 
         return (
           <div key={dateKey}>
@@ -241,8 +242,9 @@ const EventListItem = ({
   event: MergedEvent;
   onClick: (event: { id: string }) => void;
 }) => {
+  const { t } = useTranslation();
   const timeText = event.is_all_day
-    ? '終日'
+    ? t('calendar.allDay')
     : `${format(parseISO(event.start_at), 'H:mm')} - ${format(parseISO(event.end_at), 'H:mm')}`;
 
   return (

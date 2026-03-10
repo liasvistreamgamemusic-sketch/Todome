@@ -7,6 +7,7 @@
     "core:default",
     "updater:default",
     "dialog:default",
-    "cors-fetch:default"
+    "cors-fetch:default",
+    "notification:default"
   ]
 }

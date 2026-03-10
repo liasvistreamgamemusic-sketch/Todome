@@ -18,7 +18,7 @@ import {
   setMinutes,
 } from 'date-fns';
 import { BookOpen, CheckSquare, Users } from 'lucide-react';
-import { useCalendarStore, useUiStore, useSubscriptionStore } from '@todome/store';
+import { useCalendarStore, useUiStore, useSubscriptionStore, useTranslation } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
 import { useCalendarEvents, useTodos, useDiaries, useSharedCalendarEvents } from '@/hooks/queries';
@@ -53,6 +53,7 @@ const TOTAL_HOURS = 24;
 const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
 
 export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) => {
+  const { t } = useTranslation();
   const isMobile = useIsMobile();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
@@ -293,7 +294,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
         {/* Selected day all-day events */}
         {selectedDayAllDay.length > 0 && (
           <div className="flex items-start gap-2 border-b border-[var(--border)] px-3 py-1.5">
-            <span className="shrink-0 pt-1 text-[10px] text-text-tertiary">終日</span>
+            <span className="shrink-0 pt-1 text-[10px] text-text-tertiary">{t('calendar.allDay')}</span>
             <div className="flex flex-1 flex-wrap gap-1">
               {selectedDayAllDay.map((event) => (
                 <CalendarEventBlock key={event.id} event={event} onClick={onSelectEvent} provider={event.provider} isShared={event.isShared} />
@@ -384,7 +385,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
             <div className="flex items-center gap-1.5 mb-1.5">
               <CheckSquare className="h-3.5 w-3.5 text-text-tertiary" />
               <span className="text-xs font-medium text-text-secondary">
-                この日のTodo ({dueTodos.length})
+                {t('calendar.thisDaysTodos')} ({dueTodos.length})
               </span>
             </div>
             <ul className="space-y-0.5">
@@ -465,7 +466,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
       {/* All-day events row — right padding matches scrollbar width for grid alignment */}
       <div className="flex border-b border-[var(--border)]" style={{ paddingRight: scrollbarWidth, minHeight: '32px' }}>
         <div className="w-14 shrink-0 flex items-center justify-center text-[10px] text-text-tertiary">
-          終日
+          {t('calendar.allDay')}
         </div>
         <div className="relative flex-1">
           {/* Grid lines for columns */}
@@ -512,7 +513,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                     <span className="flex items-center gap-1 truncate px-1.5 text-xs font-medium leading-[18px]">
                       {span.event.provider && <ProviderIcon provider={(span.event as MergedEvent).provider!} size={10} className="shrink-0" />}
                       {(span.event as MergedEvent).isShared && <Users className="h-2.5 w-2.5 shrink-0" />}
-                      <span className="truncate">{span.isStart ? `(終日) ${span.event.title}` : span.event.title}</span>
+                      <span className="truncate">{span.isStart ? `(${t('calendar.allDay')}) ${span.event.title}` : span.event.title}</span>
                     </span>
                   </div>
                 );

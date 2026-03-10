@@ -15,6 +15,8 @@ export type UiStoreState = {
   fontSize: FontSize;
   locale: Locale;
   calendarWeekStart: CalendarWeekStart;
+  notificationsEnabled: boolean;
+  soundEnabled: boolean;
 
   // Actions
   setActiveSection: (section: ActiveSection) => void;
@@ -23,6 +25,8 @@ export type UiStoreState = {
   setFontSize: (fontSize: FontSize) => void;
   setLocale: (locale: Locale) => void;
   setCalendarWeekStart: (start: CalendarWeekStart) => void;
+  setNotificationsEnabled: (enabled: boolean) => void;
+  setSoundEnabled: (enabled: boolean) => void;
 };
 
 export const useUiStore = create<UiStoreState>()(
@@ -35,6 +39,8 @@ export const useUiStore = create<UiStoreState>()(
       fontSize: 'medium',
       locale: 'ja',
       calendarWeekStart: 0,
+      notificationsEnabled: false,
+      soundEnabled: true,
 
       // Actions
       setActiveSection: (section) => set({ activeSection: section }),
@@ -44,6 +50,8 @@ export const useUiStore = create<UiStoreState>()(
       setFontSize: (fontSize) => set({ fontSize }),
       setLocale: (locale) => set({ locale }),
       setCalendarWeekStart: (start) => set({ calendarWeekStart: start }),
+      setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
+      setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
     }),
     {
       name: 'todome-ui-settings',
@@ -62,6 +70,8 @@ export const useUiStore = create<UiStoreState>()(
         fontSize: state.fontSize,
         locale: state.locale,
         calendarWeekStart: state.calendarWeekStart,
+        notificationsEnabled: state.notificationsEnabled,
+        soundEnabled: state.soundEnabled,
       }),
     },
   ),

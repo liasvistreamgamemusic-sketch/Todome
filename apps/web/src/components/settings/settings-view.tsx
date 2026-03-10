@@ -6,13 +6,12 @@ import {
   Sun,
   Moon,
   Monitor,
-  Download,
   FileJson,
   FileText,
   RefreshCw,
   LogOut,
 } from 'lucide-react';
-import { useUiStore } from '@todome/store';
+import { useUiStore, useTranslation } from '@todome/store';
 import type { Theme, FontSize, Locale, CalendarWeekStart } from '@todome/store';
 import { Button } from '@todome/ui';
 import { clsx } from 'clsx';
@@ -21,6 +20,7 @@ import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
 import { exportToJSON, exportToMarkdown } from './export-data';
 import { SubscriptionManager } from './subscription-manager';
 import { SharedCalendarManager } from './shared-calendar-manager';
+import { requestNotificationPermission, sendNotification } from '@/lib/notifications';
 
 type SettingsSectionProps = {
   title: string;
@@ -121,33 +121,26 @@ const ToggleSwitch = ({ checked, onChange, label }: ToggleSwitchProps) => (
   </button>
 );
 
-const FONT_SIZE_OPTIONS: { value: FontSize; label: string }[] = [
-  { value: 'small', label: '小' },
-  { value: 'medium', label: '中' },
-  { value: 'large', label: '大' },
-  { value: 'xlarge', label: '特大' },
-];
-
 const LOCALE_OPTIONS: { value: Locale; label: string }[] = [
   { value: 'ja', label: '日本語' },
   { value: 'en', label: 'English' },
 ];
 
-const WEEK_START_OPTIONS: { value: CalendarWeekStart; label: string }[] = [
-  { value: 0, label: '日曜' },
-  { value: 1, label: '月曜' },
-];
-
 export const SettingsView = () => {
-  const { setTheme, theme: currentTheme } = useTheme();
+  const { t } = useTranslation();
+  const { setTheme } = useTheme();
   const uiTheme = useUiStore((s) => s.theme);
   const fontSize = useUiStore((s) => s.fontSize);
   const locale = useUiStore((s) => s.locale);
   const calendarWeekStart = useUiStore((s) => s.calendarWeekStart);
+  const notificationsEnabled = useUiStore((s) => s.notificationsEnabled);
+  const soundEnabled = useUiStore((s) => s.soundEnabled);
   const setUiTheme = useUiStore((s) => s.setTheme);
   const setFontSize = useUiStore((s) => s.setFontSize);
   const setLocale = useUiStore((s) => s.setLocale);
   const setCalendarWeekStart = useUiStore((s) => s.setCalendarWeekStart);
+  const setNotificationsEnabled = useUiStore((s) => s.setNotificationsEnabled);
+  const setSoundEnabled = useUiStore((s) => s.setSoundEnabled);
 
   const { data: notes } = useNotes();
   const { data: todos } = useTodos();
@@ -155,26 +148,17 @@ export const SettingsView = () => {
 
   const queryClient = useQueryClient();
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  // Load persisted settings from localStorage
+  // Load last sync time from localStorage
   useEffect(() => {
     if (typeof window === 'undefined') return;
-
     try {
       const stored = localStorage.getItem('todome-settings');
       if (stored) {
         const parsed = JSON.parse(stored) as Record<string, unknown>;
-        if (typeof parsed.notificationsEnabled === 'boolean') {
-          setNotificationsEnabled(parsed.notificationsEnabled);
-        }
-        if (typeof parsed.soundEnabled === 'boolean') {
-          setSoundEnabled(parsed.soundEnabled);
-        }
         if (typeof parsed.lastSyncTime === 'string') {
           setLastSyncTime(parsed.lastSyncTime);
         }
@@ -183,23 +167,6 @@ export const SettingsView = () => {
       // Ignore parse errors
     }
   }, []);
-
-  // Persist notification/sound settings to localStorage
-  const persistSettings = useCallback(
-    (updates: Record<string, unknown>) => {
-      if (typeof window === 'undefined') return;
-
-      try {
-        const stored = localStorage.getItem('todome-settings');
-        const current = stored ? (JSON.parse(stored) as Record<string, unknown>) : {};
-        const merged = { ...current, ...updates };
-        localStorage.setItem('todome-settings', JSON.stringify(merged));
-      } catch {
-        // Ignore storage errors
-      }
-    },
-    [],
-  );
 
   // Load user email from Supabase
   useEffect(() => {
@@ -226,23 +193,29 @@ export const SettingsView = () => {
   );
 
   const handleNotificationToggle = useCallback(
-    (enabled: boolean) => {
-      setNotificationsEnabled(enabled);
-      persistSettings({ notificationsEnabled: enabled });
-
-      if (enabled && typeof Notification !== 'undefined') {
-        Notification.requestPermission();
+    async (enabled: boolean) => {
+      if (enabled) {
+        const granted = await requestNotificationPermission();
+        if (!granted) return;
+        setNotificationsEnabled(true);
+        // Send test notification
+        sendNotification(
+          t('notification.test.title'),
+          t('notification.test.body'),
+          { sound: soundEnabled },
+        );
+      } else {
+        setNotificationsEnabled(false);
       }
     },
-    [persistSettings],
+    [setNotificationsEnabled, soundEnabled, t],
   );
 
   const handleSoundToggle = useCallback(
     (enabled: boolean) => {
       setSoundEnabled(enabled);
-      persistSettings({ soundEnabled: enabled });
     },
-    [persistSettings],
+    [setSoundEnabled],
   );
 
   const handleExportJSON = useCallback(() => {
@@ -259,13 +232,21 @@ export const SettingsView = () => {
       await queryClient.invalidateQueries();
       const now = new Date().toISOString();
       setLastSyncTime(now);
-      persistSettings({ lastSyncTime: now });
+      if (typeof window !== 'undefined') {
+        try {
+          const stored = localStorage.getItem('todome-settings');
+          const current = stored ? (JSON.parse(stored) as Record<string, unknown>) : {};
+          localStorage.setItem('todome-settings', JSON.stringify({ ...current, lastSyncTime: now }));
+        } catch {
+          // Ignore
+        }
+      }
     } catch {
       // Sync failed
     } finally {
       setIsSyncing(false);
     }
-  }, [queryClient, persistSettings]);
+  }, [queryClient]);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -277,36 +258,48 @@ export const SettingsView = () => {
     }
   }, []);
 
+  const fontSizeOptions = [
+    { value: 'small' as FontSize, label: t('settings.fontSize.small') },
+    { value: 'medium' as FontSize, label: t('settings.fontSize.medium') },
+    { value: 'large' as FontSize, label: t('settings.fontSize.large') },
+    { value: 'xlarge' as FontSize, label: t('settings.fontSize.xlarge') },
+  ];
+
+  const weekStartOptions = [
+    { value: 0 as CalendarWeekStart, label: t('settings.calendar.weekStart.sunday') },
+    { value: 1 as CalendarWeekStart, label: t('settings.calendar.weekStart.monday') },
+  ];
+
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 lg:px-8">
-      <h1 className="mb-8 text-2xl font-bold text-text-primary">設定</h1>
+      <h1 className="mb-8 text-2xl font-bold text-text-primary">{t('settings.title')}</h1>
 
       <div className="space-y-8">
         {/* Appearance */}
-        <SettingsSection title="外観" description="テーマやフォントサイズを変更します">
-          <SettingsRow label="テーマ">
+        <SettingsSection title={t('settings.appearance')} description={t('settings.appearance.description')}>
+          <SettingsRow label={t('settings.theme')}>
             <SegmentedControl<Theme>
               value={uiTheme}
               onChange={handleThemeChange}
               options={[
-                { value: 'light', label: 'ライト', icon: <Sun className="h-3.5 w-3.5" /> },
-                { value: 'dark', label: 'ダーク', icon: <Moon className="h-3.5 w-3.5" /> },
-                { value: 'system', label: 'システム', icon: <Monitor className="h-3.5 w-3.5" /> },
+                { value: 'light', label: t('settings.theme.light'), icon: <Sun className="h-3.5 w-3.5" /> },
+                { value: 'dark', label: t('settings.theme.dark'), icon: <Moon className="h-3.5 w-3.5" /> },
+                { value: 'system', label: t('settings.theme.system'), icon: <Monitor className="h-3.5 w-3.5" /> },
               ]}
             />
           </SettingsRow>
-          <SettingsRow label="フォントサイズ">
+          <SettingsRow label={t('settings.fontSize')}>
             <SegmentedControl<FontSize>
               value={fontSize}
               onChange={setFontSize}
-              options={FONT_SIZE_OPTIONS}
+              options={fontSizeOptions}
             />
           </SettingsRow>
         </SettingsSection>
 
         {/* Language */}
-        <SettingsSection title="言語" description="表示言語を選択します">
-          <SettingsRow label="言語">
+        <SettingsSection title={t('settings.language')} description={t('settings.language.description')}>
+          <SettingsRow label={t('settings.language.label')}>
             <SegmentedControl<Locale>
               value={locale}
               onChange={setLocale}
@@ -316,51 +309,51 @@ export const SettingsView = () => {
         </SettingsSection>
 
         {/* Notifications */}
-        <SettingsSection title="通知" description="通知とサウンドの設定">
+        <SettingsSection title={t('settings.notifications')} description={t('settings.notifications.description')}>
           <SettingsRow
-            label="通知"
-            description="リマインダーやイベントの通知を受け取ります"
+            label={t('settings.notifications.label')}
+            description={t('settings.notifications.detail')}
           >
             <ToggleSwitch
               checked={notificationsEnabled}
               onChange={handleNotificationToggle}
-              label="通知を有効にする"
+              label={t('settings.notifications.enable')}
             />
           </SettingsRow>
           <SettingsRow
-            label="サウンド"
-            description="通知音を鳴らします"
+            label={t('settings.sound')}
+            description={t('settings.sound.detail')}
           >
             <ToggleSwitch
               checked={soundEnabled}
               onChange={handleSoundToggle}
-              label="サウンドを有効にする"
+              label={t('settings.sound.enable')}
             />
           </SettingsRow>
         </SettingsSection>
 
         {/* Calendar */}
-        <SettingsSection title="カレンダー" description="カレンダーの表示設定">
-          <SettingsRow label="週の開始日">
+        <SettingsSection title={t('settings.calendar')} description={t('settings.calendar.description')}>
+          <SettingsRow label={t('settings.calendar.weekStart')}>
             <SegmentedControl<CalendarWeekStart>
               value={calendarWeekStart}
               onChange={setCalendarWeekStart}
-              options={WEEK_START_OPTIONS}
+              options={weekStartOptions}
             />
           </SettingsRow>
           <SubscriptionManager />
         </SettingsSection>
 
         {/* Shared Calendars */}
-        <SettingsSection title="共有カレンダー" description="他のユーザーとカレンダーを共有して予定を管理できます">
+        <SettingsSection title={t('settings.sharedCalendar')} description={t('settings.sharedCalendar.description')}>
           <SharedCalendarManager />
         </SettingsSection>
 
         {/* Data */}
-        <SettingsSection title="データ" description="データのエクスポートと同期">
+        <SettingsSection title={t('settings.data')} description={t('settings.data.description')}>
           <SettingsRow
-            label="JSONエクスポート"
-            description="すべてのデータをJSON形式でエクスポートします"
+            label={t('settings.data.jsonExport')}
+            description={t('settings.data.jsonExport.detail')}
           >
             <Button
               variant="secondary"
@@ -368,12 +361,12 @@ export const SettingsView = () => {
               onClick={handleExportJSON}
             >
               <FileJson className="h-4 w-4" />
-              エクスポート
+              {t('common.export')}
             </Button>
           </SettingsRow>
           <SettingsRow
-            label="Markdownエクスポート"
-            description="メモをMarkdown形式のZIPファイルでエクスポートします"
+            label={t('settings.data.markdownExport')}
+            description={t('settings.data.markdownExport.detail')}
           >
             <Button
               variant="secondary"
@@ -381,15 +374,15 @@ export const SettingsView = () => {
               onClick={handleExportMarkdown}
             >
               <FileText className="h-4 w-4" />
-              エクスポート
+              {t('common.export')}
             </Button>
           </SettingsRow>
           <SettingsRow
-            label="同期"
+            label={t('settings.data.sync')}
             description={
               lastSyncTime
-                ? `最終同期: ${new Date(lastSyncTime).toLocaleString('ja-JP')}`
-                : '未同期'
+                ? t('settings.data.sync.lastSync', { time: new Date(lastSyncTime).toLocaleString(locale === 'ja' ? 'ja-JP' : 'en-US') })
+                : t('settings.data.sync.notSynced')
             }
           >
             <Button
@@ -399,16 +392,16 @@ export const SettingsView = () => {
               loading={isSyncing}
             >
               <RefreshCw className={clsx('h-4 w-4', isSyncing && 'animate-spin')} />
-              同期する
+              {t('settings.data.sync.button')}
             </Button>
           </SettingsRow>
         </SettingsSection>
 
         {/* Account */}
-        <SettingsSection title="アカウント" description="アカウントの管理">
+        <SettingsSection title={t('settings.account')} description={t('settings.account.description')}>
           <SettingsRow
-            label="メールアドレス"
-            description={userEmail ?? '未ログイン'}
+            label={t('settings.account.email')}
+            description={userEmail ?? t('settings.account.notLoggedIn')}
           >
             <Button
               variant="danger"
@@ -416,7 +409,7 @@ export const SettingsView = () => {
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4" />
-              ログアウト
+              {t('settings.account.logout')}
             </Button>
           </SettingsRow>
         </SettingsSection>
