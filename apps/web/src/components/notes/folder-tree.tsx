@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useRef, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   ChevronRight,
   ChevronDown,
@@ -11,6 +12,7 @@ import {
   FileText,
   Pencil,
   Palette,
+  Plus,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useDroppable } from '@dnd-kit/core';
@@ -295,8 +297,18 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
         })}
       </div>
 
-      {/* Bottom items */}
+      {/* New folder + bottom items */}
       <div className="border-t border-border mt-2 pt-1 space-y-0.5">
+        {onNewFolder && (
+          <button
+            type="button"
+            className="w-full flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-bg-secondary transition-colors cursor-pointer text-text-secondary"
+            onClick={onNewFolder}
+          >
+            <Plus className="h-3.5 w-3.5 shrink-0" />
+            <span className="flex-1 text-left">新規フォルダ</span>
+          </button>
+        )}
         <button
           type="button"
           className={clsx(
@@ -316,8 +328,8 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
         </button>
       </div>
 
-      {/* Context menu */}
-      {contextMenu.visible && (
+      {/* Context menu — rendered via portal to escape stacking context */}
+      {contextMenu.visible && createPortal(
         <div
           ref={contextMenuRef}
           className="fixed bg-bg-primary border border-border rounded-lg shadow-lg z-50 py-1 w-44"
@@ -348,7 +360,8 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
             <Trash2 className="h-4 w-4" />
             削除
           </button>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
