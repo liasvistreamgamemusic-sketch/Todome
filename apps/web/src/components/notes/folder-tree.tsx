@@ -65,7 +65,10 @@ function FolderNode({
           isOver && 'bg-accent/10 ring-1 ring-accent/30',
         )}
         style={{ paddingLeft: `${8 + depth * 16}px` }}
-        onClick={() => onSelect(folder.id)}
+        onClick={() => {
+          onSelect(folder.id);
+          if (hasChildren && !isExpanded) onToggle(folder.id);
+        }}
         onContextMenu={(e) => onContextMenu(e, folder.id)}
       >
         {hasChildren ? (
@@ -245,9 +248,12 @@ export function FolderTree({ onNewFolder, onEditFolder }: FolderTreeProps) {
   const handleDeleteFolder = useCallback(() => {
     if (contextMenu.folderId) {
       deleteFolderMutation.mutate(contextMenu.folderId);
+      // Redirect to "all notes" after deletion
+      selectFolder(null);
+      setNoteFilter('active');
     }
     setContextMenu((s) => ({ ...s, visible: false }));
-  }, [contextMenu.folderId, deleteFolderMutation]);
+  }, [contextMenu.folderId, deleteFolderMutation, selectFolder, setNoteFilter]);
 
   const { isOver: isOverAll, setNodeRef: setAllRef } = useDroppable({ id: '__all__' });
 
