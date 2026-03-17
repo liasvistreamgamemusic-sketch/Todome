@@ -1,5 +1,6 @@
 'use client';
 
+import { deduplicateEvents } from '@/lib/dedup-events';
 import { useMemo } from 'react';
 import { clsx } from 'clsx';
 import {
@@ -98,7 +99,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
       })
       .map((e) => ({ ...e, provider: undefined, isShared: true }));
 
-    const allActiveEvents = [...activeLocal, ...activeExternal, ...activeShared];
+    const allActiveEvents = deduplicateEvents([...activeLocal, ...activeExternal, ...activeShared]);
 
     const activeTodos = allTodos.filter(
       (t: Todo) =>

@@ -1,5 +1,6 @@
 'use client';
 
+import { deduplicateEvents } from '@/lib/dedup-events';
 import { useState, useMemo, useCallback } from 'react';
 import { clsx } from 'clsx';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
@@ -11,6 +12,7 @@ import { useCalendarEvents, useDeleteCalendarEvent, useCalendarSubscriptions, us
 import { EventDetail } from './event-detail';
 import { ExternalEventDetail } from './external-event-detail';
 import { SharedEventDetail } from './shared-event-detail';
+import { DeleteEventDialog } from './delete-event-dialog';
 import { ProviderIcon } from './provider-icon';
 
 type Props = {
@@ -71,7 +73,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
         return eventStart <= dayE && eventEnd >= dayS;
       })
       .map((e) => ({ ...e, isExternal: false as const, isShared: true as const }));
-    return [...local, ...external, ...shared].sort(
+    return deduplicateEvents([...local, ...external, ...shared]).sort(
       (a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime(),
     );
   }, [events, externalEventsMap, sharedCalendarEvents, date, showPersonalCalendar, hiddenSharedCalendarIds]);
@@ -102,12 +104,15 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
     [allExternalEvents, sharedCalendarEvents, sharedCalendars],
   );
 
+  const [deleteTarget, setDeleteTarget] = useState<CalendarEvent | null>(null);
+
   const handleDelete = useCallback(
     (e: React.MouseEvent, eventId: string) => {
       e.stopPropagation();
-      deleteCalendarEvent.mutate(eventId);
+      const target = events.find((ev) => ev.id === eventId);
+      if (target) setDeleteTarget(target);
     },
-    [deleteCalendarEvent],
+    [events],
   );
 
   const handleBackToList = useCallback(() => {
@@ -286,6 +291,14 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
           </>
         )}
       </div>
+
+      {deleteTarget && (
+        <DeleteEventDialog
+          event={deleteTarget}
+          onClose={() => setDeleteTarget(null)}
+          onDeleted={() => setDeleteTarget(null)}
+        />
+      )}
     </>
   );
 };

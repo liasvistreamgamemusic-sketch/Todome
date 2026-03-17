@@ -24,7 +24,6 @@ import {
   useCalendarEvents,
   useCreateCalendarEvent,
   useUpdateCalendarEvent,
-  useDeleteCalendarEvent,
   useTodos,
   useNotes,
   useUserId,
@@ -33,6 +32,7 @@ import {
 } from '@/hooks/queries';
 import type { SharedCalendarEvent } from '@todome/db';
 import { Users } from 'lucide-react';
+import { DeleteEventDialog } from './delete-event-dialog';
 
 type Props = {
   eventId: string | null;
@@ -121,7 +121,6 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
   const { data: notes } = useNotes();
   const createCalendarEvent = useCreateCalendarEvent();
   const updateCalendarEvent = useUpdateCalendarEvent();
-  const deleteCalendarEvent = useDeleteCalendarEvent();
   const userId = useUserId();
   const selectEvent = useCalendarStore((s) => s.selectEvent);
   const { data: sharedCalendars = [] } = useSharedCalendars();
@@ -358,13 +357,19 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
     buildRepeatRule,
   ]);
 
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   const handleDelete = useCallback(() => {
     if (existingEvent) {
-      deleteCalendarEvent.mutate(existingEvent.id);
-      selectEvent(null);
-      onClose();
+      setShowDeleteDialog(true);
     }
-  }, [existingEvent, deleteCalendarEvent, selectEvent, onClose]);
+  }, [existingEvent]);
+
+  const handleDeleteConfirmed = useCallback(() => {
+    setShowDeleteDialog(false);
+    selectEvent(null);
+    onClose();
+  }, [selectEvent, onClose]);
 
   const toggleTodo = useCallback(
     (todoId: string) => {
@@ -833,6 +838,14 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
           </div>
         </div>
       </div>
+
+      {showDeleteDialog && existingEvent && (
+        <DeleteEventDialog
+          event={existingEvent}
+          onClose={() => setShowDeleteDialog(false)}
+          onDeleted={handleDeleteConfirmed}
+        />
+      )}
     </>
   );
 };

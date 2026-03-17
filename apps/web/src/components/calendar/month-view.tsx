@@ -1,5 +1,6 @@
 'use client';
 
+import { deduplicateEvents } from '@/lib/dedup-events';
 import { useMemo, useCallback, useRef } from 'react';
 import { clsx } from 'clsx';
 import {
@@ -109,7 +110,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
     const activeShared: MergedEvent[] = sharedEvents
       .filter((e) => !e.is_deleted && !hiddenSharedCalendarIds.has(e.shared_calendar_id))
       .map((e) => ({ ...e, provider: undefined, isShared: true }));
-    return [...activeLocal, ...activeExternal, ...activeShared];
+    return deduplicateEvents([...activeLocal, ...activeExternal, ...activeShared]);
   }, [events, externalEvents, sharedEvents, showPersonalCalendar, hiddenSharedCalendarIds]);
 
   // Dynamic event capacity based on measured cell height

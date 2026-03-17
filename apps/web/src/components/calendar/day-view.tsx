@@ -1,5 +1,6 @@
 'use client';
 
+import { deduplicateEvents } from '@/lib/dedup-events';
 import { useMemo, useCallback, useRef, useEffect, useState } from 'react';
 import { clsx } from 'clsx';
 import {
@@ -86,7 +87,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
     const shared: MergedEvent[] = sharedEvents
       .filter((e) => !e.is_deleted && !hiddenSharedCalendarIds.has(e.shared_calendar_id))
       .map((e) => ({ ...e, provider: undefined, isShared: true }));
-    return [...local, ...external, ...shared];
+    return deduplicateEvents([...local, ...external, ...shared]);
   }, [events, externalEvents, sharedEvents, showPersonalCalendar, hiddenSharedCalendarIds]);
 
   const allDayEvents = useMemo(() => {
