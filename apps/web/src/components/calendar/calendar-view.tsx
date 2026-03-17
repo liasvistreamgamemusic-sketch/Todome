@@ -159,46 +159,42 @@ export const CalendarView = () => {
   return (
     <div className="flex h-full flex-col bg-bg-primary">
       {/* Top bar */}
-      <div className="flex items-center gap-2 border-b border-[var(--border)] px-3 py-2 md:px-4">
-        <div className="flex min-w-0 items-center gap-2">
-          {/* Navigation */}
-          <IconButton
-            icon={<ChevronLeft />}
-            label={t('calendar.nav.prev')}
-            size="sm"
-            variant="ghost"
-            onClick={handlePrev}
-          />
-          <IconButton
-            icon={<ChevronRight />}
-            label={t('calendar.nav.next')}
-            size="sm"
-            variant="ghost"
-            onClick={handleNext}
-          />
+      <div className="border-b border-[var(--border)] px-3 py-2 md:px-4">
+        <div className="flex items-center gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            {/* Navigation */}
+            <IconButton
+              icon={<ChevronLeft />}
+              label={t('calendar.nav.prev')}
+              size="sm"
+              variant="ghost"
+              onClick={handlePrev}
+            />
+            <IconButton
+              icon={<ChevronRight />}
+              label={t('calendar.nav.next')}
+              size="sm"
+              variant="ghost"
+              onClick={handleNext}
+            />
 
-          <button
-            type="button"
-            onClick={handleToday}
-            className={clsx(
-              'shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium',
-              'border border-[var(--border)] text-text-secondary',
-              'hover:bg-bg-secondary transition-colors',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
-            )}
-          >
-            {t('calendar.nav.today')}
-          </button>
+            <button
+              type="button"
+              onClick={handleToday}
+              className={clsx(
+                'shrink-0 whitespace-nowrap rounded-md px-2.5 py-1 text-xs font-medium',
+                'border border-[var(--border)] text-text-secondary',
+                'hover:bg-bg-secondary transition-colors',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
+              )}
+            >
+              {t('calendar.nav.today')}
+            </button>
 
-          <CalendarSelector />
+            <CalendarSelector />
+          </div>
 
-          {/* Date display */}
-          <h1 className="ml-2 truncate text-base font-semibold text-text-primary">
-            {dateDisplay}
-          </h1>
-        </div>
-
-        <div className="ml-auto flex shrink-0 items-center gap-3">
+          <div className="ml-auto flex shrink-0 items-center gap-3">
           {/* View mode toggle */}
           <div className="flex rounded-lg border border-[var(--border)] overflow-hidden">
             {VIEW_MODES.map((mode) => (
@@ -224,7 +220,13 @@ export const CalendarView = () => {
             <Plus className="h-3.5 w-3.5" />
             <span className="hidden md:inline">{t('calendar.newEvent')}</span>
           </Button>
+          </div>
         </div>
+
+        {/* Date display */}
+        <h1 className="mt-1 text-base font-semibold text-text-primary">
+          {dateDisplay}
+        </h1>
       </div>
 
       {/* View content */}

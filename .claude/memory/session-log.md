@@ -1096,3 +1096,25 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-17T01:43:38Z
+
+- session_id: `FCA1D1E1-48A1-4554-8BD9-0A72B53D820A`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-17T01:39:43Z`
+- ended_at: `2026-03-17T01:43:38Z`
+- duration_minutes: 543
+- changes: 3
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/zippy-mixing-pelican.md`
+- `apps/web/src/components/calendar/calendar-view.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---
