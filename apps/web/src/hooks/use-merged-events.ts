@@ -44,7 +44,23 @@ export function useMergedEvents(): {
       }))
       .filter((d) => d.calendar != null);
 
-    return [...local, ...external, ...shared].sort((a, b) =>
+    // Deduplicate: when same event exists in personal + shared calendars,
+    // keep personal as primary and skip duplicates from shared.
+    const all = [...local, ...external, ...shared];
+    const seen = new Set<string>();
+    for (const d of local) {
+      const key = `${d.event.title}|${d.event.start_at}|${d.event.end_at}`;
+      seen.add(key);
+    }
+    const deduped = all.filter((d) => {
+      if (d.source !== 'shared') return true;
+      const key = `${d.event.title}|${d.event.start_at}|${d.event.end_at}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    return deduped.sort((a, b) =>
       a.event.start_at.localeCompare(b.event.start_at),
     );
   }, [localEvents, externalEventsMap, sharedEvents, sharedCalendars]);

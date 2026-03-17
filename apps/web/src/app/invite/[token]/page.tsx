@@ -46,11 +46,18 @@ export default function InvitePage() {
 
       const { data: calendar } = await (supabase
         .from('shared_calendars' as never)
-        .select('title')
+        .select('title, owner_id')
         .eq('id' as never, member.shared_calendar_id as never)
-        .single() as unknown as Promise<{ data: { title: string } | null; error: unknown }>);
+        .single() as unknown as Promise<{ data: { title: string; owner_id: string } | null; error: unknown }>);
 
       if (cancelled) return;
+
+      // Prevent owner from joining their own calendar
+      if (userId && calendar?.owner_id === userId) {
+        setError('自分が作成したカレンダーには参加できません');
+        setState('error');
+        return;
+      }
 
       setCalendarName(calendar?.title ?? '共有カレンダー');
       setState('ready');
@@ -58,7 +65,7 @@ export default function InvitePage() {
 
     void fetchInvite();
     return () => { cancelled = true; };
-  }, [token]);
+  }, [token, userId]);
 
   const handleAccept = () => {
     if (!userId) {

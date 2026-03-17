@@ -97,13 +97,24 @@ type InviteLinkButtonProps = {
 const InviteLinkButton = ({ calendarId }: InviteLinkButtonProps) => {
   const { t } = useTranslation();
   const createInvite = useCreateInvite();
-  const [inviteUrl, setInviteUrl] = useState<string | null>(null);
+  const { data: members = [] } = useSharedCalendarMembers(calendarId);
   const [copied, setCopied] = useState(false);
+
+  // Restore invite URL from existing pending member
+  const pendingMember = members.find(
+    (m) => m.status === 'pending' && !m.user_id,
+  );
+  const [generatedUrl, setGeneratedUrl] = useState<string | null>(null);
+
+  const inviteUrl = generatedUrl
+    ?? (pendingMember
+      ? `${typeof window !== 'undefined' ? window.location.origin : ''}/invite/${pendingMember.invite_token}`
+      : null);
 
   const handleGenerate = useCallback(async () => {
     const member = await createInvite.mutateAsync(calendarId);
     const url = `${window.location.origin}/invite/${member.invite_token}`;
-    setInviteUrl(url);
+    setGeneratedUrl(url);
   }, [calendarId, createInvite]);
 
   const handleCopy = useCallback(async () => {

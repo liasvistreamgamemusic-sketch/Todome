@@ -391,6 +391,28 @@ export async function claimInvite(
   token: string,
   userId: string,
 ): Promise<void> {
+  // Look up the pending invite
+  const { data: member } = await (supabase
+    .from('shared_calendar_members' as never)
+    .select('shared_calendar_id')
+    .eq('invite_token' as never, token as never)
+    .eq('status' as never, 'pending' as never)
+    .is('user_id' as never, null)
+    .single() as unknown as Promise<{ data: { shared_calendar_id: string } | null; error: unknown }>);
+
+  if (!member) throw new Error('Invalid or expired invite');
+
+  // Prevent owner from joining their own calendar
+  const { data: calendar } = await (supabase
+    .from('shared_calendars' as never)
+    .select('owner_id')
+    .eq('id' as never, member.shared_calendar_id as never)
+    .single() as unknown as Promise<{ data: { owner_id: string } | null; error: unknown }>);
+
+  if (calendar?.owner_id === userId) {
+    throw new Error('Cannot join your own calendar');
+  }
+
   const { error } = await supabase
     .from('shared_calendar_members')
     .update({ user_id: userId, status: 'active' } as never)
