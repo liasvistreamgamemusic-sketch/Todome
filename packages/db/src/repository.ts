@@ -374,6 +374,38 @@ export async function loadSharedCalendarMembers(
   return data as SharedCalendarMember[];
 }
 
+/** Load members for multiple shared calendars in a single query */
+export async function loadAllSharedCalendarMembers(
+  calendarIds: string[],
+): Promise<SharedCalendarMember[]> {
+  if (calendarIds.length === 0) return [];
+
+  const { data, error } = await supabase
+    .from('shared_calendar_members')
+    .select('*')
+    .in('shared_calendar_id', calendarIds)
+    .order('created_at');
+
+  if (error) throw error;
+  return data as SharedCalendarMember[];
+}
+
+/** Resolve user IDs to display names via Supabase auth */
+export async function getMemberDisplayNames(
+  userIds: string[],
+): Promise<Map<string, string>> {
+  const { data, error } = await (supabase.rpc as Function)(
+    'get_member_display_names',
+    { member_user_ids: userIds },
+  ) as { data: { user_id: string; display_name: string }[] | null; error: { message: string } | null };
+  const map = new Map<string, string>();
+  if (error || !data) return map;
+  for (const row of data) {
+    map.set(row.user_id, row.display_name);
+  }
+  return map;
+}
+
 export async function createInviteToken(
   calendarId: string,
 ): Promise<SharedCalendarMember> {

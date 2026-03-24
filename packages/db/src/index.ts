@@ -96,6 +96,8 @@ export {
   updateSharedCalendar,
   deleteSharedCalendar,
   loadSharedCalendarMembers,
+  loadAllSharedCalendarMembers,
+  getMemberDisplayNames,
   createInviteToken,
   claimInvite,
   removeSharedCalendarMember,

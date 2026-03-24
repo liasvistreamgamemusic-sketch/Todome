@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { clsx } from 'clsx';
 import { format } from 'date-fns';
@@ -20,6 +20,7 @@ import { WeekView } from './week-view';
 import { DayView } from './day-view';
 import { ListView } from './list-view';
 import { EventDetail } from './event-detail';
+import type { CopyableEventData } from './event-detail';
 import { ExternalEventDetail } from './external-event-detail';
 import { SharedEventDetail } from './shared-event-detail';
 import { DayEventsPanel } from './day-events-panel';
@@ -49,6 +50,7 @@ export const CalendarView = () => {
   const [sharedEvent, setSharedEvent] = useState<SharedCalendarEvent | null>(null);
   const [sharedEventCalendar, setSharedEventCalendar] = useState<SharedCalendar | undefined>(undefined);
   const [dayEventsDate, setDayEventsDate] = useState<Date | null>(null);
+  const [copyFormData, setCopyFormData] = useState<CopyableEventData | null>(null);
 
   const allExternalEvents = useSubscriptionStore((s) => s.allExternalEvents);
   const setEnabledIds = useSubscriptionStore((s) => s.setEnabledIds);
@@ -120,7 +122,26 @@ export const CalendarView = () => {
     setShowEventDetail(false);
     setEditEventId(null);
     setEventDetailInitialDate(undefined);
+    setCopyFormData(null);
     selectEvent(null);
+  }, [selectEvent]);
+
+  // Copy handler: close current detail → open new event form with copied data
+  const handleCopyEvent = useCallback((data: CopyableEventData) => {
+    // Close any open detail panels
+    setShowEventDetail(false);
+    setExternalEvent(null);
+    setExternalEventSub(undefined);
+    setSharedEvent(null);
+    setSharedEventCalendar(undefined);
+    selectEvent(null);
+    // Open new event form with copied data
+    setTimeout(() => {
+      setCopyFormData(data);
+      setEditEventId(null);
+      setEventDetailInitialDate(new Date());
+      setShowEventDetail(true);
+    }, 50);
   }, [selectEvent]);
 
   const router = useRouter();
@@ -264,7 +285,9 @@ export const CalendarView = () => {
           key={editEventId ?? 'new'}
           eventId={editEventId}
           initialDate={eventDetailInitialDate}
+          initialFormData={copyFormData ?? undefined}
           onClose={handleCloseEventDetail}
+          onCopy={editEventId ? handleCopyEvent : undefined}
         />
       )}
 
@@ -277,6 +300,7 @@ export const CalendarView = () => {
             setExternalEvent(null);
             setExternalEventSub(undefined);
           }}
+          onCopyToPersonal={handleCopyEvent}
         />
       )}
 
@@ -289,6 +313,7 @@ export const CalendarView = () => {
             setSharedEvent(null);
             setSharedEventCalendar(undefined);
           }}
+          onCopyToPersonal={handleCopyEvent}
         />
       )}
 
@@ -299,6 +324,8 @@ export const CalendarView = () => {
           date={dayEventsDate}
           onClose={handleCloseDayEvents}
           onSelectExternalEvent={handleSelectEvent}
+          onSelectEvent={handleSelectEvent}
+          onCreateEvent={handleCreateEvent}
         />
       )}
     </div>

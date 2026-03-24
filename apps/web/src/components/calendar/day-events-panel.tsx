@@ -4,42 +4,52 @@ import { deduplicateEvents } from '@/lib/dedup-events';
 import { useState, useMemo, useCallback } from 'react';
 import { clsx } from 'clsx';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
-import { X, Plus, ChevronLeft, Trash2 } from 'lucide-react';
+import { X, Plus, ChevronLeft, Trash2, Users } from 'lucide-react';
 import { useCalendarStore, useSubscriptionStore, useTranslation } from '@todome/store';
 import type { CalendarEvent, ExternalCalendarEvent, SharedCalendarEvent, SharedCalendar } from '@todome/db';
 import { Button } from '@todome/ui';
+import { useIsMobile } from '@todome/hooks';
 import { useCalendarEvents, useDeleteCalendarEvent, useCalendarSubscriptions, useSharedCalendarEvents, useSharedCalendars } from '@/hooks/queries';
+import { useMemberMap } from '@/hooks/use-member-map';
 import { EventDetail } from './event-detail';
+import type { CopyableEventData } from './event-detail';
 import { ExternalEventDetail } from './external-event-detail';
 import { SharedEventDetail } from './shared-event-detail';
 import { DeleteEventDialog } from './delete-event-dialog';
 import { ProviderIcon } from './provider-icon';
+import { MobileBottomSheet } from './mobile-bottom-sheet';
 
 type Props = {
   date: Date;
   onClose: () => void;
   onSelectExternalEvent: (event: { id: string }) => void;
+  /** Mobile: delegate event selection to parent CalendarView */
+  onSelectEvent?: (event: { id: string }) => void;
+  /** Mobile: delegate event creation to parent CalendarView */
+  onCreateEvent?: (date: Date) => void;
 };
 
 type PanelMode = 'list' | 'detail' | 'create' | 'external-detail' | 'shared-detail';
 
-export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) => {
+export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent, onSelectEvent, onCreateEvent }: Props) => {
   const { t } = useTranslation();
+  const isMobile = useIsMobile();
   const [mode, setMode] = useState<PanelMode>('list');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedExternalEvent, setSelectedExternalEvent] = useState<ExternalCalendarEvent | null>(null);
   const [selectedSharedEvent, setSelectedSharedEvent] = useState<SharedCalendarEvent | null>(null);
   const [selectedSharedCalendar, setSelectedSharedCalendar] = useState<SharedCalendar | undefined>(undefined);
+  const [copyFormData, setCopyFormData] = useState<Partial<CopyableEventData> | null>(null);
 
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
   const allExternalEvents = useSubscriptionStore((s) => s.allExternalEvents);
-  const deleteCalendarEvent = useDeleteCalendarEvent();
   const { data: subscriptions = [] } = useCalendarSubscriptions();
   const { data: sharedCalendarEvents = [] } = useSharedCalendarEvents();
   const { data: sharedCalendars = [] } = useSharedCalendars();
   const showPersonalCalendar = useCalendarStore((s) => s.showPersonalCalendar);
   const hiddenSharedCalendarIds = useCalendarStore((s) => s.hiddenSharedCalendarIds);
+  const memberMap = useMemberMap();
 
   const dayEvents = useMemo(() => {
     const dayS = startOfDay(date);
@@ -80,6 +90,13 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
 
   const handleSelectEvent = useCallback(
     (event: { id: string; isExternal: boolean; isShared: boolean }) => {
+      // Mobile: delegate to parent and close bottom sheet
+      if (isMobile && onSelectEvent) {
+        onClose();
+        setTimeout(() => onSelectEvent(event), 100);
+        return;
+      }
+      // Desktop: open detail within panel
       if (event.isExternal) {
         const full = allExternalEvents().find((e) => e.id === event.id);
         if (full) {
@@ -101,7 +118,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
       setSelectedEventId(event.id);
       setMode('detail');
     },
-    [allExternalEvents, sharedCalendarEvents, sharedCalendars],
+    [isMobile, onSelectEvent, onClose, allExternalEvents, sharedCalendarEvents, sharedCalendars],
   );
 
   const [deleteTarget, setDeleteTarget] = useState<CalendarEvent | null>(null);
@@ -120,20 +137,155 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
     setSelectedExternalEvent(null);
     setSelectedSharedEvent(null);
     setSelectedSharedCalendar(undefined);
+    setCopyFormData(null);
     setMode('list');
   }, []);
 
   const handleCreate = useCallback(() => {
+    // Mobile: delegate to parent
+    if (isMobile && onCreateEvent) {
+      onClose();
+      setTimeout(() => onCreateEvent(date), 100);
+      return;
+    }
     setSelectedEventId(null);
+    setCopyFormData(null);
     setMode('create');
-  }, []);
+  }, [isMobile, onCreateEvent, onClose, date]);
 
   const handleEventDetailClose = useCallback(() => {
     handleBackToList();
   }, [handleBackToList]);
 
+  // Copy handlers
+  const handleCopyFromDetail = useCallback((data: CopyableEventData) => {
+    setCopyFormData(data);
+    setSelectedEventId(null);
+    setMode('create');
+  }, []);
+
+  const handleCopyFromSharedOrExternal = useCallback((data: CopyableEventData) => {
+    setCopyFormData(data);
+    setMode('create');
+  }, []);
+
   const dateStr = format(date, 'yyyy\u5E74M\u6708d\u65E5\uFF08E\uFF09');
 
+  // --- Shared list content ---
+  const listContent = (
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
+        <h2 className="text-sm font-semibold text-text-primary">{dateStr}</h2>
+        {!isMobile && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-md hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
+            aria-label={t('common.close')}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
+      </div>
+
+      {/* Event list */}
+      <div className="flex-1 overflow-y-auto">
+        {dayEvents.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-text-tertiary">
+            <p className="text-sm">{t('calendar.noEvents')}</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-[var(--border)]">
+            {dayEvents.map((event) => {
+              const isShared = event.isShared;
+              const createdBy = isShared && 'created_by' in event ? (event as SharedCalendarEvent).created_by : undefined;
+              const memberInfo = createdBy ? memberMap.get(createdBy) : undefined;
+              const dotColor = memberInfo?.color ?? event.color ?? 'var(--accent)';
+
+              return (
+                <li key={event.id}>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectEvent(event)}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-bg-secondary transition-colors"
+                  >
+                    <span
+                      className="h-3 w-3 shrink-0 rounded-full"
+                      style={{ backgroundColor: dotColor }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-text-primary">
+                        {'provider' in event && event.provider && (
+                          <ProviderIcon provider={event.provider} size={12} className="mr-1 inline shrink-0" />
+                        )}
+                        {isShared && <Users className="mr-1 inline h-3 w-3 shrink-0 text-text-tertiary" />}
+                        {event.title}
+                      </p>
+                      <p className="text-xs text-text-secondary">
+                        {event.is_all_day
+                          ? t('calendar.allDay')
+                          : `${format(parseISO(event.start_at), 'H:mm')} - ${format(parseISO(event.end_at), 'H:mm')}`}
+                        {memberInfo && (
+                          <span className="ml-2 text-text-tertiary">
+                            {memberInfo.displayName}
+                          </span>
+                        )}
+                      </p>
+                      {'description' in event && event.description && (
+                        <p className="truncate text-xs text-text-tertiary">
+                          {event.description as string}
+                        </p>
+                      )}
+                    </div>
+                    {!event.isExternal && !event.isShared && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleDelete(e, event.id)}
+                        className="p-1.5 rounded-md text-text-tertiary hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 transition-colors"
+                        aria-label={t('common.delete')}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Footer: add new event */}
+      <div className="border-t border-[var(--border)] px-4 py-3">
+        <Button size="sm" onClick={handleCreate} className="w-full">
+          <Plus className="h-3.5 w-3.5" />
+          {t('calendar.addEvent')}
+        </Button>
+      </div>
+    </>
+  );
+
+  // --- Mobile: bottom sheet with list only ---
+  if (isMobile) {
+    return (
+      <>
+        <MobileBottomSheet isOpen onClose={onClose}>
+          <div className="flex h-full flex-col">{listContent}</div>
+        </MobileBottomSheet>
+
+        {deleteTarget && (
+          <DeleteEventDialog
+            event={deleteTarget}
+            onClose={() => setDeleteTarget(null)}
+            onDeleted={() => setDeleteTarget(null)}
+          />
+        )}
+      </>
+    );
+  }
+
+  // --- Desktop: right-slide panel with mode switching ---
   return (
     <>
       <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} aria-hidden="true" />
@@ -144,83 +296,10 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
           'shadow-xl animate-in slide-in-from-right duration-200',
         )}
       >
-        {mode === 'list' && (
-          <>
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-[var(--border)] px-4 py-3">
-              <h2 className="text-sm font-semibold text-text-primary">{dateStr}</h2>
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-1.5 rounded-md hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
-                aria-label={t('common.close')}
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Event list */}
-            <div className="flex-1 overflow-y-auto">
-              {dayEvents.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-16 text-text-tertiary">
-                  <p className="text-sm">{t('calendar.noEvents')}</p>
-                </div>
-              ) : (
-                <ul className="divide-y divide-[var(--border)]">
-                  {dayEvents.map((event) => (
-                    <li key={event.id}>
-                      <button
-                        type="button"
-                        onClick={() => handleSelectEvent(event)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-bg-secondary transition-colors"
-                      >
-                        <span
-                          className="h-3 w-3 shrink-0 rounded-full"
-                          style={{ backgroundColor: event.color ?? 'var(--accent)' }}
-                        />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-text-primary">
-                            {'provider' in event && event.provider && (
-                              <ProviderIcon provider={event.provider} size={12} className="mr-1 inline shrink-0" />
-                            )}
-                            {event.title}
-                          </p>
-                          <p className="text-xs text-text-secondary">
-                            {event.is_all_day
-                              ? t('calendar.allDay')
-                              : `${format(parseISO(event.start_at), 'H:mm')} - ${format(parseISO(event.end_at), 'H:mm')}`}
-                          </p>
-                        </div>
-                        {!event.isExternal && !event.isShared && (
-                          <button
-                            type="button"
-                            onClick={(e) => handleDelete(e, event.id)}
-                            className="p-1.5 rounded-md text-text-tertiary hover:text-[#D32F2F] hover:bg-[#D32F2F]/10 transition-colors"
-                            aria-label={t('common.delete')}
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Footer: add new event */}
-            <div className="border-t border-[var(--border)] px-4 py-3">
-              <Button size="sm" onClick={handleCreate} className="w-full">
-                <Plus className="h-3.5 w-3.5" />
-                {t('calendar.addEvent')}
-              </Button>
-            </div>
-          </>
-        )}
+        {mode === 'list' && listContent}
 
         {(mode === 'detail' || mode === 'create') && (
           <>
-            {/* Back button header */}
             <div className="flex items-center gap-2 border-b border-[var(--border)] px-4 py-3">
               <button
                 type="button"
@@ -237,7 +316,9 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
               <EventDetail
                 eventId={mode === 'detail' ? selectedEventId : null}
                 initialDate={date}
+                initialFormData={mode === 'create' && copyFormData ? copyFormData : undefined}
                 onClose={handleEventDetailClose}
+                onCopy={mode === 'detail' ? handleCopyFromDetail : undefined}
                 embedded
               />
             </div>
@@ -261,6 +342,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
               <ExternalEventDetail
                 event={selectedExternalEvent}
                 subscription={subscriptions.find((s) => s.id === selectedExternalEvent.subscription_id)}
+                onCopyToPersonal={handleCopyFromSharedOrExternal}
                 embedded
               />
             </div>
@@ -285,6 +367,7 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent }: Props) 
                 event={selectedSharedEvent}
                 calendar={selectedSharedCalendar}
                 onClose={handleBackToList}
+                onCopyToPersonal={handleCopyFromSharedOrExternal}
                 embedded
               />
             </div>

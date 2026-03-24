@@ -1118,3 +1118,39 @@
 - （必要に応じて追記）
 
 ---
+
+## セッション: 2026-03-24T05:48:53Z
+
+- session_id: `F336616B-1AEE-4DFA-B0AE-C564B6255922`
+- project: `Todome`
+- branch: `main`
+- started_at: `2026-03-24T05:22:36Z`
+- ended_at: `2026-03-24T05:48:53Z`
+- duration_minutes: 566
+- changes: 53
+
+### 変更ファイル
+- `/Users/nitandatomoya/.claude/plans/zany-tumbling-cherny.md`
+- `.claude/state/skills-decision.json`
+- `apps/web/src/lib/month-cell-capacity.ts`
+- `apps/web/src/components/calendar/month-view.tsx`
+- `supabase/migrations/008_member_display_names.sql`
+- `apps/web/src/components/calendar/mobile-bottom-sheet.tsx`
+- `packages/db/src/repository.ts`
+- `packages/db/src/index.ts`
+- `apps/web/src/hooks/queries/keys.ts`
+- `apps/web/src/components/calendar/event-detail.tsx`
+- `apps/web/src/hooks/use-member-map.ts`
+- `apps/web/src/components/calendar/external-event-detail.tsx`
+- `apps/web/src/components/calendar/list-view.tsx`
+- `apps/web/src/components/calendar/shared-event-detail.tsx`
+- `apps/web/src/components/calendar/day-events-panel.tsx`
+- `apps/web/src/components/calendar/calendar-view.tsx`
+
+### 重要な変更（important=true）
+- （なし）
+
+### 次回への引き継ぎ（任意）
+- （必要に応じて追記）
+
+---

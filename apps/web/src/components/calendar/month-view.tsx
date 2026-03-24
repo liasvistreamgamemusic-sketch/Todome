@@ -118,8 +118,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
   const weekCount = calendarDays.length / 7;
   const rowHeight = useGridRowHeight(gridRef, weekCount);
   const { maxVisibleEvents, maxAllDayLanes } = useMemo(
-    () => computeMonthCellCapacity(rowHeight),
-    [rowHeight],
+    () => computeMonthCellCapacity(rowHeight, isMobile),
+    [rowHeight, isMobile],
   );
 
   const weekSpanLayouts = useMemo(() => {
@@ -197,7 +197,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
       >
         {weekRows.map((weekDays, weekIdx) => {
           const layout = weekSpanLayouts[weekIdx]!;
-          const barHeight = 16;
+          const barHeight = 13;
           const barGap = 2;
           const reservedHeight = layout.laneCount * (barHeight + barGap);
 
@@ -229,7 +229,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                     type="button"
                     onClick={() => handleDateClick(day)}
                     className={clsx(
-                      'flex flex-col gap-0.5 border-b border-r border-[var(--border)] p-1 text-left',
+                      'flex flex-col gap-0.5 border-b border-r border-[var(--border)] p-0.5 md:p-1 text-left',
                       'transition-colors duration-100',
                       'hover:bg-bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]',
                       !inMonth && 'opacity-40',
@@ -241,7 +241,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                     <div className="flex items-center gap-1">
                       <span
                         className={clsx(
-                          'inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium',
+                          'inline-flex h-5 w-5 md:h-6 md:w-6 items-center justify-center rounded-full text-[10px] md:text-xs font-medium',
                           today && 'bg-[var(--accent)] text-white',
                           !today && isSunday && 'text-[#D32F2F]',
                           !today && isSaturday && 'text-[#4285F4]',
@@ -277,7 +277,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                             if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onSelectEvent(event); }
                           }}
                           className={clsx(
-                            'truncate rounded px-1 py-px text-[10px] leading-tight',
+                            'truncate rounded px-0.5 md:px-1 py-px text-[9px] md:text-[10px] leading-tight',
                             'cursor-pointer hover:opacity-80 transition-opacity',
                             'flex items-center gap-0.5',
                           )}
@@ -336,8 +336,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                         key={`${span.event.id}-${span.startCol}`}
                         className="absolute pointer-events-auto cursor-pointer hover:opacity-80 transition-opacity"
                         style={{
-                          left: `calc(${leftPct}% + 2px)`,
-                          width: `calc(${widthPct}% - 4px)`,
+                          left: `calc(${leftPct}% + ${isMobile ? 1 : 2}px)`,
+                          width: `calc(${widthPct}% - ${isMobile ? 2 : 4}px)`,
                           top: `${topPx}px`,
                           height: `${barHeight}px`,
                           backgroundColor: `${eventColor}30`,
@@ -353,7 +353,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                       >
                         <span
                           className={clsx(
-                            'flex items-center gap-0.5 truncate px-1 text-[10px] font-medium leading-[16px]',
+                            'flex items-center gap-0.5 truncate px-1 text-[9px] font-medium leading-[13px]',
                             span.isStart ? 'rounded-l' : '',
                             span.isEnd ? 'rounded-r' : '',
                           )}

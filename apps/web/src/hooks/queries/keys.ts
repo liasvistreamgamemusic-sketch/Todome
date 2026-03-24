@@ -23,6 +23,10 @@ export const queryKeys = {
     all: (userId: string) => ['sharedCalendars', userId] as const,
     members: (calendarId: string) =>
       ['sharedCalendars', 'members', calendarId] as const,
+    allMembers: (calendarIds: string[]) =>
+      ['sharedCalendars', 'allMembers', ...calendarIds] as const,
+    displayNames: (userIds: string[]) =>
+      ['sharedCalendars', 'displayNames', ...userIds] as const,
     events: (userId: string) => ['sharedCalendarEvents', userId] as const,
   },
 } as const;

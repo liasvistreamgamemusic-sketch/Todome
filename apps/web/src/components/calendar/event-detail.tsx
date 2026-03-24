@@ -6,6 +6,7 @@ import { format, parseISO, addHours, addMinutes } from 'date-fns';
 import {
   X,
   Trash2,
+  Copy,
   MapPin,
   Bell,
   Repeat,
@@ -34,10 +35,22 @@ import type { SharedCalendarEvent } from '@todome/db';
 import { Users } from 'lucide-react';
 import { DeleteEventDialog } from './delete-event-dialog';
 
+export type CopyableEventData = {
+  title: string;
+  description: string;
+  location: string;
+  color: string | null;
+  isAllDay: boolean;
+  startTime: string;
+  endTime: string;
+};
+
 type Props = {
   eventId: string | null;
   initialDate?: Date;
+  initialFormData?: Partial<FormState>;
   onClose: () => void;
+  onCopy?: (data: CopyableEventData) => void;
   embedded?: boolean;
 };
 
@@ -95,7 +108,7 @@ const computeRemindAt = (
   }
 };
 
-export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }: Props) => {
+export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, onCopy, embedded = false }: Props) => {
   const { t } = useTranslation();
 
   const REMINDER_OPTIONS = useMemo<{ label: string; value: string | null }[]>(() => [
@@ -164,20 +177,20 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
       };
     }
     return {
-      title: '',
+      title: initialFormData?.title ?? '',
       startDate: format(defaultStart, 'yyyy-MM-dd'),
-      startTime: format(defaultStart, 'HH:mm'),
+      startTime: initialFormData?.startTime ?? format(defaultStart, 'HH:mm'),
       endDate: format(defaultEnd, 'yyyy-MM-dd'),
-      endTime: format(defaultEnd, 'HH:mm'),
-      isAllDay: false,
-      location: '',
-      description: '',
-      color: null,
+      endTime: initialFormData?.endTime ?? format(defaultEnd, 'HH:mm'),
+      isAllDay: initialFormData?.isAllDay ?? false,
+      location: initialFormData?.location ?? '',
+      description: initialFormData?.description ?? '',
+      color: initialFormData?.color ?? null,
       reminder: null,
       repeat: 'none',
       customWeekdays: [false, false, false, false, false, false, false],
       customDayOfMonth: 1,
-      repeatEndType: 'never',
+      repeatEndType: 'never' as RepeatEndType,
       repeatCount: 10,
       repeatUntil: format(addHours(new Date(), 24 * 365), 'yyyy-MM-dd'),
       linkedTodoIds: [],
@@ -370,6 +383,19 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
     selectEvent(null);
     onClose();
   }, [selectEvent, onClose]);
+
+  const handleCopy = useCallback(() => {
+    if (!onCopy) return;
+    onCopy({
+      title: form.title,
+      description: form.description,
+      location: form.location,
+      color: form.color,
+      isAllDay: form.isAllDay,
+      startTime: form.startTime,
+      endTime: form.endTime,
+    });
+  }, [onCopy, form]);
 
   const toggleTodo = useCallback(
     (todoId: string) => {
@@ -820,6 +846,12 @@ export const EventDetail = ({ eventId, initialDate, onClose, embedded = false }:
               <Button variant="danger" size="sm" onClick={handleDelete}>
                 <Trash2 className="h-3.5 w-3.5" />
                 削除
+              </Button>
+            )}
+            {isEditing && onCopy && (
+              <Button variant="ghost" size="sm" onClick={handleCopy}>
+                <Copy className="h-3.5 w-3.5" />
+                コピー
               </Button>
             )}
           </div>

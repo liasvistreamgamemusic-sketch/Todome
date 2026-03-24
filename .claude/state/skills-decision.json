@@ -1,10 +1,11 @@
 {
   "decision": "no-skill",
-  "reason": "Multiple UI/editor improvements: list height reduction, toolbar refactor, recording feature, D&D enhancements. Direct implementation is more efficient than any skill workflow.",
+  "reason": "6 calendar feature improvements (copy, member ID, description display, all-day layout, mobile compact, bottom sheet). Direct parallel implementation with subagents is most efficient.",
   "evaluated_skills": [
     "claude-code-harness:impl",
     "claude-code-harness:ui",
-    "feature-dev:feature-dev"
+    "feature-dev:feature-dev",
+    "frontend-design:frontend-design"
   ],
-  "timestamp": "2026-03-06"
+  "timestamp": "2026-03-24"
 }

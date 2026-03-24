@@ -6,6 +6,7 @@ import { format, parseISO, addHours, addMinutes } from 'date-fns';
 import {
   X,
   Trash2,
+  Copy,
   MapPin,
   Clock,
   FileText,
@@ -13,6 +14,7 @@ import {
   Palette,
 } from 'lucide-react';
 import type { SharedCalendarEvent, SharedCalendar } from '@todome/db';
+import type { CopyableEventData } from './event-detail';
 import { Button } from '@todome/ui';
 import { Input } from '@todome/ui';
 import { Textarea } from '@todome/ui';
@@ -22,11 +24,13 @@ import {
   useUpdateSharedCalendarEvent,
   useDeleteSharedCalendarEvent,
 } from '@/hooks/queries';
+import { useMemberMap } from '@/hooks/use-member-map';
 
 type Props = {
   event: SharedCalendarEvent;
   calendar: SharedCalendar | undefined;
   onClose: () => void;
+  onCopyToPersonal?: (data: CopyableEventData) => void;
   embedded?: boolean;
 };
 
@@ -53,15 +57,33 @@ type FormState = {
   color: string | null;
 };
 
-export const SharedEventDetail = ({ event, calendar, onClose, embedded = false }: Props) => {
+export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, embedded = false }: Props) => {
   const userId = useUserId();
   const updateSharedEvent = useUpdateSharedCalendarEvent();
   const deleteSharedEvent = useDeleteSharedCalendarEvent();
+
+  const memberMap = useMemberMap();
+  const creatorInfo = memberMap.get(event.created_by);
 
   const canEdit = useMemo(
     () => !!userId && (event.created_by === userId || calendar?.owner_id === userId),
     [userId, event.created_by, calendar?.owner_id],
   );
+
+  const handleCopy = useCallback(() => {
+    if (!onCopyToPersonal) return;
+    const s = parseISO(event.start_at);
+    const e = parseISO(event.end_at);
+    onCopyToPersonal({
+      title: event.title,
+      description: event.description ?? '',
+      location: event.location ?? '',
+      color: event.color,
+      isAllDay: event.is_all_day,
+      startTime: format(s, 'HH:mm'),
+      endTime: format(e, 'HH:mm'),
+    });
+  }, [onCopyToPersonal, event]);
 
   const startDate = parseISO(event.start_at);
   const endDate = parseISO(event.end_at);
@@ -157,6 +179,16 @@ export const SharedEventDetail = ({ event, calendar, onClose, embedded = false }
           )}
         </div>
 
+        {creatorInfo && (
+          <div className="flex items-center gap-2 text-sm text-text-secondary">
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: creatorInfo.color }}
+            />
+            <span className="text-xs">作成者: {creatorInfo.displayName}</span>
+          </div>
+        )}
+
         {/* Date & Time */}
         <div className="flex items-center gap-2 text-sm text-text-primary">
           <Clock className="h-4 w-4 shrink-0 text-text-tertiary" />
@@ -178,6 +210,15 @@ export const SharedEventDetail = ({ event, calendar, onClose, embedded = false }
             <p className="whitespace-pre-wrap break-words text-text-secondary">
               {event.description}
             </p>
+          </div>
+        )}
+
+        {onCopyToPersonal && (
+          <div className="pt-2">
+            <Button variant="ghost" size="sm" onClick={handleCopy} className="w-full">
+              <Copy className="h-3.5 w-3.5" />
+              個人にコピー
+            </Button>
           </div>
         )}
       </div>
@@ -261,6 +302,16 @@ export const SharedEventDetail = ({ event, calendar, onClose, embedded = false }
               />
             )}
           </div>
+
+          {creatorInfo && (
+            <div className="flex items-center gap-2 text-sm text-text-secondary">
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: creatorInfo.color }}
+              />
+              <span className="text-xs">作成者: {creatorInfo.displayName}</span>
+            </div>
+          )}
 
           {/* Title */}
           <Input
@@ -357,11 +408,17 @@ export const SharedEventDetail = ({ event, calendar, onClose, embedded = false }
 
         {/* Footer */}
         <div className="flex items-center justify-between border-t border-[var(--border)] px-5 py-3">
-          <div>
+          <div className="flex gap-2">
             <Button variant="danger" size="sm" onClick={handleDelete}>
               <Trash2 className="h-3.5 w-3.5" />
               削除
             </Button>
+            {onCopyToPersonal && (
+              <Button variant="ghost" size="sm" onClick={handleCopy}>
+                <Copy className="h-3.5 w-3.5" />
+                コピー
+              </Button>
+            )}
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={onClose}>

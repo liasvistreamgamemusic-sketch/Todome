@@ -1,18 +1,21 @@
 'use client';
 
 import { format, parseISO } from 'date-fns';
-import { X, MapPin, Clock, FileText } from 'lucide-react';
+import { X, MapPin, Clock, FileText, Copy } from 'lucide-react';
 import type { ExternalCalendarEvent, CalendarSubscription } from '@todome/db';
+import { Button } from '@todome/ui';
+import type { CopyableEventData } from './event-detail';
 import { ProviderIcon } from './provider-icon';
 
 type Props = {
   event: ExternalCalendarEvent;
   subscription: CalendarSubscription | undefined;
   onClose?: () => void;
+  onCopyToPersonal?: (data: CopyableEventData) => void;
   embedded?: boolean;
 };
 
-export const ExternalEventDetail = ({ event, subscription, onClose, embedded }: Props) => {
+export const ExternalEventDetail = ({ event, subscription, onClose, onCopyToPersonal, embedded }: Props) => {
   const startDate = parseISO(event.start_at);
   const endDate = parseISO(event.end_at);
 
@@ -21,6 +24,19 @@ export const ExternalEventDetail = ({ event, subscription, onClose, embedded }: 
     : `${format(startDate, 'H:mm')} - ${format(endDate, 'H:mm')}`;
 
   const dateText = format(startDate, 'yyyy年M月d日');
+
+  const handleCopy = () => {
+    if (!onCopyToPersonal) return;
+    onCopyToPersonal({
+      title: event.title,
+      description: event.description ?? '',
+      location: event.location ?? '',
+      color: event.color,
+      isAllDay: event.is_all_day,
+      startTime: format(startDate, 'HH:mm'),
+      endTime: format(endDate, 'HH:mm'),
+    });
+  };
 
   const body = (
     <div className="space-y-4 px-5 py-4">
@@ -53,6 +69,15 @@ export const ExternalEventDetail = ({ event, subscription, onClose, embedded }: 
           <p className="whitespace-pre-wrap break-words text-text-secondary">
             {event.description}
           </p>
+        </div>
+      )}
+
+      {onCopyToPersonal && (
+        <div className="pt-2">
+          <Button variant="ghost" size="sm" onClick={handleCopy} className="w-full">
+            <Copy className="h-3.5 w-3.5" />
+            個人にコピー
+          </Button>
         </div>
       )}
     </div>

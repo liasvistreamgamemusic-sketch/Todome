@@ -31,6 +31,7 @@ type MergedEvent = {
   is_all_day: boolean;
   color: string | null;
   location?: string | null;
+  description?: string | null;
   provider?: CalendarProvider;
   isShared?: boolean;
 };
@@ -283,6 +284,9 @@ const EventListItem = ({
               </span>
             )}
           </div>
+          {event.description && (
+            <p className="truncate text-xs text-text-tertiary">{event.description}</p>
+          )}
         </div>
       </button>
     </li>
