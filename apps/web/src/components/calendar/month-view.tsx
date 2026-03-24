@@ -127,6 +127,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
     return weekRows.map((weekDays) => computeAllDayLayout(weekDays, allDayEvents, maxAllDayLanes));
   }, [weekRows, allActiveEvents, maxAllDayLanes]);
 
+  // On mobile: all events (including all-day) as flat pills per date
+  // On desktop: only timed events here (all-day events handled by spanning bars)
   const timedEventsByDate = useMemo(() => {
     const map = new Map<string, MergedEvent[]>();
     for (const day of calendarDays) {
@@ -134,15 +136,23 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
       const dayS = startOfDay(day);
       const dayE = endOfDay(day);
       const dayEvents = allActiveEvents.filter((e) => {
-        if (e.is_all_day) return false;
+        if (!isMobile && e.is_all_day) return false; // desktop: skip all-day (handled by spanning bars)
         const eventStart = parseISO(e.start_at);
         const eventEnd = parseISO(e.end_at);
         return eventStart <= dayE && eventEnd >= dayS;
       });
+      if (isMobile) {
+        // Sort: all-day first, then by start time
+        dayEvents.sort((a, b) => {
+          if (a.is_all_day && !b.is_all_day) return -1;
+          if (!a.is_all_day && b.is_all_day) return 1;
+          return a.start_at.localeCompare(b.start_at);
+        });
+      }
       if (dayEvents.length > 0) map.set(dateKey, dayEvents);
     }
     return map;
-  }, [allActiveEvents, calendarDays]);
+  }, [allActiveEvents, calendarDays, isMobile]);
 
   const todosWithDueDate = useMemo(() => {
     const map = new Map<string, number>();
@@ -199,7 +209,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
           const layout = weekSpanLayouts[weekIdx]!;
           const barHeight = 13;
           const barGap = 2;
-          const reservedHeight = layout.laneCount * (barHeight + barGap);
+          // On mobile: no spanning bars, so no reserved height
+          const reservedHeight = isMobile ? 0 : layout.laneCount * (barHeight + barGap);
 
           return (
             <div key={weekIdx} className="relative grid grid-cols-7">
@@ -217,9 +228,11 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                 const isSunday = dayOfWeek === 0;
                 const isSaturday = dayOfWeek === 6;
 
-                // For overflow: count all events (spanning + timed) minus visible
-                const allDayOverflow = layout.overflowByCol[colIdx] ?? 0;
-                const maxTimedVisible = Math.max(0, maxVisibleEvents - layout.laneCount);
+                // For overflow: count all events minus visible
+                const allDayOverflow = isMobile ? 0 : (layout.overflowByCol[colIdx] ?? 0);
+                const maxTimedVisible = isMobile
+                  ? maxVisibleEvents  // mobile: all space for pills (no spanning bar lanes)
+                  : Math.max(0, maxVisibleEvents - layout.laneCount);
                 const visibleTimed = timedEvents.slice(0, maxTimedVisible);
                 const totalOverflow = allDayOverflow + Math.max(0, timedEvents.length - maxTimedVisible);
 
@@ -272,9 +285,9 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                           key={event.id}
                           role="button"
                           tabIndex={0}
-                          onClick={(e) => { e.stopPropagation(); onSelectEvent(event); }}
+                          onClick={(e) => { e.stopPropagation(); isMobile ? onShowDayEvents(day) : onSelectEvent(event); }}
                           onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); onSelectEvent(event); }
+                            if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); isMobile ? onShowDayEvents(day) : onSelectEvent(event); }
                           }}
                           className={clsx(
                             'truncate rounded px-0.5 md:px-1 py-px text-[9px] md:text-[10px] leading-tight',
@@ -288,7 +301,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                         >
                           {event.provider && <ProviderIcon provider={event.provider} size={8} className="shrink-0" />}
                           {event.isShared && <Users className="h-2 w-2 shrink-0" />}
-                          <span className="truncate">{isMobile ? event.title : `${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}</span>
+                          <span className="truncate">{isMobile ? (event.is_all_day ? `■ ${event.title}` : event.title) : `${format(parseISO(event.start_at), 'H:mm')} ${event.title}`}</span>
                         </div>
                       ))}
                       {totalOverflow > 0 && (
@@ -319,8 +332,8 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                 );
               })}
 
-              {/* Spanning all-day bars overlay */}
-              {layout.spans.length > 0 && (
+              {/* Spanning all-day bars overlay (desktop only) */}
+              {!isMobile && layout.spans.length > 0 && (
                 <div
                   className="absolute left-0 right-0 pointer-events-none"
                   style={{ top: '28px' }}

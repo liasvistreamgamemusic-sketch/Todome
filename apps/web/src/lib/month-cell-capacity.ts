@@ -25,10 +25,17 @@ export function computeMonthCellCapacity(cellHeight: number, isMobile = false): 
     return { maxAllDayLanes: 1, maxVisibleEvents: 2 };
   }
 
-  const mobileAllDayLaneHeight = 13; // barHeight(11) + barGap(2)
-  const mobileTimedEventHeight = 13;
-  const allDayLaneH = isMobile ? mobileAllDayLaneHeight : ALL_DAY_LANE_HEIGHT;
-  const timedEventH = isMobile ? mobileTimedEventHeight : TIMED_EVENT_HEIGHT;
+  // On mobile: no spanning all-day bars, all events rendered as pills
+  // so maxAllDayLanes=0 and all space goes to event pills
+  if (isMobile) {
+    const mobilePadding = 4; // p-0.5 = 2px top + 2px bottom
+    const mobileHeaderHeight = 24; // smaller date circle
+    const mobileEventHeight = 13;
+    const available = cellHeight - mobileHeaderHeight - mobilePadding - OVERFLOW_LINK_HEIGHT;
+    if (available <= 0) return { maxAllDayLanes: 0, maxVisibleEvents: 0 };
+    const slots = Math.max(1, Math.floor(available / mobileEventHeight));
+    return { maxAllDayLanes: 0, maxVisibleEvents: slots };
+  }
 
   const fixedOverhead = DATE_HEADER_HEIGHT + CELL_PADDING_VERTICAL;
   const available = cellHeight - fixedOverhead - OVERFLOW_LINK_HEIGHT;
@@ -38,15 +45,15 @@ export function computeMonthCellCapacity(cellHeight: number, isMobile = false): 
   }
 
   // Start with minimum all-day lanes
-  const allDayBaseHeight = MIN_ALL_DAY_LANES * allDayLaneH;
+  const allDayBaseHeight = MIN_ALL_DAY_LANES * ALL_DAY_LANE_HEIGHT;
   const remainingForTimed = available - allDayBaseHeight;
 
-  const timedSlots = Math.max(1, Math.floor(remainingForTimed / timedEventH));
+  const timedSlots = Math.max(1, Math.floor(remainingForTimed / TIMED_EVENT_HEIGHT));
 
   // Allocate surplus space to extra all-day lanes
-  const usedByTimed = timedSlots * timedEventH;
+  const usedByTimed = timedSlots * TIMED_EVENT_HEIGHT;
   const surplus = available - allDayBaseHeight - usedByTimed;
-  const extraLanes = Math.max(0, Math.floor(surplus / allDayLaneH));
+  const extraLanes = Math.max(0, Math.floor(surplus / ALL_DAY_LANE_HEIGHT));
   const finalAllDayLanes = Math.min(MIN_ALL_DAY_LANES + extraLanes, MAX_ALL_DAY_LANES_CAP);
 
   return {
