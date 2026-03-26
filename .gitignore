@@ -37,4 +37,7 @@ coverage/
 sw.js
 workbox-*.js
 
-.claude/
+# Claude Code (track settings and commands, ignore state/memory)
+.claude/state/
+.claude/memory/
+.claude/plans/
