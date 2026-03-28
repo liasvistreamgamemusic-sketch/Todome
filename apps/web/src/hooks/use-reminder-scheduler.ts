@@ -19,11 +19,12 @@ export function useReminderScheduler(): void {
 
   useEffect(() => {
     if (!notificationsEnabled || !userId) return;
+    const uid = userId;
 
     function check(): void {
       const now = new Date();
 
-      const todos = queryClient.getQueryData<Todo[]>(queryKeys.todos.all(userId));
+      const todos = queryClient.getQueryData<Todo[]>(queryKeys.todos.all(uid));
       if (todos) {
         for (const todo of todos) {
           const key = `todo-${todo.id}`;
@@ -42,7 +43,7 @@ export function useReminderScheduler(): void {
         }
       }
 
-      const events = queryClient.getQueryData<CalendarEvent[]>(queryKeys.calendarEvents.all(userId));
+      const events = queryClient.getQueryData<CalendarEvent[]>(queryKeys.calendarEvents.all(uid));
       if (events) {
         for (const event of events) {
           const key = `event-${event.id}`;
