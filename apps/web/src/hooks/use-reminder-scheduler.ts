@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react';
 import { useUiStore } from '@todome/store';
 import { useQueryClient } from '@tanstack/react-query';
+import { useUserId } from '@/hooks/queries';
+import { queryKeys } from '@/hooks/queries/keys';
 import { sendNotification } from '@/lib/notifications';
 import type { Todo, CalendarEvent } from '@todome/store';
 
@@ -12,15 +14,16 @@ export function useReminderScheduler(): void {
   const notificationsEnabled = useUiStore((s) => s.notificationsEnabled);
   const soundEnabled = useUiStore((s) => s.soundEnabled);
   const queryClient = useQueryClient();
+  const userId = useUserId();
   const notifiedIds = useRef(new Set<string>());
 
   useEffect(() => {
-    if (!notificationsEnabled) return;
+    if (!notificationsEnabled || !userId) return;
 
     function check(): void {
       const now = new Date();
 
-      const todos = queryClient.getQueryData<Todo[]>(['todos']);
+      const todos = queryClient.getQueryData<Todo[]>(queryKeys.todos.all(userId));
       if (todos) {
         for (const todo of todos) {
           const key = `todo-${todo.id}`;
@@ -39,14 +42,15 @@ export function useReminderScheduler(): void {
         }
       }
 
-      const events = queryClient.getQueryData<CalendarEvent[]>(['calendarEvents']);
+      const events = queryClient.getQueryData<CalendarEvent[]>(queryKeys.calendarEvents.all(userId));
       if (events) {
         for (const event of events) {
           const key = `event-${event.id}`;
           if (
             event.remind_at &&
             !notifiedIds.current.has(key) &&
-            new Date(event.remind_at) <= now
+            new Date(event.remind_at) <= now &&
+            !event.is_deleted
           ) {
             notifiedIds.current.add(key);
             sendNotification(
@@ -62,5 +66,5 @@ export function useReminderScheduler(): void {
     check();
     const intervalId = setInterval(check, INTERVAL_MS);
     return () => clearInterval(intervalId);
-  }, [notificationsEnabled, soundEnabled, queryClient]);
+  }, [notificationsEnabled, soundEnabled, queryClient, userId]);
 }
