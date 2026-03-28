@@ -7,12 +7,14 @@ import { clsx } from 'clsx';
 type Props = {
   value: string[];
   onChange: (gratitude: string[]) => void;
+  onCompositionStart?: () => void;
+  onCompositionEnd?: () => void;
 };
 
 const MAX_ITEMS = 10;
 const DEFAULT_SLOTS = 3;
 
-export function DiaryGratitude({ value, onChange }: Props) {
+export function DiaryGratitude({ value, onChange, onCompositionStart, onCompositionEnd }: Props) {
   const slots = Math.max(DEFAULT_SLOTS, value.length);
 
   const handleChange = useCallback(
@@ -52,6 +54,8 @@ export function DiaryGratitude({ value, onChange }: Props) {
               type="text"
               value={value[i] ?? ''}
               onChange={(e) => handleChange(i, e.target.value)}
+              onCompositionStart={onCompositionStart}
+              onCompositionEnd={onCompositionEnd}
               placeholder="今日感謝したこと..."
               className={clsx(
                 'flex-1 text-sm bg-transparent border-b border-[var(--border)] outline-none',

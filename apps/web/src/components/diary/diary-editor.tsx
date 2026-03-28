@@ -82,23 +82,28 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevDiaryIdRef = useRef<string>(diaryId);
-  const lastLocalSaveAtRef = useRef<string | null>(null);
+  const pendingSaveTimestampsRef = useRef<Set<string>>(new Set());
   const lastSyncedAtRef = useRef<string | null>(null);
+  const isComposingRef = useRef(false);
 
   // Sync local state when diaryId changes or remote data arrives
   useEffect(() => {
     if (prevDiaryIdRef.current !== diaryId) {
       prevDiaryIdRef.current = diaryId;
-      lastLocalSaveAtRef.current = null;
+      pendingSaveTimestampsRef.current.clear();
       lastSyncedAtRef.current = null;
     }
     if (!diary) return;
 
     if (diary.updated_at === lastSyncedAtRef.current) return;
-    if (diary.updated_at === lastLocalSaveAtRef.current) {
+    if (pendingSaveTimestampsRef.current.has(diary.updated_at)) {
+      pendingSaveTimestampsRef.current.delete(diary.updated_at);
       lastSyncedAtRef.current = diary.updated_at;
       return;
     }
+
+    // Skip state reset during IME composition to prevent breaking input
+    if (isComposingRef.current) return;
 
     if (saveTimerRef.current) {
       clearTimeout(saveTimerRef.current);
@@ -129,12 +134,15 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
       saveTimerRef.current = setTimeout(() => {
         const now = new Date().toISOString();
         const fullPatch = { ...patch, updated_at: now };
-        lastLocalSaveAtRef.current = now;
+        pendingSaveTimestampsRef.current.add(now);
         updateDiaryMutation.mutate(
           { id: diaryId, patch: fullPatch },
           {
             onSuccess: () => setSaveStatus('saved'),
-            onError: () => setSaveStatus('error'),
+            onError: () => {
+              pendingSaveTimestampsRef.current.delete(now);
+              setSaveStatus('error');
+            },
           },
         );
       }, 500);
@@ -174,11 +182,36 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
     [debouncedSave],
   );
 
+  const handleCompositionStart = useCallback(() => {
+    isComposingRef.current = true;
+  }, []);
+
+  const handleCompositionEnd = useCallback(
+    (e: React.CompositionEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+      isComposingRef.current = false;
+      // Some browsers (Chrome) fire compositionend after onChange,
+      // so trigger save with the final composed value
+      const target = e.target as HTMLTextAreaElement | HTMLInputElement;
+      const text = target.value;
+      const name = target.dataset.field;
+      if (name === 'events') {
+        setEventsText(text);
+        debouncedSave({ events_text: plainTextToTiptap(text) });
+      } else if (name === 'summary') {
+        setSummaryText(text);
+        debouncedSave({ summary: plainTextToTiptap(text) });
+      }
+    },
+    [debouncedSave],
+  );
+
   const handleEventsTextChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const text = e.target.value;
       setEventsText(text);
-      debouncedSave({ events_text: plainTextToTiptap(text) });
+      if (!isComposingRef.current) {
+        debouncedSave({ events_text: plainTextToTiptap(text) });
+      }
     },
     [debouncedSave],
   );
@@ -187,7 +220,9 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const text = e.target.value;
       setSummaryText(text);
-      debouncedSave({ summary: plainTextToTiptap(text) });
+      if (!isComposingRef.current) {
+        debouncedSave({ summary: plainTextToTiptap(text) });
+      }
     },
     [debouncedSave],
   );
@@ -346,6 +381,9 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
             <textarea
               value={eventsText}
               onChange={handleEventsTextChange}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
+              data-field="events"
               placeholder={t('diary.placeholder')}
               rows={6}
               className="w-full resize-y rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors"
@@ -353,7 +391,12 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
           </div>
 
           {/* Gratitude */}
-          <DiaryGratitude value={gratitude} onChange={handleGratitudeChange} />
+          <DiaryGratitude
+            value={gratitude}
+            onChange={handleGratitudeChange}
+            onCompositionStart={handleCompositionStart}
+            onCompositionEnd={() => { isComposingRef.current = false; }}
+          />
 
           {/* Divider */}
           <div className="border-t border-border" />
@@ -364,6 +407,9 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
             <textarea
               value={summaryText}
               onChange={handleSummaryChange}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
+              data-field="summary"
               placeholder={t('diary.summaryPlaceholder')}
               rows={4}
               className="w-full resize-y rounded-lg border border-border bg-bg-primary px-3 py-2 text-sm text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-accent/40 transition-colors"
