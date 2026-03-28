@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { clsx } from 'clsx';
-import { format, parseISO, addHours, addMinutes } from 'date-fns';
+import { format, parseISO, addHours, addMinutes, setHours, setMinutes } from 'date-fns';
 import {
   X,
   Trash2,
@@ -119,6 +119,12 @@ const inferReminder = (startAt: string, remindAt: string | null): string | null 
   return '1d';
 };
 
+/** Round a Date up to the next 15-minute boundary. */
+const roundToNext15 = (d: Date): Date => {
+  const ms = 15 * 60_000;
+  return new Date(Math.ceil(d.getTime() / ms) * ms);
+};
+
 export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, onCopy, embedded = false }: Props) => {
   const { t } = useTranslation();
 
@@ -157,7 +163,15 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
 
   const isEditing = !!existingEvent;
 
-  const defaultStart = initialDate ?? new Date();
+  const defaultStart = (() => {
+    if (!initialDate) return roundToNext15(new Date());
+    // If initialDate is at midnight (date-only from MonthView/+button), use current time
+    if (initialDate.getHours() === 0 && initialDate.getMinutes() === 0) {
+      const now = roundToNext15(new Date());
+      return setMinutes(setHours(initialDate, now.getHours()), now.getMinutes());
+    }
+    return initialDate;
+  })();
   const defaultEnd = addHours(defaultStart, 1);
 
   const [form, setForm] = useState<FormState>(() => {
@@ -240,6 +254,16 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
     });
   }, [existingEvent]);
 
+  // Lock body scroll when sidebar is open (prevents background scroll on mobile)
+  useEffect(() => {
+    if (embedded) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [embedded]);
+
   const [showTodoSelector, setShowTodoSelector] = useState(false);
   const [showNoteSelector, setShowNoteSelector] = useState(false);
 
@@ -259,6 +283,38 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
     },
     [],
   );
+
+  const handleStartDateChange = useCallback((newStartDate: string) => {
+    setForm((prev) => {
+      const oldStart = new Date(`${prev.startDate}T${prev.startTime || '00:00'}`);
+      const oldEnd = new Date(`${prev.endDate}T${prev.endTime || '00:00'}`);
+      const durationMs = oldEnd.getTime() - oldStart.getTime();
+      const newStart = new Date(`${newStartDate}T${prev.startTime || '00:00'}`);
+      const newEnd = new Date(newStart.getTime() + durationMs);
+      return {
+        ...prev,
+        startDate: newStartDate,
+        endDate: format(newEnd, 'yyyy-MM-dd'),
+        endTime: format(newEnd, 'HH:mm'),
+      };
+    });
+  }, []);
+
+  const handleStartTimeChange = useCallback((newStartTime: string) => {
+    setForm((prev) => {
+      const oldStart = new Date(`${prev.startDate}T${prev.startTime || '00:00'}`);
+      const oldEnd = new Date(`${prev.endDate}T${prev.endTime || '00:00'}`);
+      const durationMs = oldEnd.getTime() - oldStart.getTime();
+      const newStart = new Date(`${prev.startDate}T${newStartTime}`);
+      const newEnd = new Date(newStart.getTime() + durationMs);
+      return {
+        ...prev,
+        startTime: newStartTime,
+        endDate: format(newEnd, 'yyyy-MM-dd'),
+        endTime: format(newEnd, 'HH:mm'),
+      };
+    });
+  }, []);
 
   const buildRepeatRule = useCallback((): string | null => {
     if (form.repeat === 'none') return null;
@@ -435,13 +491,13 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
   return (
     <>
       {!embedded && (
-        <div className="fixed inset-0 z-40 bg-black/30" onClick={onClose} aria-hidden="true" />
+        <div className="fixed inset-0 z-40 bg-black/30 touch-none" onClick={onClose} aria-hidden="true" />
       )}
       <div
         className={clsx(
           embedded
             ? 'flex h-full w-full flex-col overflow-hidden bg-bg-primary'
-            : 'fixed inset-y-0 right-0 z-50 w-full md:max-w-md flex flex-col overflow-hidden bg-bg-primary border-l border-[var(--border)] shadow-xl animate-in slide-in-from-right duration-200',
+            : 'fixed inset-y-0 right-0 z-50 w-full md:max-w-md flex flex-col overflow-hidden overscroll-contain bg-bg-primary border-l border-[var(--border)] shadow-xl animate-in slide-in-from-right duration-200',
         )}
       >
         {/* Header */}
@@ -460,7 +516,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
         </div>
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
           {/* Title */}
           <Input
             placeholder="タイトルを入力"
@@ -516,14 +572,14 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
               label="開始日"
               type="date"
               value={form.startDate}
-              onChange={(e) => updateField('startDate', e.target.value)}
+              onChange={(e) => handleStartDateChange(e.target.value)}
             />
             {!form.isAllDay && (
               <Input
                 label="開始時刻"
                 type="time"
                 value={form.startTime}
-                onChange={(e) => updateField('startTime', e.target.value)}
+                onChange={(e) => handleStartTimeChange(e.target.value)}
               />
             )}
             <Input
