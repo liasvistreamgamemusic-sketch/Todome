@@ -108,6 +108,17 @@ const computeRemindAt = (
   }
 };
 
+const inferReminder = (startAt: string, remindAt: string | null): string | null => {
+  if (!remindAt) return null;
+  const diffMs = parseISO(startAt).getTime() - parseISO(remindAt).getTime();
+  const diffMin = Math.round(diffMs / 60_000);
+  if (diffMin <= 5) return '5m';
+  if (diffMin <= 15) return '15m';
+  if (diffMin <= 30) return '30m';
+  if (diffMin <= 60) return '1h';
+  return '1d';
+};
+
 export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, onCopy, embedded = false }: Props) => {
   const { t } = useTranslation();
 
@@ -163,7 +174,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
         location: existingEvent.location ?? '',
         description: existingEvent.description ?? '',
         color: existingEvent.color,
-        reminder: null,
+        reminder: inferReminder(existingEvent.start_at, existingEvent.remind_at),
         repeat: existingEvent.repeat_rule ? 'custom' : 'none',
         customWeekdays: [false, false, false, false, false, false, false],
         customDayOfMonth: 1,
@@ -186,7 +197,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
       location: initialFormData?.location ?? '',
       description: initialFormData?.description ?? '',
       color: initialFormData?.color ?? null,
-      reminder: null,
+      reminder: '15m',
       repeat: 'none',
       customWeekdays: [false, false, false, false, false, false, false],
       customDayOfMonth: 1,
@@ -215,7 +226,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
       location: existingEvent.location ?? '',
       description: existingEvent.description ?? '',
       color: existingEvent.color,
-      reminder: null,
+      reminder: inferReminder(existingEvent.start_at, existingEvent.remind_at),
       repeat: existingEvent.repeat_rule ? 'custom' : 'none',
       customWeekdays: [false, false, false, false, false, false, false],
       customDayOfMonth: 1,
