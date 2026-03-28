@@ -51,10 +51,14 @@ type ListItem = {
 };
 
 const DAYS_AHEAD = 30;
-const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const DAY_LABELS_KEYS = [
+  'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
+  'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
+  'common.weekday.sat',
+] as const;
 
 export const ListView = ({ onSelectEvent }: Props) => {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const selectedDate = useCalendarStore((s) => s.selectedDate);
   const { data: events = [] } = useCalendarEvents();
   const externalEventsMap = useSubscriptionStore((s) => s.eventsBySubscription);
@@ -184,7 +188,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
         const isSun = dayOfWeek === 0;
         const isSat = dayOfWeek === 6;
 
-        let dateLabel = format(date, 'M月d日');
+        let dateLabel = locale === 'ja' ? format(date, 'M月d日') : format(date, 'MMM d');
         if (today) dateLabel = `${t('calendar.todayPrefix')}${dateLabel}`;
         else if (tomorrow) dateLabel = `${t('calendar.tomorrowPrefix')}${dateLabel}`;
 
@@ -206,7 +210,7 @@ export const ListView = ({ onSelectEvent }: Props) => {
                   !today && !isSun && !isSat && 'text-text-primary',
                 )}
               >
-                {dateLabel} ({DAY_LABELS[dayOfWeek]})
+                {dateLabel} ({t(DAY_LABELS_KEYS[dayOfWeek]!)})
               </span>
               {holidayName && (
                 <span className="text-xs text-[#D32F2F]">{holidayName}</span>

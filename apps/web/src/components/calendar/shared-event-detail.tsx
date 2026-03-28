@@ -25,6 +25,7 @@ import {
   useDeleteSharedCalendarEvent,
 } from '@/hooks/queries';
 import { useMemberMap } from '@/hooks/use-member-map';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   event: SharedCalendarEvent;
@@ -58,6 +59,7 @@ type FormState = {
 };
 
 export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, embedded = false }: Props) => {
+  const { t, locale } = useTranslation();
   const userId = useUserId();
   const updateSharedEvent = useUpdateSharedCalendarEvent();
   const deleteSharedEvent = useDeleteSharedCalendarEvent();
@@ -157,9 +159,9 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
   }, [canEdit, event.id, deleteSharedEvent, onClose]);
 
   const timeText = event.is_all_day
-    ? '終日'
+    ? t('calendar.allDay')
     : `${format(startDate, 'H:mm')} - ${format(endDate, 'H:mm')}`;
-  const dateText = format(startDate, 'yyyy年M月d日');
+  const dateText = locale === 'ja' ? format(startDate, 'yyyy年M月d日') : format(startDate, 'MMMM d, yyyy');
 
   // ─── View-only mode ───────────────────────────────────────────────
   if (!canEdit) {
@@ -169,7 +171,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
         <div className="flex items-center gap-2 rounded-lg bg-bg-secondary px-3 py-2">
           <Users className="h-4 w-4 shrink-0 text-text-tertiary" />
           <span className="text-xs text-text-secondary">
-            {calendar?.title ?? '共有カレンダー'} (閲覧のみ)
+            {calendar?.title ?? t('event.sharedCalendar')} {t('event.viewOnly')}
           </span>
           {calendar?.color && (
             <span
@@ -185,7 +187,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
               className="h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ backgroundColor: creatorInfo.color }}
             />
-            <span className="text-xs">作成者: {creatorInfo.displayName}</span>
+            <span className="text-xs">{t('event.creator', { name: creatorInfo.displayName })}</span>
           </div>
         )}
 
@@ -217,7 +219,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
           <div className="pt-2">
             <Button variant="ghost" size="sm" onClick={handleCopy} className="w-full">
               <Copy className="h-3.5 w-3.5" />
-              個人にコピー
+              {t('event.copyToPersonal')}
             </Button>
           </div>
         )}
@@ -248,7 +250,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
               type="button"
               onClick={onClose}
               className="rounded-md p-1 text-text-tertiary hover:bg-bg-secondary hover:text-text-primary transition"
-              aria-label="閉じる"
+              aria-label={t('common.close')}
             >
               <X className="h-4 w-4" />
             </button>
@@ -275,13 +277,13 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
           <h2 className="text-sm font-semibold text-text-primary">
-            共有予定を編集
+            {t('event.editSharedEvent')}
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="rounded-md p-1 text-text-tertiary hover:bg-bg-secondary hover:text-text-primary transition"
-            aria-label="閉じる"
+            aria-label={t('common.close')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -293,7 +295,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
           <div className="flex items-center gap-2 rounded-lg bg-bg-secondary px-3 py-2">
             <Users className="h-4 w-4 shrink-0 text-text-tertiary" />
             <span className="text-xs text-text-secondary">
-              {calendar?.title ?? '共有カレンダー'}
+              {calendar?.title ?? t('event.sharedCalendar')}
             </span>
             {calendar?.color && (
               <span
@@ -309,13 +311,13 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: creatorInfo.color }}
               />
-              <span className="text-xs">作成者: {creatorInfo.displayName}</span>
+              <span className="text-xs">{t('event.creator', { name: creatorInfo.displayName })}</span>
             </div>
           )}
 
           {/* Title */}
           <Input
-            placeholder="タイトルを入力"
+            placeholder={t('event.titlePlaceholder')}
             value={form.title}
             onChange={(e) => updateField('title', e.target.value)}
             variant="ghost"
@@ -325,7 +327,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
 
           {/* All-day toggle */}
           <Checkbox
-            label="終日"
+            label={t('calendar.allDay')}
             checked={form.isAllDay}
             onChange={(e) => updateField('isAllDay', e.target.checked)}
           />
@@ -333,28 +335,28 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
           {/* Date/Time pickers */}
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="開始日"
+              label={t('event.startDate')}
               type="date"
               value={form.startDate}
               onChange={(e) => updateField('startDate', e.target.value)}
             />
             {!form.isAllDay && (
               <Input
-                label="開始時刻"
+                label={t('event.startTime')}
                 type="time"
                 value={form.startTime}
                 onChange={(e) => updateField('startTime', e.target.value)}
               />
             )}
             <Input
-              label="終了日"
+              label={t('event.endDate')}
               type="date"
               value={form.endDate}
               onChange={(e) => updateField('endDate', e.target.value)}
             />
             {!form.isAllDay && (
               <Input
-                label="終了時刻"
+                label={t('event.endTime')}
                 type="time"
                 value={form.endTime}
                 onChange={(e) => updateField('endTime', e.target.value)}
@@ -364,8 +366,8 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
 
           {/* Location */}
           <Input
-            label="場所"
-            placeholder="場所を入力"
+            label={t('event.location')}
+            placeholder={t('event.locationPlaceholder')}
             value={form.location}
             onChange={(e) => updateField('location', e.target.value)}
             leftIcon={<MapPin />}
@@ -373,8 +375,8 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
 
           {/* Description */}
           <Textarea
-            label="メモ"
-            placeholder="メモを入力"
+            label={t('event.memo')}
+            placeholder={t('event.memoPlaceholder')}
             value={form.description}
             onChange={(e) => updateField('description', e.target.value)}
             rows={3}
@@ -384,7 +386,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-text-secondary">
               <Palette className="mr-1 inline h-3.5 w-3.5" />
-              カラー
+              {t('event.color')}
             </label>
             <div className="flex gap-2">
               {PRESET_COLORS.map((c) => (
@@ -399,7 +401,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
                       : 'border-transparent hover:scale-105',
                   )}
                   style={{ backgroundColor: c }}
-                  aria-label={`色 ${c}`}
+                  aria-label={`${t('event.color')} ${c}`}
                 />
               ))}
             </div>
@@ -411,18 +413,18 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
           <div className="flex gap-2">
             <Button variant="danger" size="sm" onClick={handleDelete}>
               <Trash2 className="h-3.5 w-3.5" />
-              削除
+              {t('common.delete')}
             </Button>
             {onCopyToPersonal && (
               <Button variant="ghost" size="sm" onClick={handleCopy}>
                 <Copy className="h-3.5 w-3.5" />
-                コピー
+                {t('event.copy')}
               </Button>
             )}
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={onClose}>
-              キャンセル
+              {t('common.cancel')}
             </Button>
             <Button
               variant="primary"
@@ -430,7 +432,7 @@ export const SharedEventDetail = ({ event, calendar, onClose, onCopyToPersonal, 
               onClick={handleSave}
               disabled={!form.title.trim()}
             >
-              更新
+              {t('common.update')}
             </Button>
           </div>
         </div>

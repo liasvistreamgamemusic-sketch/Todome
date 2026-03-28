@@ -51,7 +51,11 @@ type Props = {
 };
 
 const TOTAL_HOURS = 24;
-const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const DAY_LABELS_KEYS = [
+  'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
+  'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
+  'common.weekday.sat',
+] as const;
 
 export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) => {
   const { t } = useTranslation();
@@ -273,7 +277,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                     !isSun && !isSat && !holidayName && 'text-text-secondary',
                   )}
                 >
-                  {DAY_LABELS[day.getDay()]}
+                  {t(DAY_LABELS_KEYS[day.getDay()]!)}
                 </span>
                 <span
                   className={clsx(
@@ -332,7 +336,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]',
                 )}
                 style={{ height: `${hourHeight}px` }}
-                aria-label={`${idx}:00 に予定を作成`}
+                aria-label={t('event.createAtTime', { time: String(idx) })}
               />
             ))}
 
@@ -430,7 +434,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                     holidayName && 'text-[#D32F2F]',
                   )}
                 >
-                  {DAY_LABELS[day.getDay()]}
+                  {t(DAY_LABELS_KEYS[day.getDay()]!)}
                 </span>
                 <span
                   className={clsx(
@@ -569,7 +573,7 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
                       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]',
                     )}
                     style={{ height: `${hourHeight}px` }}
-                    aria-label={`${format(day, 'M/d')} ${idx}:00 に予定を作成`}
+                    aria-label={t('event.createAtTime', { time: `${format(day, 'M/d')} ${idx}` })}
                   />
                 ))}
 

@@ -6,6 +6,7 @@ import type { ExternalCalendarEvent, CalendarSubscription } from '@todome/db';
 import { Button } from '@todome/ui';
 import type { CopyableEventData } from './event-detail';
 import { ProviderIcon } from './provider-icon';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   event: ExternalCalendarEvent;
@@ -16,14 +17,15 @@ type Props = {
 };
 
 export const ExternalEventDetail = ({ event, subscription, onClose, onCopyToPersonal, embedded }: Props) => {
+  const { t, locale } = useTranslation();
   const startDate = parseISO(event.start_at);
   const endDate = parseISO(event.end_at);
 
   const timeText = event.is_all_day
-    ? '終日'
+    ? t('calendar.allDay')
     : `${format(startDate, 'H:mm')} - ${format(endDate, 'H:mm')}`;
 
-  const dateText = format(startDate, 'yyyy年M月d日');
+  const dateText = locale === 'ja' ? format(startDate, 'yyyy年M月d日') : format(startDate, 'MMMM d, yyyy');
 
   const handleCopy = () => {
     if (!onCopyToPersonal) return;
@@ -44,7 +46,7 @@ export const ExternalEventDetail = ({ event, subscription, onClose, onCopyToPers
       <div className="flex items-center gap-2 rounded-lg bg-bg-secondary px-3 py-2">
         <ProviderIcon provider={event.provider} size={16} />
         <span className="text-xs text-text-secondary">
-          {subscription?.name ?? '外部カレンダー'} (読み取り専用)
+          {subscription?.name ?? t('event.externalCalendar')} {t('event.readOnly')}
         </span>
       </div>
 
@@ -76,7 +78,7 @@ export const ExternalEventDetail = ({ event, subscription, onClose, onCopyToPers
         <div className="pt-2">
           <Button variant="ghost" size="sm" onClick={handleCopy} className="w-full">
             <Copy className="h-3.5 w-3.5" />
-            個人にコピー
+            {t('event.copyToPersonal')}
           </Button>
         </div>
       )}
@@ -113,7 +115,7 @@ export const ExternalEventDetail = ({ event, subscription, onClose, onCopyToPers
             type="button"
             onClick={onClose}
             className="rounded-md p-1 text-text-tertiary hover:bg-bg-secondary hover:text-text-primary transition"
-            aria-label="閉じる"
+            aria-label={t('common.close')}
           >
             <X className="h-4 w-4" />
           </button>

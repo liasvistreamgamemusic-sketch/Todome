@@ -46,7 +46,11 @@ type Props = {
 };
 
 const TOTAL_HOURS = 24;
-const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const DAY_LABELS_KEYS = [
+  'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
+  'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
+  'common.weekday.sat',
+] as const;
 
 export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) => {
   const { t, locale } = useTranslation();
@@ -174,7 +178,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
               dayOfWeek !== 0 && dayOfWeek !== 6 && 'text-text-secondary',
             )}
           >
-            {DAY_LABELS[dayOfWeek]}
+            {t(DAY_LABELS_KEYS[dayOfWeek]!)}
           </span>
           <span
             className={clsx(
@@ -260,7 +264,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--accent)]',
               )}
               style={{ height: `${hourHeight}px` }}
-              aria-label={`${idx}:00 に予定を作成`}
+              aria-label={t('event.createAtTime', { time: String(idx) })}
             />
           ))}
 

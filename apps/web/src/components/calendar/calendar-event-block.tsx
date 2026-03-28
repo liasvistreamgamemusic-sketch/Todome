@@ -5,6 +5,7 @@ import { clsx } from 'clsx';
 import { format, parseISO } from 'date-fns';
 import { Users } from 'lucide-react';
 import type { CalendarProvider } from '@todome/db';
+import { useTranslation } from '@todome/store';
 import { ProviderIcon } from './provider-icon';
 
 type EventLike = {
@@ -59,6 +60,7 @@ export const CalendarEventBlock = memo(function CalendarEventBlock({
   provider,
   isShared,
 }: Props) {
+  const { t } = useTranslation();
   const colorClasses = getColorClasses(event.color);
 
   const handleClick = useCallback(() => {
@@ -99,7 +101,7 @@ export const CalendarEventBlock = memo(function CalendarEventBlock({
       <p className={clsx('truncate font-medium leading-tight flex items-center gap-1', colorClasses.text)}>
         {provider && <ProviderIcon provider={provider} size={10} className="shrink-0" />}
         {isShared && <Users className="h-2.5 w-2.5 shrink-0" />}
-        <span className="truncate">{event.is_all_day ? `(終日) ${event.title}` : event.title}</span>
+        <span className="truncate">{event.is_all_day ? `${t('event.allDayPrefix')}${event.title}` : event.title}</span>
       </p>
       {startTime && endTime && (
         <p className={clsx('truncate text-[10px] leading-tight opacity-70', colorClasses.text)}>

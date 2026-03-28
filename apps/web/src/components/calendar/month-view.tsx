@@ -51,8 +51,16 @@ type Props = {
   onShowDayEvents: (date: Date) => void;
 };
 
-const DAY_LABELS_SUN: string[] = ['日', '月', '火', '水', '木', '金', '土'];
-const DAY_LABELS_MON: string[] = ['月', '火', '水', '木', '金', '土', '日'];
+const DAY_KEYS_SUN = [
+  'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
+  'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
+  'common.weekday.sat',
+] as const;
+const DAY_KEYS_MON = [
+  'common.weekday.mon', 'common.weekday.tue', 'common.weekday.wed',
+  'common.weekday.thu', 'common.weekday.fri', 'common.weekday.sat',
+  'common.weekday.sun',
+] as const;
 
 export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDayEvents }: Props) => {
   const { t } = useTranslation();
@@ -79,7 +87,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
   const navigateMonthNext = useCalendarStore((s) => s.navigateMonthNext);
   const swipe = useSwipeNavigation(navigateMonthNext, navigateMonthPrev);
 
-  const dayLabels = weekStart === 0 ? DAY_LABELS_SUN : DAY_LABELS_MON;
+  const dayLabelKeys = weekStart === 0 ? DAY_KEYS_SUN : DAY_KEYS_MON;
 
   const calendarDays = useMemo(() => {
     const monthStart = startOfMonth(selectedDate);
@@ -180,12 +188,12 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
     <div className="flex flex-1 flex-col overflow-hidden" {...swipe}>
       {/* Day-of-week header */}
       <div className="grid grid-cols-7 border-b border-[var(--border)]">
-        {dayLabels.map((label, i) => {
+        {dayLabelKeys.map((key, i) => {
           const isSun = (weekStart === 0 && i === 0) || (weekStart === 1 && i === 6);
           const isSat = (weekStart === 0 && i === 6) || (weekStart === 1 && i === 5);
           return (
             <div
-              key={label}
+              key={key}
               className={clsx(
                 'py-1.5 text-center text-xs font-medium md:py-2',
                 isSun && 'text-[#D32F2F]',
@@ -193,7 +201,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                 !isSun && !isSat && 'text-text-secondary',
               )}
             >
-              {label}
+              {t(key)}
             </div>
           );
         })}

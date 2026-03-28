@@ -13,7 +13,7 @@ import {
   useSharedCalendars,
   useCalendarEvents,
 } from '@/hooks/queries';
-import { useCalendarStore } from '@todome/store';
+import { useCalendarStore, useTranslation } from '@todome/store';
 
 type Props = {
   /** The event being deleted (personal calendar) */
@@ -23,6 +23,7 @@ type Props = {
 };
 
 export const DeleteEventDialog = ({ event, onClose, onDeleted }: Props) => {
+  const { t } = useTranslation();
   const deleteCalendarEvent = useDeleteCalendarEvent();
   const deleteSharedCalendarEvent = useDeleteSharedCalendarEvent();
   const { data: sharedEvents = [] } = useSharedCalendarEvents();
@@ -101,15 +102,15 @@ export const DeleteEventDialog = ({ event, onClose, onDeleted }: Props) => {
         <div className="fixed inset-0 z-[61] flex items-center justify-center p-4">
           <div className="w-full max-w-sm rounded-xl border border-[var(--border)] bg-bg-primary p-5 shadow-xl space-y-4">
             <p className="text-sm text-text-primary">
-              「{event.title}」を削除しますか？
+              {t('event.deleteConfirm', { title: event.title })}
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={onClose}>
-                キャンセル
+                {t('common.cancel')}
               </Button>
               <Button variant="danger" size="sm" onClick={handleConfirmDelete}>
                 <Trash2 className="h-3.5 w-3.5" />
-                削除
+                {t('common.delete')}
               </Button>
             </div>
           </div>
@@ -130,10 +131,10 @@ export const DeleteEventDialog = ({ event, onClose, onDeleted }: Props) => {
         <div className="w-full max-w-sm rounded-xl border border-[var(--border)] bg-bg-primary p-5 shadow-xl space-y-4">
           <div>
             <p className="text-sm font-medium text-text-primary">
-              「{event.title}」を削除
+              {t('event.deleteTitle', { title: event.title })}
             </p>
             <p className="mt-1 text-xs text-text-secondary">
-              この予定は複数のカレンダーに存在します。削除するカレンダーを選択してください。
+              {t('event.deleteMultiCalendarMsg')}
             </p>
           </div>
 
@@ -149,7 +150,7 @@ export const DeleteEventDialog = ({ event, onClose, onDeleted }: Props) => {
                   : 'text-[var(--accent)] hover:underline',
               )}
             >
-              すべて選択
+              {t('event.selectAll')}
             </button>
 
             {/* Personal calendar */}
@@ -164,7 +165,7 @@ export const DeleteEventDialog = ({ event, onClose, onDeleted }: Props) => {
                 className="h-3 w-3 shrink-0 rounded-full"
                 style={{ backgroundColor: '#4285F4' }}
               />
-              <span className="text-sm text-text-primary">個人カレンダー</span>
+              <span className="text-sm text-text-primary">{t('event.personalCalendar')}</span>
             </label>
 
             {/* Shared calendars */}
@@ -186,7 +187,7 @@ export const DeleteEventDialog = ({ event, onClose, onDeleted }: Props) => {
                     style={{ backgroundColor: cal?.color ?? '#7986CB' }}
                   />
                   <span className="text-sm text-text-primary">
-                    {cal?.title ?? '共有カレンダー'}
+                    {cal?.title ?? t('event.sharedCalendar')}
                   </span>
                 </label>
               );
@@ -195,7 +196,7 @@ export const DeleteEventDialog = ({ event, onClose, onDeleted }: Props) => {
 
           <div className="flex justify-end gap-2">
             <Button variant="ghost" size="sm" onClick={onClose}>
-              キャンセル
+              {t('common.cancel')}
             </Button>
             <Button
               variant="danger"
@@ -204,7 +205,7 @@ export const DeleteEventDialog = ({ event, onClose, onDeleted }: Props) => {
               disabled={noneSelected}
             >
               <Trash2 className="h-3.5 w-3.5" />
-              削除
+              {t('common.delete')}
             </Button>
           </div>
         </div>
