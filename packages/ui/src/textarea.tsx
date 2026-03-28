@@ -7,6 +7,8 @@ type Props = {
   label?: string;
   error?: string;
   autoResize?: boolean;
+  /** Maximum height in pixels before switching to scroll mode (default: 320) */
+  maxHeight?: number;
   wrapperClassName?: string;
 } & React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
@@ -16,6 +18,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, Props>(
       label,
       error,
       autoResize = true,
+      maxHeight = 320,
       wrapperClassName,
       className,
       id,
@@ -43,9 +46,16 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, Props>(
       const el = innerRef.current;
       if (el && autoResize) {
         el.style.height = 'auto';
-        el.style.height = `${el.scrollHeight}px`;
+        const scrollH = el.scrollHeight;
+        if (maxHeight && scrollH > maxHeight) {
+          el.style.height = `${maxHeight}px`;
+          el.style.overflowY = 'auto';
+        } else {
+          el.style.height = `${scrollH}px`;
+          el.style.overflowY = 'hidden';
+        }
       }
-    }, [autoResize]);
+    }, [autoResize, maxHeight]);
 
     useEffect(() => {
       resize();

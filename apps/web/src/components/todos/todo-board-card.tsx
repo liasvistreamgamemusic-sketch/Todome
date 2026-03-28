@@ -7,6 +7,7 @@ import { format, isPast, isToday } from 'date-fns';
 import { useDraggable } from '@dnd-kit/core';
 import { Badge } from '@todome/ui/src/badge';
 import type { Todo } from '@todome/store/src/types';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   todo: Todo;
@@ -20,18 +21,20 @@ const PRIORITY_BAR_COLORS: Record<number, string> = {
   4: 'bg-[#D32F2F]',
 };
 
-const getDueDateDisplay = (
-  dueDate: string | null,
-): { label: string; style: string } | null => {
-  if (!dueDate) return null;
-  const date = new Date(dueDate);
-  if (isToday(date)) return { label: '今日', style: 'text-[#F57C00]' };
-  if (isPast(date))
-    return { label: format(date, 'M/d'), style: 'text-[#D32F2F]' };
-  return { label: format(date, 'M/d'), style: 'text-text-tertiary' };
-};
-
 const TodoBoardCardInner = ({ todo, onSelect }: Props) => {
+  const { t } = useTranslation();
+
+  const getDueDateDisplay = (
+    dueDate: string | null,
+  ): { label: string; style: string } | null => {
+    if (!dueDate) return null;
+    const date = new Date(dueDate);
+    if (isToday(date)) return { label: t('todos.today'), style: 'text-[#F57C00]' };
+    if (isPast(date))
+      return { label: format(date, 'M/d'), style: 'text-[#D32F2F]' };
+    return { label: format(date, 'M/d'), style: 'text-text-tertiary' };
+  };
+
   const dueInfo = getDueDateDisplay(todo.due_date);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({

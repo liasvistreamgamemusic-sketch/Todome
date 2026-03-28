@@ -236,13 +236,13 @@ export const TodoDetail = () => {
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center justify-between px-4 py-3 bg-bg-primary border-b border-[var(--border)]">
         <span className="text-sm font-medium text-text-secondary">
-          Todo詳細
+          {t('todos.detail')}
         </span>
         <button
           type="button"
           onClick={handleClose}
           className="p-2 md:p-1.5 rounded-md hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
-          aria-label="閉じる"
+          aria-label={t('common.close')}
         >
           <X className="h-4 w-4" />
         </button>
@@ -259,7 +259,7 @@ export const TodoDetail = () => {
             'bg-transparent border-none outline-none',
             'placeholder:text-text-tertiary',
           )}
-          placeholder="タイトル"
+          placeholder={t('todos.titlePlaceholder')}
         />
 
         {/* Status */}
@@ -341,7 +341,7 @@ export const TodoDetail = () => {
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
             <Bell className="h-4 w-4" />
-            リマインダー
+            {t('todos.reminder')}
           </label>
           <input
             type="datetime-local"
@@ -354,7 +354,7 @@ export const TodoDetail = () => {
             )}
           />
           <div className="flex items-center gap-2">
-            <span className="text-xs text-text-tertiary">繰り返し:</span>
+            <span className="text-xs text-text-tertiary">{t('todos.repeatLabel')}</span>
             <select
               value={remindRepeat}
               onChange={handleRemindRepeatChange}
@@ -376,13 +376,13 @@ export const TodoDetail = () => {
         {/* Detail / Description */}
         <div className="space-y-2">
           <label className="text-sm font-medium text-text-secondary">
-            メモ
+            {t('todos.memo')}
           </label>
           <Textarea
             value={detail}
             onChange={(e) => setDetail(e.target.value)}
             onBlur={handleDetailBlur}
-            placeholder="詳細を入力..."
+            placeholder={t('todos.detailPlaceholder')}
             className="min-h-[80px]"
           />
         </div>
@@ -413,7 +413,7 @@ export const TodoDetail = () => {
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={handleTagKeyDown}
-              placeholder="タグを追加..."
+              placeholder={t('todos.addTag')}
               className={clsx(
                 'flex-1 h-8 px-3 rounded-lg text-sm text-text-primary',
                 'bg-transparent border border-[var(--border)]',
@@ -427,7 +427,7 @@ export const TodoDetail = () => {
               onClick={handleAddTag}
               disabled={!tagInput.trim()}
             >
-              追加
+              {t('todos.add')}
             </Button>
           </div>
         </div>
@@ -436,16 +436,16 @@ export const TodoDetail = () => {
         <div className="space-y-1 pt-4 border-t border-[var(--border)]">
           <div className="flex items-center gap-2 text-xs text-text-tertiary">
             <Clock className="h-3 w-3" />
-            作成: {format(new Date(todo.created_at), 'yyyy/MM/dd HH:mm')}
+            {t('todos.created')} {format(new Date(todo.created_at), 'yyyy/MM/dd HH:mm')}
           </div>
           <div className="flex items-center gap-2 text-xs text-text-tertiary">
             <Clock className="h-3 w-3" />
-            更新: {format(new Date(todo.updated_at), 'yyyy/MM/dd HH:mm')}
+            {t('todos.updated')} {format(new Date(todo.updated_at), 'yyyy/MM/dd HH:mm')}
           </div>
           {todo.completed_at && (
             <div className="flex items-center gap-2 text-xs text-text-tertiary">
               <Clock className="h-3 w-3" />
-              完了:{' '}
+              {t('todos.completedAt')}{' '}
               {format(new Date(todo.completed_at), 'yyyy/MM/dd HH:mm')}
             </div>
           )}
@@ -460,7 +460,7 @@ export const TodoDetail = () => {
             className="w-full"
           >
             <Trash2 className="h-4 w-4" />
-            このTodoを削除
+            {t('todos.deleteTodo')}
           </Button>
         </div>
       </div>

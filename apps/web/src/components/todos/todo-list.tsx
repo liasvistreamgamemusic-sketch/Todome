@@ -5,22 +5,10 @@ import { clsx } from 'clsx';
 import { ChevronDown, ChevronRight, Inbox } from 'lucide-react';
 import type { Todo } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
+import { useTranslation } from '@todome/store';
 import { useTodos, useUpdateTodo } from '@/hooks/queries';
 import { filterTodos, groupTodos, STATUS_CYCLE } from '@/lib/todo-filters';
 import { TodoListItem } from './todo-list-item';
-
-const GROUP_LABELS: Record<string, string> = {
-  pending: '未着手',
-  in_progress: '進行中',
-  completed: '完了',
-  cancelled: 'キャンセル',
-  '1': '低',
-  '2': '中',
-  '3': '高',
-  '4': '緊急',
-  untagged: 'タグなし',
-  all: 'すべて',
-};
 
 const STATUS_ORDER = ['pending', 'in_progress', 'completed', 'cancelled'];
 const PRIORITY_ORDER = ['4', '3', '2', '1'];
@@ -28,6 +16,7 @@ const PRIORITY_ORDER = ['4', '3', '2', '1'];
 type GroupSectionProps = {
   groupKey: string;
   todos: Todo[];
+  groupLabels: Record<string, string>;
   defaultOpen?: boolean;
   onToggleStatus: (id: string) => void;
   onSelect: (id: string) => void;
@@ -36,12 +25,13 @@ type GroupSectionProps = {
 const GroupSection = ({
   groupKey,
   todos,
+  groupLabels,
   defaultOpen = true,
   onToggleStatus,
   onSelect,
 }: GroupSectionProps) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  const label = GROUP_LABELS[groupKey] ?? groupKey;
+  const label = groupLabels[groupKey] ?? groupKey;
 
   return (
     <div className="mb-2">
@@ -95,6 +85,7 @@ const sortGroupKeys = (keys: string[], groupBy: string): string[] => {
 };
 
 export const TodoList = () => {
+  const { t } = useTranslation();
   const { data: todos } = useTodos();
   const updateTodo = useUpdateTodo();
   const groupBy = useTodoStore((s) => s.groupBy);
@@ -104,6 +95,22 @@ export const TodoList = () => {
   const filterPriority = useTodoStore((s) => s.filterPriority);
   const filterTags = useTodoStore((s) => s.filterTags);
   const selectTodo = useTodoStore((s) => s.selectTodo);
+
+  const GROUP_LABELS: Record<string, string> = useMemo(
+    () => ({
+      pending: t('todos.status.notStarted'),
+      in_progress: t('todos.status.inProgress'),
+      completed: t('todos.status.completed'),
+      cancelled: t('todos.status.cancelled'),
+      '1': t('todos.priority.low'),
+      '2': t('todos.priority.medium'),
+      '3': t('todos.priority.high'),
+      '4': t('todos.priority.urgent'),
+      untagged: t('todos.untagged'),
+      all: t('todos.all'),
+    }),
+    [t],
+  );
 
   const filtered = useMemo(
     () =>
@@ -161,8 +168,8 @@ export const TodoList = () => {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-text-tertiary">
         <Inbox className="h-12 w-12 mb-3" />
-        <p className="text-sm">Todoがありません</p>
-        <p className="text-xs mt-1">上の入力欄から新しいTodoを追加しましょう</p>
+        <p className="text-sm">{t('todos.noTodos')}</p>
+        <p className="text-xs mt-1">{t('todos.emptyMessage')}</p>
       </div>
     );
   }
@@ -184,6 +191,7 @@ export const TodoList = () => {
             key={key}
             groupKey={key}
             todos={keyTodos}
+            groupLabels={GROUP_LABELS}
             onToggleStatus={handleToggleStatus}
             onSelect={handleSelect}
           />
@@ -198,6 +206,7 @@ export const TodoList = () => {
               key={key}
               groupKey={key}
               todos={keyTodos}
+              groupLabels={GROUP_LABELS}
               defaultOpen={false}
               onToggleStatus={handleToggleStatus}
               onSelect={handleSelect}
