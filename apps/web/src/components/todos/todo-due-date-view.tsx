@@ -31,7 +31,15 @@ type DateGroup = {
   variant: 'danger' | 'warning' | 'default';
 };
 
-type DateLabels = Record<string, string>;
+type DateLabels = {
+  overdue: string;
+  today: string;
+  tomorrow: string;
+  thisWeek: string;
+  nextWeek: string;
+  later: string;
+  noDueDate: string;
+};
 
 const categorizeTodosByDate = (todos: Todo[], labels: DateLabels): DateGroup[] => {
   const overdue: Todo[] = [];
