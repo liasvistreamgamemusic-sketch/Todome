@@ -4,6 +4,7 @@ import { memo, useState, useRef, useEffect } from 'react';
 import { Star, Trash2, MoreVertical } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { Diary, TiptapNode } from '@todome/db';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   diary: Diary;
@@ -20,7 +21,11 @@ const MOOD_EMOJI: Record<string, string> = {
   terrible: '😢',
 };
 
-const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const DAY_LABELS_KEYS = [
+  'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
+  'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
+  'common.weekday.sat',
+] as const;
 
 export const DiaryListItem = memo(function DiaryListItem({
   diary,
@@ -28,6 +33,7 @@ export const DiaryListItem = memo(function DiaryListItem({
   onClick,
   onDelete,
 }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -51,7 +57,7 @@ export const DiaryListItem = memo(function DiaryListItem({
   // Parse date string 'YYYY-MM-DD'
   const dateParts = diary.date.split('-').map(Number);
   const dateObj = new Date(dateParts[0]!, dateParts[1]! - 1, dateParts[2]);
-  const dayOfWeek = DAY_LABELS[dateObj.getDay()];
+  const dayOfWeek = t(DAY_LABELS_KEYS[dateObj.getDay()]!);
   const month = dateParts[1];
   const day = dateParts[2];
 
@@ -88,7 +94,7 @@ export const DiaryListItem = memo(function DiaryListItem({
         <div className="flex flex-col items-center shrink-0 w-10">
           <span className="text-[10px] text-text-tertiary">{dayOfWeek}</span>
           <span className="text-lg font-bold text-text-primary">{day}</span>
-          <span className="text-[10px] text-text-tertiary">{month}月</span>
+          <span className="text-[10px] text-text-tertiary">{t('common.dateFormat.month', { month: String(month) })}</span>
         </div>
 
         <div className="flex-1 min-w-0">
@@ -116,7 +122,7 @@ export const DiaryListItem = memo(function DiaryListItem({
 
           {/* Preview text */}
           <p className="text-xs text-text-secondary line-clamp-2 leading-relaxed">
-            {previewText || '内容なし'}
+            {previewText || t('diary.noContent')}
           </p>
 
         </div>
@@ -126,7 +132,7 @@ export const DiaryListItem = memo(function DiaryListItem({
       <button
         ref={btnRef}
         type="button"
-        aria-label="メニュー"
+        aria-label={t('diary.menu')}
         onClick={handleMenuBtn}
         className={clsx(
           'absolute right-2 top-1/2 -translate-y-1/2 p-2 md:p-1 rounded z-10',
@@ -155,7 +161,7 @@ export const DiaryListItem = memo(function DiaryListItem({
             className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2 text-red-500"
           >
             <Trash2 className="h-4 w-4" />
-            削除
+            {t('common.delete')}
           </button>
         </div>
       )}

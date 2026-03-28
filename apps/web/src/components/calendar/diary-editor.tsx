@@ -8,6 +8,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import type { TiptapDocument } from '@todome/db';
+import { useTranslation } from '@todome/store';
 import {
   useCalendarEvents,
   useCreateCalendarEvent,
@@ -20,10 +21,15 @@ type Props = {
   onClose: () => void;
 };
 
-const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const DAY_LABELS_KEYS = [
+  'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
+  'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
+  'common.weekday.sat',
+] as const;
 const AUTO_SAVE_DELAY = 1000;
 
 export const DiaryEditor = ({ date, onClose }: Props) => {
+  const { t, locale } = useTranslation();
   const { data: events } = useCalendarEvents();
   const createCalendarEvent = useCreateCalendarEvent();
   const updateCalendarEvent = useUpdateCalendarEvent();
@@ -46,7 +52,7 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
     extensions: [
       StarterKit,
       Placeholder.configure({
-        placeholder: '今日の出来事を書きましょう...',
+        placeholder: t('diary.diaryEditorPlaceholder'),
       }),
     ],
     content: diaryEvent?.diary_content ?? undefined,
@@ -83,7 +89,7 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
       createCalendarEvent.mutate({
         id: newId,
         user_id: userId ?? '',
-        title: `日記 - ${format(date, 'M月d日')}`,
+        title: t('diary.diaryTitle', { date: locale === 'ja' ? format(date, 'M月d日') : format(date, 'MMM d') }),
         description: null,
         start_at: `${dateKey}T00:00:00.000Z`,
         end_at: `${dateKey}T23:59:59.999Z`,
@@ -139,15 +145,15 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
             <BookOpen className="h-4 w-4 text-text-secondary" />
             <div className="flex flex-col">
               <span className="text-sm font-semibold text-text-primary">
-                {format(date, 'yyyy年M月d日')} ({DAY_LABELS[dayOfWeek]})
+                {locale === 'ja' ? format(date, 'yyyy年M月d日') : format(date, 'MMMM d, yyyy')} ({t(DAY_LABELS_KEYS[dayOfWeek]!)})
                 {today && (
                   <span className="ml-1.5 text-xs font-normal text-[var(--accent)]">
-                    今日
+                    {t('common.today')}
                   </span>
                 )}
               </span>
               <span className="text-[10px] text-text-tertiary">
-                {saved ? '保存済み' : '保存中...'}
+                {saved ? t('diary.saved') : t('diary.saving')}
               </span>
             </div>
           </div>
@@ -155,7 +161,7 @@ export const DiaryEditor = ({ date, onClose }: Props) => {
             type="button"
             onClick={onClose}
             className="rounded-md p-1 text-text-tertiary hover:bg-bg-secondary hover:text-text-primary transition"
-            aria-label="閉じる"
+            aria-label={t('common.close')}
           >
             <X className="h-4 w-4" />
           </button>

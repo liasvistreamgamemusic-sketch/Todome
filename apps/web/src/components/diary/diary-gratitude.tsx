@@ -3,6 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Plus, X } from 'lucide-react';
 import { clsx } from 'clsx';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   value: string[];
@@ -13,6 +14,7 @@ const MAX_ITEMS = 10;
 const DEFAULT_SLOTS = 3;
 
 export function DiaryGratitude({ value, onChange }: Props) {
+  const { t } = useTranslation();
   const slots = Math.max(DEFAULT_SLOTS, value.length);
 
   const handleChange = useCallback(
@@ -41,7 +43,7 @@ export function DiaryGratitude({ value, onChange }: Props) {
 
   return (
     <div className="space-y-2">
-      <span className="text-xs font-medium text-text-secondary">感謝</span>
+      <span className="text-xs font-medium text-text-secondary">{t('diary.gratitude')}</span>
       <div className="space-y-1.5">
         {Array.from({ length: slots }, (_, i) => (
           <div key={i} className="flex items-center gap-2">
@@ -52,7 +54,7 @@ export function DiaryGratitude({ value, onChange }: Props) {
               type="text"
               value={value[i] ?? ''}
               onChange={(e) => handleChange(i, e.target.value)}
-              placeholder="今日感謝したこと..."
+              placeholder={t('diary.gratitudePlaceholder')}
               className={clsx(
                 'flex-1 text-sm bg-transparent border-b border-[var(--border)] outline-none',
                 'text-text-primary placeholder:text-text-tertiary',
@@ -79,7 +81,7 @@ export function DiaryGratitude({ value, onChange }: Props) {
           className="flex items-center gap-1 text-xs text-text-tertiary hover:text-[var(--accent)] transition-colors"
         >
           <Plus className="h-3 w-3" />
-          追加
+          {t('todos.add')}
         </button>
       )}
     </div>

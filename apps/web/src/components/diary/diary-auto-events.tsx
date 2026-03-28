@@ -4,12 +4,14 @@ import { useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { Calendar, MapPin } from 'lucide-react';
 import { useCalendarEvents } from '@/hooks/queries';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   date: string; // 'YYYY-MM-DD'
 };
 
 export function DiaryAutoEvents({ date }: Props) {
+  const { t } = useTranslation();
   const { data: events = [] } = useCalendarEvents();
 
   const dayEvents = useMemo(() => {
@@ -29,13 +31,13 @@ export function DiaryAutoEvents({ date }: Props) {
     <div className="space-y-2">
       <div className="flex items-center gap-1.5">
         <Calendar className="h-3.5 w-3.5 text-text-tertiary" />
-        <span className="text-xs font-medium text-text-secondary">この日の予定</span>
+        <span className="text-xs font-medium text-text-secondary">{t('diary.scheduledEvents')}</span>
         <span className="text-[10px] text-text-tertiary">({dayEvents.length})</span>
       </div>
       <div className="space-y-1 pl-5">
         {dayEvents.map((event) => {
           const timeStr = event.is_all_day
-            ? '終日'
+            ? t('calendar.allDay')
             : `${format(parseISO(event.start_at), 'H:mm')}\u2013${format(parseISO(event.end_at), 'H:mm')}`;
 
           return (

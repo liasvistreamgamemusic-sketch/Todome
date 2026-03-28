@@ -59,7 +59,11 @@ type Props = {
 
 type SaveStatus = 'saved' | 'saving' | 'error';
 
-const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const DAY_LABELS_KEYS = [
+  'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
+  'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
+  'common.weekday.sat',
+] as const;
 
 export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
   const { t, locale } = useTranslation();
@@ -234,7 +238,7 @@ export function DiaryEditor({ diaryId, onBack, onMenu }: Props) {
 
   // Parse date for display
   const dateObj = parse(date || diary.date, 'yyyy-MM-dd', new Date());
-  const dayOfWeek = DAY_LABELS[dateObj.getDay()];
+  const dayOfWeek = t(DAY_LABELS_KEYS[dateObj.getDay()]!);
 
   return (
     <div className="flex flex-col h-full bg-white/80 dark:bg-black/40 backdrop-blur-sm">

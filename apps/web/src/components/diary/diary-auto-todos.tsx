@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { useTodos } from '@/hooks/queries';
+import { useTranslation } from '@todome/store';
 
 const PRIORITY_COLORS: Record<number, string> = {
   1: '#ef4444',
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export function DiaryAutoTodos({ date }: Props) {
+  const { t } = useTranslation();
   const { data: todos = [] } = useTodos();
 
   const completedTodos = useMemo(() => {
@@ -32,7 +34,7 @@ export function DiaryAutoTodos({ date }: Props) {
     <div className="space-y-2">
       <div className="flex items-center gap-1.5">
         <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
-        <span className="text-xs font-medium text-text-secondary">完了したTodo</span>
+        <span className="text-xs font-medium text-text-secondary">{t('diary.completedTodos')}</span>
         <span className="text-[10px] text-text-tertiary">({completedTodos.length})</span>
       </div>
       <div className="space-y-1 pl-5">

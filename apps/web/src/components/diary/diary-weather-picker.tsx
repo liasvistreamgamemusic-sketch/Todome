@@ -4,22 +4,24 @@ import { useCallback } from 'react';
 import { Sun, Cloud, CloudRain, Snowflake, CloudLightning, Wind } from 'lucide-react';
 import { clsx } from 'clsx';
 import type { DiaryWeather } from '@todome/db';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   value: DiaryWeather | null;
   onChange: (weather: DiaryWeather | null) => void;
 };
 
-const WEATHERS: { key: DiaryWeather; icon: React.ComponentType<{ className?: string }>; label: string }[] = [
-  { key: 'sunny', icon: Sun, label: '晴れ' },
-  { key: 'cloudy', icon: Cloud, label: '曇り' },
-  { key: 'rainy', icon: CloudRain, label: '雨' },
-  { key: 'snowy', icon: Snowflake, label: '雪' },
-  { key: 'stormy', icon: CloudLightning, label: '雷' },
-  { key: 'windy', icon: Wind, label: '風' },
-];
-
 export function DiaryWeatherPicker({ value, onChange }: Props) {
+  const { t } = useTranslation();
+
+  const WEATHERS: { key: DiaryWeather; icon: React.ComponentType<{ className?: string }>; label: string }[] = [
+    { key: 'sunny', icon: Sun, label: t('diary.weather.sunny') },
+    { key: 'cloudy', icon: Cloud, label: t('diary.weather.cloudy') },
+    { key: 'rainy', icon: CloudRain, label: t('diary.weather.rainy') },
+    { key: 'snowy', icon: Snowflake, label: t('diary.weather.snowy') },
+    { key: 'stormy', icon: CloudLightning, label: t('diary.weather.stormy') },
+    { key: 'windy', icon: Wind, label: t('diary.weather.windy') },
+  ];
   const handleClick = useCallback(
     (weather: DiaryWeather) => {
       onChange(value === weather ? null : weather);
@@ -29,7 +31,7 @@ export function DiaryWeatherPicker({ value, onChange }: Props) {
 
   return (
     <div className="flex items-center gap-1">
-      <span className="text-xs text-text-secondary mr-2">天気</span>
+      <span className="text-xs text-text-secondary mr-2">{t('diary.weather')}</span>
       {WEATHERS.map(({ key, icon: Icon, label }) => (
         <button
           key={key}

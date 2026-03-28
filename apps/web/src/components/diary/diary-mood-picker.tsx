@@ -3,21 +3,23 @@
 import { useCallback } from 'react';
 import { clsx } from 'clsx';
 import type { DiaryMood } from '@todome/db';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   value: DiaryMood | null;
   onChange: (mood: DiaryMood | null) => void;
 };
 
-const MOODS: { key: DiaryMood; emoji: string; label: string }[] = [
-  { key: 'great', emoji: '😄', label: '最高' },
-  { key: 'good', emoji: '🙂', label: '良い' },
-  { key: 'neutral', emoji: '😐', label: '普通' },
-  { key: 'bad', emoji: '😟', label: '悪い' },
-  { key: 'terrible', emoji: '😢', label: '最悪' },
-];
-
 export function DiaryMoodPicker({ value, onChange }: Props) {
+  const { t } = useTranslation();
+
+  const MOODS: { key: DiaryMood; emoji: string; label: string }[] = [
+    { key: 'great', emoji: '😄', label: t('diary.mood.great') },
+    { key: 'good', emoji: '🙂', label: t('diary.mood.good') },
+    { key: 'neutral', emoji: '😐', label: t('diary.mood.neutral') },
+    { key: 'bad', emoji: '😟', label: t('diary.mood.bad') },
+    { key: 'terrible', emoji: '😢', label: t('diary.mood.terrible') },
+  ];
   const handleClick = useCallback(
     (mood: DiaryMood) => {
       onChange(value === mood ? null : mood);
@@ -27,7 +29,7 @@ export function DiaryMoodPicker({ value, onChange }: Props) {
 
   return (
     <div className="flex items-center gap-1">
-      <span className="text-xs text-text-secondary mr-2">気分</span>
+      <span className="text-xs text-text-secondary mr-2">{t('diary.mood')}</span>
       {MOODS.map(({ key, emoji, label }) => (
         <button
           key={key}
