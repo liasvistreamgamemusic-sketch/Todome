@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { Checkbox } from '@todome/ui/src/checkbox';
 import { Input } from '@todome/ui/src/input';
+import { useTranslation } from '@todome/store';
 
 export type Subtask = {
   id: string;
@@ -29,6 +30,7 @@ const generateId = (): string =>
   `subtask-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
+  const { t } = useTranslation();
   const [newTitle, setNewTitle] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -108,7 +110,7 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-text-secondary">
-          サブタスク
+          {t('todos.subtasks')}
         </span>
         <span className="text-xs text-text-tertiary">
           {completedCount}/{subtasks.length}
@@ -156,7 +158,7 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
                 className="p-0.5 rounded hover:bg-bg-tertiary text-text-tertiary hover:text-text-primary transition-colors"
                 onClick={() => handleMoveUp(index)}
                 disabled={index === 0}
-                aria-label="上に移動"
+                aria-label={t('todos.moveUp')}
               >
                 <ChevronUp className="h-3.5 w-3.5" />
               </button>
@@ -165,7 +167,7 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
                 className="p-0.5 rounded hover:bg-bg-tertiary text-text-tertiary hover:text-text-primary transition-colors"
                 onClick={() => handleMoveDown(index)}
                 disabled={index === subtasks.length - 1}
-                aria-label="下に移動"
+                aria-label={t('todos.moveDown')}
               >
                 <ChevronDown className="h-3.5 w-3.5" />
               </button>
@@ -173,7 +175,7 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
                 type="button"
                 className="p-0.5 rounded hover:bg-bg-tertiary text-text-tertiary hover:text-[#D32F2F] transition-colors"
                 onClick={() => handleDelete(subtask.id)}
-                aria-label="削除"
+                aria-label={t('common.delete')}
               >
                 <Trash2 className="h-3.5 w-3.5" />
               </button>
@@ -189,7 +191,7 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="サブタスクを追加..."
+            placeholder={t('todos.addSubtask')}
             variant="ghost"
             className="flex-1 h-8 text-sm"
             leftIcon={<Plus className="h-4 w-4" />}
@@ -205,14 +207,14 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
                 : 'text-text-tertiary cursor-not-allowed',
             )}
           >
-            追加
+            {t('todos.add')}
           </button>
         </div>
       )}
 
       {subtasks.length >= MAX_SUBTASKS && (
         <p className="text-xs text-text-tertiary">
-          サブタスクの上限({MAX_SUBTASKS}件)に達しました
+          {t('todos.subtaskLimit', { count: String(MAX_SUBTASKS) })}
         </p>
       )}
     </div>

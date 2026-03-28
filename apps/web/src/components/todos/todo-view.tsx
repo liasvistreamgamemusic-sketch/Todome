@@ -156,7 +156,7 @@ export const TodoView = () => {
                 )}
               >
                 <ArrowUpDown className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">並替</span>
+                <span className="hidden sm:inline">{t('todos.sortLabel')}</span>
                 <ChevronDown className="h-3 w-3" />
               </button>
               {showSortMenu && (
@@ -203,7 +203,7 @@ export const TodoView = () => {
                   )}
                 >
                   <Layers className="h-3.5 w-3.5" />
-                  <span className="hidden sm:inline">グループ</span>
+                  <span className="hidden sm:inline">{t('todos.groupLabel')}</span>
                   <ChevronDown className="h-3 w-3" />
                 </button>
                 {showGroupMenu && (
@@ -248,14 +248,14 @@ export const TodoView = () => {
               )}
             >
               <SlidersHorizontal className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">フィルター</span>
+              <span className="hidden sm:inline">{t('todos.filter')}</span>
             </button>
 
             {/* Show completed toggle */}
             <button
               type="button"
               onClick={toggleShowCompleted}
-              title={showCompleted ? '完了を非表示' : '完了を表示'}
+              title={showCompleted ? t('todos.hideCompleted') : t('todos.showCompleted')}
               className={clsx(
                 'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs',
                 'bg-bg-secondary text-text-secondary hover:bg-bg-tertiary',
@@ -268,7 +268,7 @@ export const TodoView = () => {
                 <EyeOff className="h-3.5 w-3.5" />
               )}
               <span className="hidden sm:inline">
-                {showCompleted ? '完了表示中' : '完了非表示'}
+                {showCompleted ? t('todos.completedShown') : t('todos.completedHidden')}
               </span>
             </button>
           </div>

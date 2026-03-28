@@ -19,6 +19,7 @@ import {
 } from 'date-fns';
 import type { Todo } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
+import { useTranslation } from '@todome/store';
 import { useTodos, useUpdateTodo } from '@/hooks/queries';
 import { filterTodos, STATUS_CYCLE } from '@/lib/todo-filters';
 import { TodoListItem } from './todo-list-item';
@@ -30,7 +31,9 @@ type DateGroup = {
   variant: 'danger' | 'warning' | 'default';
 };
 
-const categorizeTodosByDate = (todos: Todo[]): DateGroup[] => {
+type DateLabels = Record<string, string>;
+
+const categorizeTodosByDate = (todos: Todo[], labels: DateLabels): DateGroup[] => {
   const overdue: Todo[] = [];
   const today: Todo[] = [];
   const tomorrow: Todo[] = [];
@@ -76,7 +79,7 @@ const categorizeTodosByDate = (todos: Todo[]): DateGroup[] => {
   if (overdue.length > 0) {
     groups.push({
       key: 'overdue',
-      label: '期限切れ',
+      label: labels.overdue,
       todos: overdue.sort(sortByPriority),
       variant: 'danger',
     });
@@ -84,7 +87,7 @@ const categorizeTodosByDate = (todos: Todo[]): DateGroup[] => {
   if (today.length > 0) {
     groups.push({
       key: 'today',
-      label: '今日',
+      label: labels.today,
       todos: today.sort(sortByPriority),
       variant: 'warning',
     });
@@ -92,7 +95,7 @@ const categorizeTodosByDate = (todos: Todo[]): DateGroup[] => {
   if (tomorrow.length > 0) {
     groups.push({
       key: 'tomorrow',
-      label: '明日',
+      label: labels.tomorrow,
       todos: tomorrow.sort(sortByPriority),
       variant: 'default',
     });
@@ -100,7 +103,7 @@ const categorizeTodosByDate = (todos: Todo[]): DateGroup[] => {
   if (thisWeek.length > 0) {
     groups.push({
       key: 'this-week',
-      label: '今週',
+      label: labels.thisWeek,
       todos: thisWeek.sort(sortByPriority),
       variant: 'default',
     });
@@ -108,7 +111,7 @@ const categorizeTodosByDate = (todos: Todo[]): DateGroup[] => {
   if (nextWeek.length > 0) {
     groups.push({
       key: 'next-week',
-      label: '来週',
+      label: labels.nextWeek,
       todos: nextWeek.sort(sortByPriority),
       variant: 'default',
     });
@@ -116,7 +119,7 @@ const categorizeTodosByDate = (todos: Todo[]): DateGroup[] => {
   if (later.length > 0) {
     groups.push({
       key: 'later',
-      label: 'それ以降',
+      label: labels.later,
       todos: later.sort(sortByPriority),
       variant: 'default',
     });
@@ -124,7 +127,7 @@ const categorizeTodosByDate = (todos: Todo[]): DateGroup[] => {
   if (noDueDate.length > 0) {
     groups.push({
       key: 'no-due-date',
-      label: '期限なし',
+      label: labels.noDueDate,
       todos: noDueDate.sort(sortByPriority),
       variant: 'default',
     });
@@ -192,6 +195,7 @@ const DateGroupSection = ({
 };
 
 export const TodoDueDateView = () => {
+  const { t } = useTranslation();
   const { data: todos } = useTodos();
   const updateTodo = useUpdateTodo();
   const showCompleted = useTodoStore((s) => s.showCompleted);
@@ -213,7 +217,17 @@ export const TodoDueDateView = () => {
     [todos, filterStatus, filterPriority, filterTags, sortBy, showCompleted],
   );
 
-  const groups = useMemo(() => categorizeTodosByDate(filtered), [filtered]);
+  const dateLabels: DateLabels = useMemo(() => ({
+    overdue: t('todos.overdue'),
+    today: t('todos.today'),
+    tomorrow: t('todos.tomorrow'),
+    thisWeek: t('todos.thisWeek'),
+    nextWeek: t('todos.nextWeek'),
+    later: t('todos.later'),
+    noDueDate: t('todos.noDueDate'),
+  }), [t]);
+
+  const groups = useMemo(() => categorizeTodosByDate(filtered, dateLabels), [filtered, dateLabels]);
 
   const handleToggleStatus = useCallback(
     (id: string) => {
@@ -245,7 +259,7 @@ export const TodoDueDateView = () => {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-text-tertiary">
         <Inbox className="h-12 w-12 mb-3" />
-        <p className="text-sm">Todoがありません</p>
+        <p className="text-sm">{t('todos.noTodos')}</p>
       </div>
     );
   }

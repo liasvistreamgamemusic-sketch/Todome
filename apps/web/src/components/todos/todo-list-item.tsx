@@ -7,6 +7,7 @@ import { format, isPast, isToday } from 'date-fns';
 import { Badge } from '@todome/ui/src/badge';
 import { Checkbox } from '@todome/ui/src/checkbox';
 import type { Todo, TodoStatus } from '@todome/store/src/types';
+import { useTranslation } from '@todome/store';
 
 type Props = {
   todo: Todo;
@@ -32,14 +33,15 @@ const getDueDateStyle = (dueDate: string | null): string => {
   return 'text-text-tertiary';
 };
 
-const formatDueDate = (dueDate: string | null): string | null => {
-  if (!dueDate) return null;
-  const date = new Date(dueDate);
-  if (isToday(date)) return '今日';
-  return format(date, 'M/d');
-};
-
 const TodoListItemInner = ({ todo, onToggleStatus, onSelect }: Props) => {
+  const { t } = useTranslation();
+
+  const formatDueDate = (dueDate: string | null): string | null => {
+    if (!dueDate) return null;
+    const date = new Date(dueDate);
+    if (isToday(date)) return t('todos.today');
+    return format(date, 'M/d');
+  };
   const isCompleted = statusToChecked(todo.status);
   const dueDateLabel = formatDueDate(todo.due_date);
   const dueDateStyle = getDueDateStyle(todo.due_date);
@@ -94,7 +96,7 @@ const TodoListItemInner = ({ todo, onToggleStatus, onSelect }: Props) => {
           'h-2 w-2 rounded-full flex-shrink-0',
           PRIORITY_COLORS[todo.priority],
         )}
-        title={`優先度: ${todo.priority}`}
+        title={`${t('todos.priority')}: ${todo.priority}`}
       />
 
       <span

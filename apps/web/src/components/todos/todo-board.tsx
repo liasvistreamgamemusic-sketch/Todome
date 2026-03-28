@@ -14,6 +14,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { useTodoStore } from '@todome/store/src/todo-store';
+import { useTranslation } from '@todome/store';
 import { useTodos, useUpdateTodo } from '@/hooks/queries';
 import type { Todo, TodoStatus } from '@todome/db';
 import { TodoBoardCard } from './todo-board-card';
@@ -22,13 +23,6 @@ type Column = {
   status: TodoStatus;
   label: string;
 };
-
-const COLUMNS: Column[] = [
-  { status: 'pending', label: '未着手' },
-  { status: 'in_progress', label: '進行中' },
-  { status: 'completed', label: '完了' },
-  { status: 'cancelled', label: 'キャンセル' },
-];
 
 const STATUS_HEADER_COLORS: Record<TodoStatus, string> = {
   pending: 'bg-[#90CAF9]',
@@ -75,11 +69,19 @@ const DroppableColumn = ({
 };
 
 export const TodoBoard = () => {
+  const { t } = useTranslation();
   const { data: allTodos = [] } = useTodos();
   const updateTodoMutation = useUpdateTodo();
   const selectTodo = useTodoStore((s) => s.selectTodo);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overColumn, setOverColumn] = useState<TodoStatus | null>(null);
+
+  const COLUMNS: Column[] = [
+    { status: 'pending', label: t('todos.status.notStarted') },
+    { status: 'in_progress', label: t('todos.status.inProgress') },
+    { status: 'completed', label: t('todos.status.completed') },
+    { status: 'cancelled', label: t('todos.status.cancelled') },
+  ];
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -178,7 +180,7 @@ export const TodoBoard = () => {
             >
               {columnTodos.length === 0 ? (
                 <div className="flex items-center justify-center h-20 text-xs text-text-tertiary">
-                  ドロップしてここに移動
+                  {t('todos.dropToMove')}
                 </div>
               ) : (
                 columnTodos.map((todo) => (

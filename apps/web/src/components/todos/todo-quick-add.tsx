@@ -6,44 +6,46 @@ import { Plus, Calendar, ChevronDown, Bell, Tag, FileText } from 'lucide-react';
 import { addDays, startOfDay } from 'date-fns';
 import type { TodoPriority, TodoStatus } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
+import { useTranslation } from '@todome/store';
 import { useTodos, useCreateTodo, useUserId } from '@/hooks/queries';
-
-const PRIORITY_DOTS: { value: TodoPriority; color: string; label: string }[] = [
-  { value: 1, color: 'bg-[#388E3C]', label: '低' },
-  { value: 2, color: 'bg-[#F9A825]', label: '中' },
-  { value: 3, color: 'bg-[#F57C00]', label: '高' },
-  { value: 4, color: 'bg-[#D32F2F]', label: '緊急' },
-];
 
 type DueDateShortcut = {
   label: string;
   getDate: () => string;
 };
 
-const DUE_DATE_SHORTCUTS: DueDateShortcut[] = [
-  {
-    label: '今日',
-    getDate: () => startOfDay(new Date()).toISOString(),
-  },
-  {
-    label: '明日',
-    getDate: () => startOfDay(addDays(new Date(), 1)).toISOString(),
-  },
-  {
-    label: '来週',
-    getDate: () => startOfDay(addDays(new Date(), 7)).toISOString(),
-  },
-];
-
-const STATUS_OPTIONS: { value: TodoStatus; label: string; color: string }[] = [
-  { value: 'pending', label: '未着手', color: 'bg-[#90CAF9]' },
-  { value: 'in_progress', label: '進行中', color: 'bg-[#F57C00]' },
-  { value: 'completed', label: '完了', color: 'bg-[#388E3C]' },
-  { value: 'cancelled', label: 'キャンセル', color: 'bg-[#9E9E9E]' },
-];
-
 export const TodoQuickAdd = () => {
   const setFilterStatus = useTodoStore((s) => s.setFilterStatus);
+  const { t } = useTranslation();
+
+  const PRIORITY_DOTS: { value: TodoPriority; color: string; label: string }[] = [
+    { value: 1, color: 'bg-[#388E3C]', label: t('todos.priority.low') },
+    { value: 2, color: 'bg-[#F9A825]', label: t('todos.priority.medium') },
+    { value: 3, color: 'bg-[#F57C00]', label: t('todos.priority.high') },
+    { value: 4, color: 'bg-[#D32F2F]', label: t('todos.priority.urgent') },
+  ];
+
+  const DUE_DATE_SHORTCUTS: DueDateShortcut[] = [
+    {
+      label: t('todos.today'),
+      getDate: () => startOfDay(new Date()).toISOString(),
+    },
+    {
+      label: t('todos.tomorrow'),
+      getDate: () => startOfDay(addDays(new Date(), 1)).toISOString(),
+    },
+    {
+      label: t('todos.nextWeek'),
+      getDate: () => startOfDay(addDays(new Date(), 7)).toISOString(),
+    },
+  ];
+
+  const STATUS_OPTIONS: { value: TodoStatus; label: string; color: string }[] = [
+    { value: 'pending', label: t('todos.status.notStarted'), color: 'bg-[#90CAF9]' },
+    { value: 'in_progress', label: t('todos.status.inProgress'), color: 'bg-[#F57C00]' },
+    { value: 'completed', label: t('todos.status.completed'), color: 'bg-[#388E3C]' },
+    { value: 'cancelled', label: t('todos.status.cancelled'), color: 'bg-[#9E9E9E]' },
+  ];
   const { data: todos } = useTodos();
   const createTodo = useCreateTodo();
   const userId = useUserId();
@@ -150,7 +152,7 @@ export const TodoQuickAdd = () => {
         (s) =>
           startOfDay(new Date(s.getDate())).getTime() ===
           startOfDay(new Date(dueDate)).getTime(),
-      )?.label ?? '期限あり'
+      )?.label ?? t('todos.hasDueDate')
     : null;
 
   return (
@@ -170,7 +172,7 @@ export const TodoQuickAdd = () => {
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={handleKeyDown}
           onFocus={handleFocus}
-          placeholder="新しいTodoを追加..."
+          placeholder={t('todos.newTodo')}
           className={clsx(
             'flex-1 bg-transparent border-none outline-none',
             'text-sm text-text-primary placeholder:text-text-tertiary',
@@ -186,7 +188,7 @@ export const TodoQuickAdd = () => {
               'hover:opacity-90 transition-opacity',
             )}
           >
-            追加
+            {t('todos.add')}
           </button>
         )}
       </div>
@@ -197,7 +199,7 @@ export const TodoQuickAdd = () => {
           <div className="flex items-center gap-3 px-1">
             {/* Priority selector */}
             <div className="flex items-center gap-1.5">
-              <span className="text-xs text-text-tertiary">優先度:</span>
+              <span className="text-xs text-text-tertiary">{t('todos.priorityLabel')}</span>
               {PRIORITY_DOTS.map((p) => (
                 <button
                   key={p.value}
@@ -264,7 +266,7 @@ export const TodoQuickAdd = () => {
                   : 'text-text-tertiary hover:text-text-secondary',
               )}
             >
-              詳細設定
+              {t('todos.advancedSettings')}
               <ChevronDown
                 className={clsx(
                   'h-3 w-3 transition-transform duration-150',
@@ -281,7 +283,7 @@ export const TodoQuickAdd = () => {
               <div className="space-y-1.5">
                 <label className="flex items-center gap-1.5 text-xs text-text-tertiary">
                   <FileText className="h-3 w-3" />
-                  ステータス
+                  {t('todos.status')}
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {STATUS_OPTIONS.map((opt) => (
@@ -308,7 +310,7 @@ export const TodoQuickAdd = () => {
               <div className="space-y-1.5">
                 <label className="flex items-center gap-1.5 text-xs text-text-tertiary">
                   <Tag className="h-3 w-3" />
-                  タグ
+                  {t('todos.tag')}
                 </label>
                 {tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
@@ -334,7 +336,7 @@ export const TodoQuickAdd = () => {
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={handleTagKeyDown}
-                    placeholder="タグをカンマ区切りで入力..."
+                    placeholder={t('todos.tagsCsvPlaceholder')}
                     className={clsx(
                       'flex-1 h-7 px-2 rounded-md text-xs text-text-primary',
                       'bg-transparent border border-[var(--border)]',
@@ -354,7 +356,7 @@ export const TodoQuickAdd = () => {
                         : 'bg-bg-secondary text-text-tertiary opacity-50 cursor-not-allowed',
                     )}
                   >
-                    追加
+                    {t('todos.add')}
                   </button>
                 </div>
               </div>
@@ -362,12 +364,12 @@ export const TodoQuickAdd = () => {
               {/* Memo textarea */}
               <div className="space-y-1.5">
                 <label className="flex items-center gap-1.5 text-xs text-text-tertiary">
-                  メモ
+                  {t('todos.memo')}
                 </label>
                 <textarea
                   value={detail}
                   onChange={(e) => setDetail(e.target.value)}
-                  placeholder="詳細を入力..."
+                  placeholder={t('todos.detailPlaceholder')}
                   rows={2}
                   className={clsx(
                     'w-full px-2 py-1.5 rounded-md text-xs text-text-primary',
@@ -382,7 +384,7 @@ export const TodoQuickAdd = () => {
               <div className="space-y-1.5">
                 <label className="flex items-center gap-1.5 text-xs text-text-tertiary">
                   <Bell className="h-3 w-3" />
-                  リマインダー
+                  {t('todos.reminder')}
                 </label>
                 <input
                   type="datetime-local"

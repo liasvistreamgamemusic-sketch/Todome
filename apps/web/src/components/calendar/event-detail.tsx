@@ -65,8 +65,6 @@ const PRESET_COLORS = [
   '#E67C73',
 ];
 
-const WEEKDAY_LABELS = ['月', '火', '水', '木', '金', '土', '日'];
-
 type RepeatEndType = 'never' | 'count' | 'until';
 
 type FormState = {
@@ -144,6 +142,12 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
     { label: t('event.repeat.monthly'), value: 'monthly' },
     { label: t('event.repeat.yearly'), value: 'yearly' },
     { label: t('event.repeat.custom'), value: 'custom' },
+  ], [t]);
+
+  const WEEKDAY_LABELS = useMemo(() => [
+    t('event.weekday.mon'), t('event.weekday.tue'), t('event.weekday.wed'),
+    t('event.weekday.thu'), t('event.weekday.fri'), t('event.weekday.sat'),
+    t('event.weekday.sun'),
   ], [t]);
 
   const { data: events } = useCalendarEvents();
@@ -503,13 +507,13 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
         {/* Header */}
         <div className="flex items-center justify-between border-b border-[var(--border)] px-5 py-3">
           <h2 className="text-sm font-semibold text-text-primary">
-            {isEditing ? '予定を編集' : '新規予定'}
+            {isEditing ? t('event.editTitle') : t('event.newTitle')}
           </h2>
           <button
             type="button"
             onClick={onClose}
             className="rounded-md p-1 text-text-tertiary hover:bg-bg-secondary hover:text-text-primary transition"
-            aria-label="閉じる"
+            aria-label={t('common.close')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -519,7 +523,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
         <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-4">
           {/* Title */}
           <Input
-            placeholder="タイトルを入力"
+            placeholder={t('event.titlePlaceholder')}
             value={form.title}
             onChange={(e) => updateField('title', e.target.value)}
             variant="ghost"
@@ -532,11 +536,11 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-text-secondary">
                 <Users className="mr-1 inline h-3.5 w-3.5" />
-                追加先カレンダー
+                {t('event.targetCalendar')}
               </label>
               <div className="rounded-lg border border-[var(--border)] p-2 space-y-1">
                 <Checkbox
-                  label="個人カレンダー"
+                  label={t('event.personalCalendar')}
                   checked={form.includePersonalCalendar}
                   onChange={(e) => updateField('includePersonalCalendar', e.target.checked)}
                   wrapperClassName="py-0.5"
@@ -561,7 +565,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
 
           {/* All-day toggle */}
           <Checkbox
-            label="終日"
+            label={t('calendar.allDay')}
             checked={form.isAllDay}
             onChange={(e) => updateField('isAllDay', e.target.checked)}
           />
@@ -569,28 +573,28 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           {/* Date/Time pickers */}
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="開始日"
+              label={t('event.startDate')}
               type="date"
               value={form.startDate}
               onChange={(e) => handleStartDateChange(e.target.value)}
             />
             {!form.isAllDay && (
               <Input
-                label="開始時刻"
+                label={t('event.startTime')}
                 type="time"
                 value={form.startTime}
                 onChange={(e) => handleStartTimeChange(e.target.value)}
               />
             )}
             <Input
-              label="終了日"
+              label={t('event.endDate')}
               type="date"
               value={form.endDate}
               onChange={(e) => updateField('endDate', e.target.value)}
             />
             {!form.isAllDay && (
               <Input
-                label="終了時刻"
+                label={t('event.endTime')}
                 type="time"
                 value={form.endTime}
                 onChange={(e) => updateField('endTime', e.target.value)}
@@ -600,8 +604,8 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
 
           {/* Location */}
           <Input
-            label="場所"
-            placeholder="場所を入力"
+            label={t('event.location')}
+            placeholder={t('event.locationPlaceholder')}
             value={form.location}
             onChange={(e) => updateField('location', e.target.value)}
             leftIcon={<MapPin />}
@@ -609,8 +613,8 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
 
           {/* Description */}
           <Textarea
-            label="メモ"
-            placeholder="メモを入力"
+            label={t('event.memo')}
+            placeholder={t('event.memoPlaceholder')}
             value={form.description}
             onChange={(e) => updateField('description', e.target.value)}
             rows={3}
@@ -620,7 +624,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-text-secondary">
               <Palette className="mr-1 inline h-3.5 w-3.5" />
-              カラー
+              {t('event.color')}
             </label>
             <div className="flex gap-2">
               {PRESET_COLORS.map((c) => (
@@ -635,7 +639,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                       : 'border-transparent hover:scale-105',
                   )}
                   style={{ backgroundColor: c }}
-                  aria-label={`色 ${c}`}
+                  aria-label={`${t('event.color')} ${c}`}
                 />
               ))}
             </div>
@@ -645,7 +649,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-text-secondary">
               <Bell className="mr-1 inline h-3.5 w-3.5" />
-              リマインダー
+              {t('event.reminder')}
             </label>
             <select
               value={form.reminder ?? ''}
@@ -670,7 +674,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           <div className="space-y-2">
             <label className="text-sm font-medium text-text-secondary">
               <Repeat className="mr-1 inline h-3.5 w-3.5" />
-              繰り返し
+              {t('event.repeat')}
             </label>
             <select
               value={form.repeat}
@@ -693,7 +697,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
               <div className="ml-1 space-y-3 rounded-lg border border-[var(--border)] p-3">
                 {/* Weekday checkboxes */}
                 <div className="space-y-1.5">
-                  <span className="text-xs text-text-secondary">曜日を選択</span>
+                  <span className="text-xs text-text-secondary">{t('event.repeat.selectDays')}</span>
                   <div className="flex gap-2">
                     {WEEKDAY_LABELS.map((label, i) => (
                       <button
@@ -719,7 +723,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
 
                 {/* Repeat end */}
                 <div className="space-y-2">
-                  <span className="text-xs text-text-secondary">終了条件</span>
+                  <span className="text-xs text-text-secondary">{t('event.repeat.endCondition')}</span>
                   <div className="space-y-1.5">
                     <label className="flex items-center gap-2 text-sm text-text-primary">
                       <input
@@ -729,7 +733,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                         onChange={() => updateField('repeatEndType', 'never')}
                         className="accent-[var(--accent)]"
                       />
-                      無期限
+                      {t('event.repeat.noEnd')}
                     </label>
                     <label className="flex items-center gap-2 text-sm text-text-primary">
                       <input
@@ -739,7 +743,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                         onChange={() => updateField('repeatEndType', 'count')}
                         className="accent-[var(--accent)]"
                       />
-                      回数指定
+                      {t('event.repeat.byCount')}
                       {form.repeatEndType === 'count' && (
                         <input
                           type="number"
@@ -764,7 +768,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                         onChange={() => updateField('repeatEndType', 'until')}
                         className="accent-[var(--accent)]"
                       />
-                      終了日
+                      {t('event.repeat.byDate')}
                       {form.repeatEndType === 'until' && (
                         <input
                           type="date"
@@ -789,7 +793,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-text-secondary">
               <Link2 className="mr-1 inline h-3.5 w-3.5" />
-              関連Todo
+              {t('event.relatedTodos')}
             </label>
             {form.linkedTodoIds.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-1.5">
@@ -805,7 +809,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                         type="button"
                         onClick={() => toggleTodo(id)}
                         className="hover:text-text-primary transition"
-                        aria-label="削除"
+                        aria-label={t('common.delete')}
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -822,13 +826,13 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
               )}
             >
-              {showTodoSelector ? '閉じる' : 'Todoを選択'}
+              {showTodoSelector ? t('common.close') : t('event.selectTodos')}
             </button>
             {showTodoSelector && (
               <div className="max-h-40 overflow-y-auto rounded-lg border border-[var(--border)] p-2 space-y-1">
                 {availableTodos.length === 0 ? (
                   <p className="text-xs text-text-tertiary py-2 text-center">
-                    Todoがありません
+                    {t('event.noTodos')}
                   </p>
                 ) : (
                   availableTodos.map((todo) => (
@@ -849,7 +853,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           <div className="space-y-1.5">
             <label className="text-sm font-medium text-text-secondary">
               <FileText className="mr-1 inline h-3.5 w-3.5" />
-              関連メモ
+              {t('event.relatedNotes')}
             </label>
             {form.linkedNoteIds.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mb-1.5">
@@ -865,7 +869,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                         type="button"
                         onClick={() => toggleNote(id)}
                         className="hover:text-text-primary transition"
-                        aria-label="削除"
+                        aria-label={t('common.delete')}
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -882,19 +886,19 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
               )}
             >
-              {showNoteSelector ? '閉じる' : 'メモを選択'}
+              {showNoteSelector ? t('common.close') : t('event.selectNotes')}
             </button>
             {showNoteSelector && (
               <div className="max-h-40 overflow-y-auto rounded-lg border border-[var(--border)] p-2 space-y-1">
                 {availableNotes.length === 0 ? (
                   <p className="text-xs text-text-tertiary py-2 text-center">
-                    メモがありません
+                    {t('event.noNotes')}
                   </p>
                 ) : (
                   availableNotes.map((note) => (
                     <Checkbox
                       key={note.id}
-                      label={note.title || '無題'}
+                      label={note.title || t('event.untitled')}
                       checked={form.linkedNoteIds.includes(note.id)}
                       onChange={() => toggleNote(note.id)}
                       wrapperClassName="py-0.5"
@@ -912,19 +916,19 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
             {isEditing && (
               <Button variant="danger" size="sm" onClick={handleDelete}>
                 <Trash2 className="h-3.5 w-3.5" />
-                削除
+                {t('common.delete')}
               </Button>
             )}
             {isEditing && onCopy && (
               <Button variant="ghost" size="sm" onClick={handleCopy}>
                 <Copy className="h-3.5 w-3.5" />
-                コピー
+                {t('event.copy')}
               </Button>
             )}
           </div>
           <div className="flex gap-2">
             <Button variant="ghost" size="sm" onClick={onClose}>
-              キャンセル
+              {t('common.cancel')}
             </Button>
             <Button
               variant="primary"
@@ -932,7 +936,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
               onClick={handleSave}
               disabled={!form.title.trim() || (!isEditing && sharedCalendars.length > 0 && !form.includePersonalCalendar && form.targetSharedCalendarIds.length === 0)}
             >
-              {isEditing ? '更新' : '保存'}
+              {isEditing ? t('common.update') : t('common.save')}
             </Button>
           </div>
         </div>
