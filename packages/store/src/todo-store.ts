@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { TodoStatus, TodoPriority } from './types';
 
 export type TodoViewMode = 'list' | 'board' | 'due-date';
@@ -35,38 +36,58 @@ export type TodoStoreState = {
   toggleShowCompleted: () => void;
 };
 
-export const useTodoStore = create<TodoStoreState>()((set) => ({
-  selectedTodoId: null,
-  selectedListId: null,
-  searchQuery: '',
-  selectedTodoIds: new Set(),
-  isMultiSelectMode: false,
-  viewMode: 'list',
-  filterStatus: 'all',
-  filterPriority: 'all',
-  filterTags: [],
-  sortBy: 'priority',
-  groupBy: 'status',
-  showCompleted: false,
+export const useTodoStore = create<TodoStoreState>()(
+  persist(
+    (set) => ({
+      selectedTodoId: null,
+      selectedListId: null,
+      searchQuery: '',
+      selectedTodoIds: new Set(),
+      isMultiSelectMode: false,
+      viewMode: 'list',
+      filterStatus: 'all',
+      filterPriority: 'all',
+      filterTags: [],
+      sortBy: 'priority',
+      groupBy: 'status',
+      showCompleted: false,
 
-  selectTodo: (id) => set({ selectedTodoId: id }),
-  setSelectedList: (id) => set({ selectedListId: id }),
-  setSearchQuery: (query) => set({ searchQuery: query }),
-  toggleTodoSelection: (id) => set((s) => {
-    const next = new Set(s.selectedTodoIds);
-    if (next.has(id)) next.delete(id);
-    else next.add(id);
-    return { selectedTodoIds: next };
-  }),
-  selectAllTodos: (ids) => set({ selectedTodoIds: new Set(ids) }),
-  clearSelection: () => set({ selectedTodoIds: new Set(), isMultiSelectMode: false }),
-  setMultiSelectMode: (mode) => set({ isMultiSelectMode: mode, selectedTodoIds: new Set() }),
-  setViewMode: (mode) => set({ viewMode: mode }),
-  setFilterStatus: (status) => set({ filterStatus: status }),
-  setFilterPriority: (priority) => set({ filterPriority: priority }),
-  setFilterTags: (tags) => set({ filterTags: tags }),
-  setSortBy: (sortBy) => set({ sortBy }),
-  setGroupBy: (groupBy) => set({ groupBy }),
-  toggleShowCompleted: () =>
-    set((s) => ({ showCompleted: !s.showCompleted })),
-}));
+      selectTodo: (id) => set({ selectedTodoId: id }),
+      setSelectedList: (id) => set({ selectedListId: id }),
+      setSearchQuery: (query) => set({ searchQuery: query }),
+      toggleTodoSelection: (id) => set((s) => {
+        const next = new Set(s.selectedTodoIds);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return { selectedTodoIds: next };
+      }),
+      selectAllTodos: (ids) => set({ selectedTodoIds: new Set(ids) }),
+      clearSelection: () => set({ selectedTodoIds: new Set(), isMultiSelectMode: false }),
+      setMultiSelectMode: (mode) => set({ isMultiSelectMode: mode, selectedTodoIds: new Set() }),
+      setViewMode: (mode) => set({ viewMode: mode }),
+      setFilterStatus: (status) => set({ filterStatus: status }),
+      setFilterPriority: (priority) => set({ filterPriority: priority }),
+      setFilterTags: (tags) => set({ filterTags: tags }),
+      setSortBy: (sortBy) => set({ sortBy }),
+      setGroupBy: (groupBy) => set({ groupBy }),
+      toggleShowCompleted: () =>
+        set((s) => ({ showCompleted: !s.showCompleted })),
+    }),
+    {
+      name: 'todome-todo-store',
+      storage: createJSONStorage(() => {
+        if (typeof window === 'undefined') return sessionStorage;
+        return localStorage;
+      }),
+      partialize: (state) => ({
+        selectedListId: state.selectedListId,
+        viewMode: state.viewMode,
+        sortBy: state.sortBy,
+        groupBy: state.groupBy,
+        showCompleted: state.showCompleted,
+        filterStatus: state.filterStatus,
+        filterPriority: state.filterPriority,
+      }),
+    },
+  ),
+);

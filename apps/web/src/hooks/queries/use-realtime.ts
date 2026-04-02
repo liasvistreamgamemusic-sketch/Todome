@@ -24,7 +24,7 @@ export function useRealtimeSync(): void {
     let notesDebounceTimer: ReturnType<typeof setTimeout> | undefined;
     const debouncedNotesRefetch = () => {
       if (notesDebounceTimer) clearTimeout(notesDebounceTimer);
-      notesDebounceTimer = setTimeout(() => {
+      notesDebounceTimer = setTimeout(() => {  // 1s debounce to batch echo-backs
         // Invalidate notes.all — prefix-matches both useNotes and useNoteSummaries
         queryClient.invalidateQueries({
           queryKey: queryKeys.notes.all(userId),
@@ -34,7 +34,7 @@ export function useRealtimeSync(): void {
           queryKey: ['notes', 'detail'],
           exact: false,
         });
-      }, 2000);
+      }, 1000);
     };
 
     const channel = supabase
