@@ -61,7 +61,7 @@ function useSeedFromCache() {
   }, [userId, queryClient]);
 }
 
-/** Seed a single note detail from IndexedDB cache */
+/** Seed a single note detail from IndexedDB cache (only if content exists) */
 function useSeedNoteDetail(noteId: string | null) {
   const queryClient = useQueryClient();
 
@@ -70,7 +70,9 @@ function useSeedNoteDetail(noteId: string | null) {
     const key = queryKeys.notes.detail(noteId);
     if (!queryClient.getQueryData(key)) {
       getCachedNoteById(noteId).then((cached) => {
-        if (cached && !queryClient.getQueryData(key)) {
+        // Only seed if we have real content — seeding with content: null
+        // causes Tiptap to initialize empty and ignore the later Supabase fetch
+        if (cached?.content && !queryClient.getQueryData(key)) {
           queryClient.setQueryData(key, cached);
         }
       });
