@@ -226,6 +226,52 @@ export const ja = {
   'todos.thisWeek': '今週',
   'todos.later': 'それ以降',
   'todos.noDueDate': '期限なし',
+  // TodoList (リスト分類)
+  'todos.lists': 'リスト',
+  'todos.myLists': 'マイリスト',
+  'todos.addList': 'リストを追加',
+  'todos.editList': 'リストを編集',
+  'todos.listName': 'リスト名',
+  'todos.listColor': 'カラー',
+  'todos.listIcon': 'アイコン',
+  'todos.deleteList': 'リストを削除',
+  'todos.deleteListConfirm': 'このリストを削除しますか？リスト内のTodoは未分類になります。',
+  'todos.noList': 'リストなし',
+  'todos.smart.today': '今日',
+  'todos.smart.scheduled': '予定',
+  'todos.smart.all': 'すべて',
+  'todos.smart.flagged': 'フラグ付き',
+  'todos.smart.completed': '完了済み',
+  'todos.flagged': 'フラグ付き',
+  'todos.unflagged': 'フラグなし',
+  'todos.flag': 'フラグ',
+  'todos.unflag': 'フラグ解除',
+  // Calendar integration
+  'todos.includeTime': '時刻を含む',
+  'todos.addToCalendar': 'カレンダーに追加',
+  'todos.pickDate': '日付を選ぶ',
+  // Quick add
+  'todos.quickAdd.dateHint': '期限を設定: {date}',
+  'todos.quickAdd.acceptDate': '確定',
+  // Swipe actions
+  'todos.swipe.complete': '完了',
+  'todos.swipe.flag': 'フラグ',
+  'todos.swipe.delete': '削除',
+  // Recurring
+  'todos.recurring.nextCreated': '次の繰り返しを作成しました',
+  // Batch operations
+  'todos.batch.selected': '{count}件選択中',
+  'todos.batch.changeStatus': 'ステータス変更',
+  'todos.batch.changePriority': '優先度変更',
+  'todos.batch.moveToList': 'リストに移動',
+  'todos.batch.flagAll': 'すべてフラグ',
+  'todos.batch.deleteAll': 'すべて削除',
+  // Search
+  'todos.search': 'Todoを検索...',
+  'todos.searchResults': '{count}件の結果',
+  // Calendar
+  'calendar.todoDue': '期限のTodo',
+  'calendar.todoSection': 'Todo',
 
   // Diary
   'diary.title': '日記',

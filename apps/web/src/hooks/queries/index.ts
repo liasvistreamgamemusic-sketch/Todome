@@ -22,6 +22,13 @@ export {
 } from './use-todos';
 
 export {
+  useTodoLists,
+  useCreateTodoList,
+  useUpdateTodoList,
+  useDeleteTodoList,
+} from './use-todo-lists';
+
+export {
   useCalendarEvents,
   useCreateCalendarEvent,
   useUpdateCalendarEvent,

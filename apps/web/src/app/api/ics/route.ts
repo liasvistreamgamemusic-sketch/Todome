@@ -1,47 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-const MAX_ICS_SIZE = 5 * 1024 * 1024; // 5 MB
-const FETCH_TIMEOUT = 15_000; // 15 seconds
-
-/** Normalize webcal:// (common in Outlook/Apple) to https:// */
-function normalizeIcsUrl(url: string): string {
-  return url.replace(/^webcal:\/\//i, 'https://');
-}
+const FETCH_TIMEOUT = 15_000;
 
 export async function GET(request: NextRequest) {
-  const rawUrl = request.nextUrl.searchParams.get('url');
-
-  if (!rawUrl) {
+  const url = request.nextUrl.searchParams.get('url');
+  if (!url) {
     return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
   }
 
-  const url = normalizeIcsUrl(rawUrl);
-
-  let parsedUrl: URL;
   try {
-    parsedUrl = new URL(url);
+    new URL(url);
   } catch {
-    return NextResponse.json({ error: 'Invalid URL' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid url' }, { status: 400 });
   }
 
-  if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
-    return NextResponse.json({ error: 'Only HTTP(S) URLs allowed' }, { status: 400 });
-  }
-
-  const ifNoneMatch = request.headers.get('if-none-match');
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     'User-Agent': 'Mozilla/5.0 (compatible; Todome/1.0; +https://todome.app)',
     Accept: 'text/calendar, text/plain;q=0.9, */*;q=0.1',
-    'Accept-Language': 'ja,en;q=0.9',
   };
-  if (ifNoneMatch) {
-    headers['If-None-Match'] = ifNoneMatch;
-  }
+
+  const ifNoneMatch = request.headers.get('if-none-match');
+  if (ifNoneMatch) headers['If-None-Match'] = ifNoneMatch;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
   try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-
     const response = await fetch(url, {
       headers,
       signal: controller.signal,
@@ -62,27 +46,23 @@ export async function GET(request: NextRequest) {
     }
 
     const body = await response.text();
-
-    if (body.length > MAX_ICS_SIZE) {
-      return NextResponse.json(
-        { error: 'ICS file too large (max 5MB)' },
-        { status: 413 },
-      );
-    }
-
-    const responseHeaders: Record<string, string> = {
-      'Content-Type': 'text/calendar; charset=utf-8',
-      'Cache-Control': 'private, max-age=300',
-    };
-
     const etag = response.headers.get('etag');
-    if (etag) {
-      responseHeaders['ETag'] = etag;
-    }
 
-    return new NextResponse(body, { status: 200, headers: responseHeaders });
+    return new NextResponse(body, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/calendar; charset=utf-8',
+        ...(etag ? { ETag: etag } : {}),
+      },
+    });
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Fetch failed';
-    return NextResponse.json({ error: message }, { status: 502 });
+    clearTimeout(timeout);
+    if (err instanceof DOMException && err.name === 'AbortError') {
+      return NextResponse.json({ error: 'Timeout' }, { status: 504 });
+    }
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Unknown error' },
+      { status: 502 },
+    );
   }
 }

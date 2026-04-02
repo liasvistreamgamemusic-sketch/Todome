@@ -10,6 +10,8 @@ import {
   Tag,
   FileText,
   Clock,
+  Star,
+  List,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Button } from '@todome/ui/src/button';
@@ -20,12 +22,13 @@ import type {
   TodoStatus,
   TodoPriority,
   RemindRepeat,
+  Subtask,
 } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
 import { useTranslation } from '@todome/store';
-import { useTodos, useUpdateTodo, useDeleteTodo } from '@/hooks/queries';
+import { useTodos, useTodoLists, useUpdateTodo, useDeleteTodo } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
-import { TodoSubtasks, type Subtask } from './todo-subtasks';
+import { TodoSubtasks } from './todo-subtasks';
 
 export const TodoDetail = () => {
   const { t } = useTranslation();
@@ -55,6 +58,7 @@ export const TodoDetail = () => {
   const selectTodo = useTodoStore((s) => s.selectTodo);
 
   const { data: todos } = useTodos();
+  const { data: todoLists } = useTodoLists();
   const updateTodo = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
 
@@ -87,7 +91,7 @@ export const TodoDetail = () => {
       );
       setRemindRepeat(todo.remind_repeat ?? 'none');
       setTagInput('');
-      setSubtasks([]);
+      setSubtasks(todo.subtasks ?? []);
     }
   }, [todo]);
 
@@ -213,6 +217,13 @@ export const TodoDetail = () => {
     [handleClose],
   );
 
+  const handleSubtasksChange = useCallback((newSubtasks: Subtask[]) => {
+    setSubtasks(newSubtasks);
+    handleUpdate({
+      subtasks: newSubtasks.map((s, i) => ({ ...s, sort_order: i })),
+    });
+  }, [handleUpdate]);
+
   if (!todo) return null;
 
   return (
@@ -238,14 +249,30 @@ export const TodoDetail = () => {
         <span className="text-sm font-medium text-text-secondary">
           {t('todos.detail')}
         </span>
-        <button
-          type="button"
-          onClick={handleClose}
-          className="p-2 md:p-1.5 rounded-md hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
-          aria-label={t('common.close')}
-        >
-          <X className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => handleUpdate({ is_flagged: !todo.is_flagged })}
+            className="p-2 md:p-1.5 rounded-md hover:bg-bg-secondary transition-colors"
+            aria-label={t('todos.flag')}
+          >
+            <Star
+              className={clsx(
+                'h-4 w-4',
+                todo.is_flagged ? 'text-[#F9A825]' : 'text-text-tertiary',
+              )}
+              {...(todo.is_flagged ? { fill: 'currentColor' } : {})}
+            />
+          </button>
+          <button
+            type="button"
+            onClick={handleClose}
+            className="p-2 md:p-1.5 rounded-md hover:bg-bg-secondary text-text-tertiary hover:text-text-primary transition-colors"
+            aria-label={t('common.close')}
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="p-4 space-y-6">
@@ -319,6 +346,30 @@ export const TodoDetail = () => {
           </div>
         </div>
 
+        {/* List */}
+        <div className="space-y-2">
+          <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
+            <List className="h-4 w-4" />
+            {t('todos.lists')}
+          </label>
+          <select
+            value={todo.list_id ?? ''}
+            onChange={(e) => handleUpdate({ list_id: e.target.value || null })}
+            className={clsx(
+              'w-full h-9 px-3 rounded-lg text-sm text-text-primary',
+              'bg-bg-primary border border-[var(--border)]',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)]',
+            )}
+          >
+            <option value="">{t('todos.noList')}</option>
+            {(todoLists ?? []).map((list) => (
+              <option key={list.id} value={list.id}>
+                {list.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Due Date */}
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-text-secondary">
@@ -388,7 +439,7 @@ export const TodoDetail = () => {
         </div>
 
         {/* Subtasks */}
-        <TodoSubtasks subtasks={subtasks} onChange={setSubtasks} />
+        <TodoSubtasks subtasks={subtasks} onChange={handleSubtasksChange} />
 
         {/* Tags */}
         <div className="space-y-2">

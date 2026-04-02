@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import { clsx } from 'clsx';
 import { Plus, Calendar, ChevronDown, Bell, Tag, FileText } from 'lucide-react';
-import { addDays, startOfDay } from 'date-fns';
+import { addDays, startOfDay, format } from 'date-fns';
+import { parseDateFromTitle } from '@/lib/date-parser';
 import type { TodoPriority, TodoStatus } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
 import { useTranslation } from '@todome/store';
 import { useTodos, useCreateTodo, useUserId } from '@/hooks/queries';
+import { isSmartListId } from '@/lib/todo-filters';
 
 type DueDateShortcut = {
   label: string;
@@ -16,7 +18,8 @@ type DueDateShortcut = {
 
 export const TodoQuickAdd = () => {
   const setFilterStatus = useTodoStore((s) => s.setFilterStatus);
-  const { t } = useTranslation();
+  const selectedListId = useTodoStore((s) => s.selectedListId);
+  const { t, locale } = useTranslation();
 
   const PRIORITY_DOTS: { value: TodoPriority; color: string; label: string }[] = [
     { value: 1, color: 'bg-[#388E3C]', label: t('todos.priority.low') },
@@ -62,6 +65,11 @@ export const TodoQuickAdd = () => {
   const [remindAt, setRemindAt] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const dateHint = useMemo(
+    () => parseDateFromTitle(title, locale as 'en' | 'ja'),
+    [title, locale],
+  );
+
   const handleSubmit = useCallback(() => {
     const trimmedTitle = title.trim();
     if (!trimmedTitle || !userId) return;
@@ -84,6 +92,9 @@ export const TodoQuickAdd = () => {
       remind_repeat: 'none' as const,
       note_ids: [],
       tags,
+      list_id: selectedListId && !isSmartListId(selectedListId) ? selectedListId : null,
+      is_flagged: false,
+      subtasks: [],
       sort_order: maxOrder + 1,
       is_deleted: false,
       completed_at: status === 'completed' ? now : null,
@@ -106,7 +117,7 @@ export const TodoQuickAdd = () => {
     setDetail('');
     setRemindAt('');
     inputRef.current?.focus();
-  }, [title, priority, dueDate, status, tags, detail, remindAt, setFilterStatus, todos, createTodo, userId]);
+  }, [title, priority, dueDate, status, tags, detail, remindAt, selectedListId, setFilterStatus, todos, createTodo, userId]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -192,6 +203,29 @@ export const TodoQuickAdd = () => {
           </button>
         )}
       </div>
+
+      {/* Date suggestion chip */}
+      {dateHint.suggestedDate && !dueDate && title.trim() && (
+        <div className="flex items-center gap-2 px-1">
+          <button
+            type="button"
+            onClick={() => {
+              setDueDate(dateHint.suggestedDate!.toISOString());
+              setTitle(dateHint.cleanTitle);
+            }}
+            className={clsx(
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs',
+              'bg-[var(--accent)]/10 text-[var(--accent)]',
+              'hover:bg-[var(--accent)]/20 transition-colors',
+            )}
+          >
+            <Calendar className="h-3 w-3" />
+            {t('todos.quickAdd.dateHint', {
+              date: format(dateHint.suggestedDate, locale === 'ja' ? 'M月d日' : 'MMM d'),
+            })}
+          </button>
+        </div>
+      )}
 
       {showOptions && (
         <div className="space-y-2">

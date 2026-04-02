@@ -18,7 +18,7 @@ import { BookOpen, CheckSquare } from 'lucide-react';
 import { useCalendarStore, useSubscriptionStore, useTranslation } from '@todome/store';
 import type { CalendarEvent, Todo } from '@todome/store';
 import type { CalendarProvider } from '@todome/db';
-import { useCalendarEvents, useTodos, useSharedCalendarEvents } from '@/hooks/queries';
+import { useCalendarEvents, useTodos, useUpdateTodo, useSharedCalendarEvents } from '@/hooks/queries';
 import { useIsMobile } from '@todome/hooks';
 import { useSwipeNavigation } from '@/hooks/use-swipe-navigation';
 import { CalendarEventBlock } from './calendar-event-block';
@@ -46,6 +46,12 @@ type Props = {
 };
 
 const TOTAL_HOURS = 24;
+const TODO_PRIORITY_COLORS: Record<number, string> = {
+  1: '#388E3C',
+  2: '#F9A825',
+  3: '#F57C00',
+  4: '#D32F2F',
+};
 const DAY_LABELS_KEYS = [
   'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
   'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
@@ -64,6 +70,7 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
   const showPersonalCalendar = useCalendarStore((s) => s.showPersonalCalendar);
   const hiddenSharedCalendarIds = useCalendarStore((s) => s.hiddenSharedCalendarIds);
   const { data: allTodos = [] } = useTodos();
+  const updateTodo = useUpdateTodo();
   const selectDate = useCalendarStore((s) => s.selectDate);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [currentTimeTop, setCurrentTimeTop] = useState(0);
@@ -116,16 +123,21 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
     });
   }, [selectedDate, activeEvents]);
 
-  const dueTodos = useMemo(() => {
+  // All non-deleted, non-cancelled todos for this day (includes completed for toggle)
+  const todosForDay = useMemo(() => {
     const dateKey = format(selectedDate, 'yyyy-MM-dd');
     return allTodos.filter(
       (t: Todo) =>
         !t.is_deleted &&
         t.due_date === dateKey &&
-        t.status !== 'completed' &&
         t.status !== 'cancelled',
     );
   }, [selectedDate, allTodos]);
+
+  // Only pending todos (used in footer section)
+  const dueTodos = useMemo(() => {
+    return todosForDay.filter((t: Todo) => t.status !== 'completed');
+  }, [todosForDay]);
 
   const isCurrentDay = isToday(selectedDate);
   const holidayName = isHoliday(selectedDate);
@@ -230,6 +242,52 @@ export const DayView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =>
               />
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Todos Due section */}
+      {todosForDay.length > 0 && (
+        <div className="border-b border-[var(--border)] px-2 py-1.5">
+          <div className="text-[10px] font-medium text-text-tertiary mb-1">
+            {t('calendar.todoSection')}
+          </div>
+          {todosForDay.map((todo) => (
+            <div
+              key={todo.id}
+              className="flex items-center gap-2 py-0.5 text-xs"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  const now = new Date().toISOString();
+                  updateTodo.mutate({
+                    id: todo.id,
+                    patch: {
+                      status: todo.status === 'completed' ? 'pending' : 'completed',
+                      completed_at: todo.status === 'completed' ? null : now,
+                      updated_at: now,
+                    },
+                  });
+                }}
+                className={clsx(
+                  'h-3 w-3 rounded-sm border flex-shrink-0 transition-colors',
+                  todo.status === 'completed'
+                    ? 'bg-[#388E3C] border-[#388E3C]'
+                    : 'border-[var(--border)]',
+                )}
+              />
+              <span
+                className="h-1.5 w-1.5 rounded-full flex-shrink-0"
+                style={{ backgroundColor: TODO_PRIORITY_COLORS[todo.priority] ?? '#888' }}
+              />
+              <span className={clsx(
+                'truncate',
+                todo.status === 'completed' ? 'line-through text-text-tertiary' : 'text-text-primary',
+              )}>
+                {todo.title}
+              </span>
+            </div>
+          ))}
         </div>
       )}
 

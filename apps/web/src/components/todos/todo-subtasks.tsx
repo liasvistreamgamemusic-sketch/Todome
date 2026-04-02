@@ -12,12 +12,7 @@ import {
 import { Checkbox } from '@todome/ui/src/checkbox';
 import { Input } from '@todome/ui/src/input';
 import { useTranslation } from '@todome/store';
-
-export type Subtask = {
-  id: string;
-  title: string;
-  completed: boolean;
-};
+import type { Subtask } from '@todome/db';
 
 type Props = {
   subtasks: Subtask[];
@@ -25,9 +20,6 @@ type Props = {
 };
 
 const MAX_SUBTASKS = 20;
-
-const generateId = (): string =>
-  `subtask-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
 export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
   const { t } = useTranslation();
@@ -45,9 +37,10 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
     if (!title || subtasks.length >= MAX_SUBTASKS) return;
 
     const newSubtask: Subtask = {
-      id: generateId(),
+      id: crypto.randomUUID(),
       title,
       completed: false,
+      sort_order: subtasks.length,
     };
     onChange([...subtasks, newSubtask]);
     setNewTitle('');
@@ -89,7 +82,7 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
       const temp = next[index - 1]!;
       next[index - 1] = next[index]!;
       next[index] = temp;
-      onChange(next);
+      onChange(next.map((s, i) => ({ ...s, sort_order: i })));
     },
     [subtasks, onChange],
   );
@@ -101,7 +94,7 @@ export const TodoSubtasks = ({ subtasks, onChange }: Props) => {
       const temp = next[index]!;
       next[index] = next[index + 1]!;
       next[index + 1] = temp;
-      onChange(next);
+      onChange(next.map((s, i) => ({ ...s, sort_order: i })));
     },
     [subtasks, onChange],
   );

@@ -162,15 +162,23 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
     return map;
   }, [allActiveEvents, calendarDays, isMobile]);
 
+  const TODO_PRIORITY_COLORS: Record<number, string> = {
+    1: '#388E3C',
+    2: '#F9A825',
+    3: '#F57C00',
+    4: '#D32F2F',
+  };
+
   const todosWithDueDate = useMemo(() => {
-    const map = new Map<string, number>();
+    const map = new Map<string, Todo[]>();
     const activeTodos = allTodos.filter(
       (t: Todo) => !t.is_deleted && t.due_date && t.status !== 'completed' && t.status !== 'cancelled',
     );
     for (const todo of activeTodos) {
       if (todo.due_date) {
-        const count = map.get(todo.due_date) ?? 0;
-        map.set(todo.due_date, count + 1);
+        const list = map.get(todo.due_date) ?? [];
+        list.push(todo);
+        map.set(todo.due_date, list);
       }
     }
     return map;
@@ -226,7 +234,7 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
               {weekDays.map((day, colIdx) => {
                 const dateKey = format(day, 'yyyy-MM-dd');
                 const timedEvents = timedEventsByDate.get(dateKey) ?? [];
-                const todoCount = todosWithDueDate.get(dateKey) ?? 0;
+                const todosForDate = todosWithDueDate.get(dateKey) ?? [];
                 const holidayName = isHoliday(day);
                 const inMonth = isSameMonth(day, selectedDate);
                 const selected = isSameDay(day, selectedDate);
@@ -327,13 +335,27 @@ export const MonthView = ({ onCreateEvent, onSelectEvent, onOpenDiary, onShowDay
                       )}
                     </div>
 
-                    {/* Todo dots */}
-                    {todoCount > 0 && (
-                      <div className="flex items-center gap-0.5 pl-0.5">
-                        {Array.from({ length: Math.min(todoCount, 4) }).map((_, i) => (
-                          <span key={i} className="h-1.5 w-1.5 rounded-full bg-[#F57C00]" />
+                    {/* Todo chips */}
+                    {todosForDate.length > 0 && (
+                      <div className="flex flex-col gap-px overflow-hidden">
+                        {todosForDate.slice(0, 2).map((todo) => (
+                          <div
+                            key={todo.id}
+                            className="flex items-center gap-1 px-1 py-0.5 rounded text-[10px] leading-tight truncate cursor-pointer hover:bg-bg-tertiary transition-colors"
+                            title={todo.title}
+                          >
+                            <span
+                              className="h-2 w-2 rounded-sm flex-shrink-0 border"
+                              style={{ borderColor: TODO_PRIORITY_COLORS[todo.priority] ?? '#888' }}
+                            />
+                            <span className="truncate text-text-secondary">{todo.title}</span>
+                          </div>
                         ))}
-                        {todoCount > 4 && <span className="text-[9px] text-text-tertiary">+{todoCount - 4}</span>}
+                        {todosForDate.length > 2 && (
+                          <span className="text-[10px] text-text-tertiary pl-1">
+                            +{todosForDate.length - 2} more
+                          </span>
+                        )}
                       </div>
                     )}
                   </button>

@@ -7,6 +7,10 @@ export type TodoGroupBy = 'status' | 'priority' | 'tag' | 'none';
 
 export type TodoStoreState = {
   selectedTodoId: string | null;
+  selectedListId: string | null;
+  searchQuery: string;
+  selectedTodoIds: Set<string>;
+  isMultiSelectMode: boolean;
   viewMode: TodoViewMode;
   filterStatus: TodoStatus | 'all';
   filterPriority: TodoPriority | 'all';
@@ -16,6 +20,12 @@ export type TodoStoreState = {
   showCompleted: boolean;
 
   selectTodo: (id: string | null) => void;
+  setSelectedList: (id: string | null) => void;
+  setSearchQuery: (query: string) => void;
+  toggleTodoSelection: (id: string) => void;
+  selectAllTodos: (ids: string[]) => void;
+  clearSelection: () => void;
+  setMultiSelectMode: (mode: boolean) => void;
   setViewMode: (mode: TodoViewMode) => void;
   setFilterStatus: (status: TodoStatus | 'all') => void;
   setFilterPriority: (priority: TodoPriority | 'all') => void;
@@ -27,6 +37,10 @@ export type TodoStoreState = {
 
 export const useTodoStore = create<TodoStoreState>()((set) => ({
   selectedTodoId: null,
+  selectedListId: null,
+  searchQuery: '',
+  selectedTodoIds: new Set(),
+  isMultiSelectMode: false,
   viewMode: 'list',
   filterStatus: 'all',
   filterPriority: 'all',
@@ -36,6 +50,17 @@ export const useTodoStore = create<TodoStoreState>()((set) => ({
   showCompleted: false,
 
   selectTodo: (id) => set({ selectedTodoId: id }),
+  setSelectedList: (id) => set({ selectedListId: id }),
+  setSearchQuery: (query) => set({ searchQuery: query }),
+  toggleTodoSelection: (id) => set((s) => {
+    const next = new Set(s.selectedTodoIds);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    return { selectedTodoIds: next };
+  }),
+  selectAllTodos: (ids) => set({ selectedTodoIds: new Set(ids) }),
+  clearSelection: () => set({ selectedTodoIds: new Set(), isMultiSelectMode: false }),
+  setMultiSelectMode: (mode) => set({ isMultiSelectMode: mode, selectedTodoIds: new Set() }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setFilterStatus: (status) => set({ filterStatus: status }),
   setFilterPriority: (priority) => set({ filterPriority: priority }),

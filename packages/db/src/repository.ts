@@ -10,6 +10,7 @@ import type {
   NoteSummary,
   Folder,
   Todo,
+  TodoList,
   CalendarEvent,
   CalendarSubscription,
   Diary,
@@ -126,6 +127,46 @@ export async function deleteFolder(id: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
+// Todo Lists
+// ---------------------------------------------------------------------------
+
+export async function loadTodoLists(userId: string): Promise<TodoList[]> {
+  const { data, error } = await supabase
+    .from('todo_lists')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_deleted', false)
+    .order('sort_order');
+
+  if (error) throw error;
+  return data as TodoList[];
+}
+
+export async function createTodoList(list: TodoList): Promise<void> {
+  const { error } = await supabase.from('todo_lists').insert(list as never);
+  if (error) throw error;
+}
+
+export async function updateTodoList(
+  id: string,
+  patch: Partial<TodoList>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('todo_lists')
+    .update(patch as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteTodoList(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('todo_lists')
+    .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
 // Todos
 // ---------------------------------------------------------------------------
 
@@ -162,6 +203,18 @@ export async function deleteTodo(id: string): Promise<void> {
     .from('todos')
     .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
     .eq('id', id);
+  if (error) throw error;
+}
+
+export async function batchUpdateTodos(
+  ids: string[],
+  patch: Partial<Todo>,
+): Promise<void> {
+  if (ids.length === 0) return;
+  const { error } = await supabase
+    .from('todos')
+    .update({ ...patch, updated_at: new Date().toISOString() } as never)
+    .in('id', ids);
   if (error) throw error;
 }
 

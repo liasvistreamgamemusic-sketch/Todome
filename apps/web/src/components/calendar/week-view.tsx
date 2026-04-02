@@ -51,6 +51,13 @@ type Props = {
 };
 
 const TOTAL_HOURS = 24;
+const TODO_PRIORITY_COLORS: Record<number, string> = {
+  1: '#388E3C',
+  2: '#F9A825',
+  3: '#F57C00',
+  4: '#D32F2F',
+};
+const MAX_VISIBLE_TODOS = 2;
 const DAY_LABELS_KEYS = [
   'common.weekday.sun', 'common.weekday.mon', 'common.weekday.tue',
   'common.weekday.wed', 'common.weekday.thu', 'common.weekday.fri',
@@ -181,6 +188,24 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
     }
     return map;
   }, [isMobile, weekDays, activeEvents]);
+
+  // For desktop: todos by day
+  const todosByDay = useMemo(() => {
+    if (isMobile) return new Map<string, Todo[]>();
+    const map = new Map<string, Todo[]>();
+    for (const day of weekDays) {
+      const dateKey = format(day, 'yyyy-MM-dd');
+      const todos = allTodos.filter(
+        (t: Todo) =>
+          !t.is_deleted &&
+          t.due_date === dateKey &&
+          t.status !== 'completed' &&
+          t.status !== 'cancelled',
+      );
+      if (todos.length > 0) map.set(dateKey, todos);
+    }
+    return map;
+  }, [isMobile, weekDays, allTodos]);
 
   // Detect scrollbar width for grid alignment (Windows shows visible scrollbar)
   useEffect(() => {
@@ -531,6 +556,42 @@ export const WeekView = ({ onCreateEvent, onSelectEvent, onOpenDiary }: Props) =
           )}
         </div>
       </div>
+
+      {/* Todos row — desktop only */}
+      {Array.from(todosByDay.values()).some((v) => v.length > 0) && (
+        <div className="flex border-b border-[var(--border)]" style={{ paddingRight: scrollbarWidth }}>
+          <div className="w-14 shrink-0 flex items-center justify-center text-[10px] text-text-tertiary">
+            {t('calendar.todoSection')}
+          </div>
+          <div className="grid flex-1 grid-cols-7">
+            {weekDays.map((day) => {
+              const dateKey = format(day, 'yyyy-MM-dd');
+              const todos = todosByDay.get(dateKey) ?? [];
+              const visible = todos.slice(0, MAX_VISIBLE_TODOS);
+              const overflow = todos.length - MAX_VISIBLE_TODOS;
+              return (
+                <div key={dateKey} className="border-r border-[var(--border)] px-0.5 py-0.5">
+                  {visible.map((todo) => (
+                    <div
+                      key={todo.id}
+                      className="flex items-center gap-1 px-1 py-0.5 text-[10px] text-text-secondary truncate"
+                    >
+                      <span
+                        className="h-2 w-2 rounded-sm flex-shrink-0 border"
+                        style={{ borderColor: TODO_PRIORITY_COLORS[todo.priority] ?? '#888' }}
+                      />
+                      <span className="truncate">{todo.title}</span>
+                    </div>
+                  ))}
+                  {overflow > 0 && (
+                    <div className="px-1 text-[9px] text-text-tertiary">+{overflow}</div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Time grid */}
       <div ref={scrollRef} className="scrollbar-overlay flex flex-1">

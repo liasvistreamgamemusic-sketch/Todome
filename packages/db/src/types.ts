@@ -96,6 +96,13 @@ export interface Folder {
   updated_at: string;
 }
 
+export interface Subtask {
+  id: string;
+  title: string;
+  completed: boolean;
+  sort_order: number;
+}
+
 export interface Todo {
   id: string;
   user_id: string;
@@ -108,9 +115,24 @@ export interface Todo {
   remind_repeat: RemindRepeat | null;
   note_ids: string[];
   tags: string[];
+  list_id: string | null;
+  is_flagged: boolean;
+  subtasks: Subtask[];
   sort_order: number;
   is_deleted: boolean;
   completed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TodoList {
+  id: string;
+  user_id: string;
+  name: string;
+  color: string | null;
+  icon: string | null;
+  sort_order: number;
+  is_deleted: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -197,6 +219,9 @@ export interface CreateTodoInput {
   remind_repeat?: RemindRepeat | null;
   note_ids?: string[];
   tags?: string[];
+  list_id?: string | null;
+  is_flagged?: boolean;
+  subtasks?: Subtask[];
   sort_order?: number;
 }
 
@@ -210,9 +235,27 @@ export interface UpdateTodoInput {
   remind_repeat?: RemindRepeat | null;
   note_ids?: string[];
   tags?: string[];
+  list_id?: string | null;
+  is_flagged?: boolean;
+  subtasks?: Subtask[];
   sort_order?: number;
   is_deleted?: boolean;
   completed_at?: string | null;
+}
+
+export interface CreateTodoListInput {
+  name: string;
+  color?: string | null;
+  icon?: string | null;
+  sort_order?: number;
+}
+
+export interface UpdateTodoListInput {
+  name?: string;
+  color?: string | null;
+  icon?: string | null;
+  sort_order?: number;
+  is_deleted?: boolean;
 }
 
 export interface CreateCalendarEventInput {

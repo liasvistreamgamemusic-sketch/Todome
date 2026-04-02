@@ -229,6 +229,52 @@ export const en: Record<TranslationKey, string> = {
   'todos.thisWeek': 'This week',
   'todos.later': 'Later',
   'todos.noDueDate': 'No due date',
+  // TodoList (リスト分類)
+  'todos.lists': 'Lists',
+  'todos.myLists': 'My Lists',
+  'todos.addList': 'Add List',
+  'todos.editList': 'Edit List',
+  'todos.listName': 'List Name',
+  'todos.listColor': 'Color',
+  'todos.listIcon': 'Icon',
+  'todos.deleteList': 'Delete List',
+  'todos.deleteListConfirm': 'Delete this list? Todos in this list will be unassigned.',
+  'todos.noList': 'No List',
+  'todos.smart.today': 'Today',
+  'todos.smart.scheduled': 'Scheduled',
+  'todos.smart.all': 'All',
+  'todos.smart.flagged': 'Flagged',
+  'todos.smart.completed': 'Completed',
+  'todos.flagged': 'Flagged',
+  'todos.unflagged': 'Not Flagged',
+  'todos.flag': 'Flag',
+  'todos.unflag': 'Unflag',
+  // Calendar integration
+  'todos.includeTime': 'Include time',
+  'todos.addToCalendar': 'Add to calendar',
+  'todos.pickDate': 'Pick date',
+  // Quick add
+  'todos.quickAdd.dateHint': 'Set due date: {date}',
+  'todos.quickAdd.acceptDate': 'Accept',
+  // Swipe actions
+  'todos.swipe.complete': 'Complete',
+  'todos.swipe.flag': 'Flag',
+  'todos.swipe.delete': 'Delete',
+  // Recurring
+  'todos.recurring.nextCreated': 'Next occurrence created',
+  // Batch operations
+  'todos.batch.selected': '{count} selected',
+  'todos.batch.changeStatus': 'Change status',
+  'todos.batch.changePriority': 'Change priority',
+  'todos.batch.moveToList': 'Move to list',
+  'todos.batch.flagAll': 'Flag all',
+  'todos.batch.deleteAll': 'Delete all',
+  // Search
+  'todos.search': 'Search todos...',
+  'todos.searchResults': '{count} results',
+  // Calendar
+  'calendar.todoDue': 'Todos Due',
+  'calendar.todoSection': 'Todos',
 
   // Diary
   'diary.title': 'Diary',

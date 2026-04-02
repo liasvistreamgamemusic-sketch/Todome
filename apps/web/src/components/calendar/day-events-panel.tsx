@@ -3,13 +3,13 @@
 import { deduplicateEvents } from '@/lib/dedup-events';
 import { useState, useMemo, useCallback } from 'react';
 import { clsx } from 'clsx';
-import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { format, parseISO, startOfDay, endOfDay, isSameDay } from 'date-fns';
 import { X, Plus, ChevronLeft, Trash2, Users } from 'lucide-react';
 import { useCalendarStore, useSubscriptionStore, useTranslation } from '@todome/store';
 import type { CalendarEvent, ExternalCalendarEvent, SharedCalendarEvent, SharedCalendar } from '@todome/db';
 import { Button } from '@todome/ui';
 import { useIsMobile } from '@todome/hooks';
-import { useCalendarEvents, useDeleteCalendarEvent, useCalendarSubscriptions, useSharedCalendarEvents, useSharedCalendars } from '@/hooks/queries';
+import { useCalendarEvents, useDeleteCalendarEvent, useCalendarSubscriptions, useSharedCalendarEvents, useSharedCalendars, useTodos, useUpdateTodo } from '@/hooks/queries';
 import { useMemberMap } from '@/hooks/use-member-map';
 import { EventDetail } from './event-detail';
 import type { CopyableEventData } from './event-detail';
@@ -50,6 +50,22 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent, onSelectE
   const showPersonalCalendar = useCalendarStore((s) => s.showPersonalCalendar);
   const hiddenSharedCalendarIds = useCalendarStore((s) => s.hiddenSharedCalendarIds);
   const memberMap = useMemberMap();
+  const { data: allTodos = [] } = useTodos();
+  const updateTodo = useUpdateTodo();
+
+  const TODO_PRIORITY_COLORS: Record<number, string> = {
+    1: '#388E3C',
+    2: '#F9A825',
+    3: '#F57C00',
+    4: '#D32F2F',
+  };
+
+  const todosForDay = useMemo(() => {
+    return allTodos.filter((t) => {
+      if (t.is_deleted || !t.due_date) return false;
+      return isSameDay(parseISO(t.due_date), date);
+    });
+  }, [allTodos, date]);
 
   const dayEvents = useMemo(() => {
     const dayS = startOfDay(date);
@@ -255,6 +271,49 @@ export const DayEventsPanel = ({ date, onClose, onSelectExternalEvent, onSelectE
           </ul>
         )}
       </div>
+
+      {/* Todos section */}
+      {todosForDay.length > 0 && (
+        <>
+          <div className="flex items-center gap-2 px-4 py-2 border-t border-[var(--border)]">
+            <span className="text-xs font-medium text-text-tertiary">{t('calendar.todoSection')}</span>
+          </div>
+          {todosForDay.map((todo) => (
+            <div key={todo.id} className="flex items-center gap-3 px-4 py-2 hover:bg-bg-secondary transition-colors">
+              <button
+                type="button"
+                onClick={() => {
+                  const now = new Date().toISOString();
+                  updateTodo.mutate({
+                    id: todo.id,
+                    patch: {
+                      status: todo.status === 'completed' ? 'pending' : 'completed',
+                      completed_at: todo.status === 'completed' ? null : now,
+                      updated_at: now,
+                    },
+                  });
+                }}
+                className={clsx(
+                  'h-4 w-4 rounded-sm border-2 flex-shrink-0 transition-colors',
+                  todo.status === 'completed'
+                    ? 'bg-[#388E3C] border-[#388E3C]'
+                    : 'border-[var(--border)]',
+                )}
+              />
+              <span
+                className="h-2 w-2 rounded-full flex-shrink-0"
+                style={{ backgroundColor: TODO_PRIORITY_COLORS[todo.priority] ?? '#888' }}
+              />
+              <span className={clsx(
+                'text-sm truncate',
+                todo.status === 'completed' ? 'line-through text-text-tertiary' : 'text-text-primary',
+              )}>
+                {todo.title}
+              </span>
+            </div>
+          ))}
+        </>
+      )}
 
       {/* Footer: add new event */}
       <div className="border-t border-[var(--border)] px-4 py-3">

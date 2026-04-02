@@ -10,6 +10,9 @@ export const queryKeys = {
   todos: {
     all: (userId: string) => ['todos', userId] as const,
   },
+  todoLists: {
+    all: (userId: string) => ['todoLists', userId] as const,
+  },
   calendarEvents: {
     all: (userId: string) => ['calendarEvents', userId] as const,
   },
