@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   useQuery,
   useMutation,
@@ -16,10 +17,70 @@ import {
   createFolder,
   updateFolder,
   deleteFolder,
+  getCachedNoteSummaries,
+  getCachedNoteById,
+  getCachedFolders,
+  cacheNoteSummaries,
+  cacheNote,
+  cacheFolders,
+  removeCachedNote,
 } from '@todome/db';
 import type { Note, NoteSummary, Folder } from '@todome/db';
 import { queryKeys } from './keys';
 import { useUserId } from './use-auth';
+
+// ---------------------------------------------------------------------------
+// Seed helpers – load IndexedDB cache into TanStack Query on mount
+// ---------------------------------------------------------------------------
+
+function useSeedFromCache() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+
+  useEffect(() => {
+    if (!userId) return;
+    // Only seed if TanStack Query has no data yet (cold start)
+    const sumKey = queryKeys.notes.summaries(userId);
+    const foldKey = queryKeys.folders.all(userId);
+
+    if (!queryClient.getQueryData(sumKey)) {
+      getCachedNoteSummaries(userId).then((cached) => {
+        if (cached.length > 0 && !queryClient.getQueryData(sumKey)) {
+          queryClient.setQueryData(sumKey, cached);
+        }
+      });
+    }
+
+    if (!queryClient.getQueryData(foldKey)) {
+      getCachedFolders(userId).then((cached) => {
+        if (cached.length > 0 && !queryClient.getQueryData(foldKey)) {
+          queryClient.setQueryData(foldKey, cached);
+        }
+      });
+    }
+  }, [userId, queryClient]);
+}
+
+/** Seed a single note detail from IndexedDB cache */
+function useSeedNoteDetail(noteId: string | null) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!noteId) return;
+    const key = queryKeys.notes.detail(noteId);
+    if (!queryClient.getQueryData(key)) {
+      getCachedNoteById(noteId).then((cached) => {
+        if (cached && !queryClient.getQueryData(key)) {
+          queryClient.setQueryData(key, cached);
+        }
+      });
+    }
+  }, [noteId, queryClient]);
+}
+
+// ---------------------------------------------------------------------------
+// Query hooks
+// ---------------------------------------------------------------------------
 
 export function useNotes() {
   const userId = useUserId();
@@ -33,22 +94,34 @@ export function useNotes() {
 
 export function useNoteSummaries() {
   const userId = useUserId();
+  useSeedFromCache();
 
   return useQuery({
     queryKey: queryKeys.notes.summaries(userId ?? ''),
-    queryFn: () => loadNoteSummaries(userId!),
+    queryFn: async () => {
+      const data = await loadNoteSummaries(userId!);
+      cacheNoteSummaries(data, userId!);
+      return data;
+    },
     enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // Realtime handles invalidation
   });
 }
 
 export function useNote(noteId: string | null) {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  useSeedNoteDetail(noteId);
 
   return useQuery({
     queryKey: queryKeys.notes.detail(noteId ?? ''),
-    queryFn: () => loadNoteById(noteId!),
+    queryFn: async () => {
+      const data = await loadNoteById(noteId!);
+      if (data) cacheNote(data);
+      return data;
+    },
     enabled: !!noteId,
+    staleTime: 5 * 60 * 1000, // Realtime handles invalidation
     placeholderData: () => {
       if (!noteId || !userId) return undefined;
       const summaries = queryClient.getQueryData<NoteSummary[]>(
@@ -63,11 +136,17 @@ export function useNote(noteId: string | null) {
 
 export function useFolders() {
   const userId = useUserId();
+  useSeedFromCache();
 
   return useQuery({
     queryKey: queryKeys.folders.all(userId ?? ''),
-    queryFn: () => loadFolders(userId!),
+    queryFn: async () => {
+      const data = await loadFolders(userId!);
+      cacheFolders(data, userId!);
+      return data;
+    },
     enabled: !!userId,
+    staleTime: 5 * 60 * 1000, // Realtime handles invalidation
   });
 }
 
@@ -90,6 +169,7 @@ export function useCreateNote() {
       queryClient.setQueryData<NoteSummary[]>(sumKey, (old) => [summary, ...(old ?? [])]);
       // Seed detail cache so NoteEditor renders immediately
       queryClient.setQueryData<Note>(detailKey, note);
+      cacheNote(note);
       return { previousAll, previousSum };
     },
     onError: (_err, _vars, context) => {
@@ -131,7 +211,9 @@ export function useUpdateNote() {
         (old ?? []).map((n) => (n.id === id ? { ...n, ...patch } : n)),
       );
       if (previousDetail) {
-        queryClient.setQueryData<Note>(detailKey, { ...previousDetail, ...patch });
+        const updated = { ...previousDetail, ...patch };
+        queryClient.setQueryData<Note>(detailKey, updated);
+        cacheNote(updated);
       }
       return { previousAll, previousSum, previousDetail, noteId: id };
     },
@@ -176,6 +258,7 @@ export function useDeleteNote() {
       queryClient.setQueryData<NoteSummary[]>(sumKey, (old) =>
         (old ?? []).filter((n) => n.id !== id),
       );
+      removeCachedNote(id);
       return { previousAll, previousSum };
     },
     onError: (_err, _vars, context) => {

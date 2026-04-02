@@ -25,8 +25,14 @@ export function useRealtimeSync(): void {
     const debouncedNotesRefetch = () => {
       if (notesDebounceTimer) clearTimeout(notesDebounceTimer);
       notesDebounceTimer = setTimeout(() => {
+        // Invalidate summaries (lightweight) instead of full notes.all
         queryClient.invalidateQueries({
-          queryKey: queryKeys.notes.all(userId),
+          queryKey: queryKeys.notes.summaries(userId),
+        });
+        // Also invalidate the currently viewed note detail if any
+        queryClient.invalidateQueries({
+          queryKey: ['notes', 'detail'],
+          exact: false,
         });
       }, 2000);
     };

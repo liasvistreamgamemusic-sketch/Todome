@@ -67,6 +67,17 @@ export {
 export { supabase } from './supabase';
 export type { Database } from './supabase';
 
+// IndexedDB read-only cache
+export {
+  getCachedNoteSummaries,
+  getCachedNoteById,
+  cacheNoteSummaries,
+  cacheNote,
+  removeCachedNote,
+  getCachedFolders,
+  cacheFolders,
+} from './cache';
+
 // Repository layer
 export {
   loadNotes,

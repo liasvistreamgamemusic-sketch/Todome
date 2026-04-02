@@ -19,6 +19,7 @@ import {
   Inbox,
   Star,
   CheckCircle2,
+  Plus,
 } from 'lucide-react';
 import { useTodoStore } from '@todome/store/src/todo-store';
 import type { TodoViewMode, TodoSortBy, TodoGroupBy } from '@todome/store/src/todo-store';
@@ -52,7 +53,7 @@ const SMART_LIST_PILLS: {
   { id: 'completed', labelKey: 'todos.smart.completed', icon: <CheckCircle2 className="h-3 w-3" /> },
 ];
 
-const MobileListSelector = () => {
+const MobileListSelector = ({ onAddList }: { onAddList: () => void }) => {
   const { t } = useTranslation();
   const selectedListId = useTodoStore((s) => s.selectedListId);
   const setSelectedList = useTodoStore((s) => s.setSelectedList);
@@ -130,6 +131,20 @@ const MobileListSelector = () => {
             </span>
           </button>
         ))}
+
+        {/* Add list button */}
+        <button
+          type="button"
+          onClick={onAddList}
+          className={clsx(
+            'flex items-center justify-center h-6 w-6 rounded-full flex-shrink-0',
+            'bg-bg-secondary text-text-tertiary hover:text-text-primary',
+            'transition-colors duration-150',
+          )}
+          aria-label={t('todos.addList')}
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   );
@@ -248,7 +263,7 @@ export const TodoView = () => {
 
       <div className="flex flex-col flex-1 min-w-0">
         {/* Mobile list selector (horizontal scrollable pills) */}
-        {isMobile && <MobileListSelector />}
+        {isMobile && <MobileListSelector onAddList={handleOpenAddList} />}
 
         {/* Top bar */}
         <div className="flex-shrink-0 space-y-3 p-4 border-b border-[var(--border)]">
