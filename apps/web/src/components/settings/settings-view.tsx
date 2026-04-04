@@ -20,7 +20,7 @@ import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
 import { exportToJSON, exportToMarkdown } from './export-data';
 import { SubscriptionManager } from './subscription-manager';
 import { SharedCalendarManager } from './shared-calendar-manager';
-import { requestNotificationPermission, sendNotification, isTauriEnv } from '@/lib/notifications';
+import { requestNotificationPermission, isTauriEnv } from '@/lib/notifications';
 import {
   isPushSupported,
   isPushSubscribed as checkPushSubscribed,
@@ -225,12 +225,6 @@ export const SettingsView = () => {
           setPushSubscribed(ok);
         }
         setPushSubscribing(false);
-        // Send test notification
-        sendNotification(
-          t('notification.test.title'),
-          t('notification.test.body'),
-          { sound: soundEnabled },
-        );
       } else {
         setNotificationsEnabled(false);
         // Unsubscribe from push
