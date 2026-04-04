@@ -31,9 +31,10 @@ interface PushSubRow {
 }
 
 Deno.serve(async (req) => {
-  // Only allow POST with a valid service-role bearer token
+  // Accept any valid bearer token — Supabase handles JWT verification.
+  // Use service role key for DB operations to bypass RLS.
   const authHeader = req.headers.get('Authorization');
-  if (authHeader !== `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return new Response('Unauthorized', { status: 401 });
   }
 

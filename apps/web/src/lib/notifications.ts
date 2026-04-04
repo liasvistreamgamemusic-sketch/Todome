@@ -25,7 +25,9 @@ export async function requestNotificationPermission(): Promise<boolean> {
       }
       return granted;
     } catch {
-      return false;
+      // Plugin not available — still allow toggling the setting
+      // so the client-side scheduler can run
+      return true;
     }
   }
 
