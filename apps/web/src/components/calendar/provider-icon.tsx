@@ -37,7 +37,7 @@ export const ProviderIcon = ({ provider, size = 14, className }: Props) => {
       return (
         <svg width={size} height={size} viewBox="0 0 24 24" className={className} aria-label="Apple Calendar">
           <rect x="3" y="3" width="18" height="18" rx="4" fill="#FF3B30" />
-          <rect x="3" y="9" width="18" height="12" rx="0 0 4 4" fill="white" />
+          <path d="M3 9h18v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9z" fill="white" />
           <text x="12" y="18.5" textAnchor="middle" fontSize="10" fontWeight="bold" fill="#333" fontFamily="system-ui">
             {new Date().getDate()}
           </text>
