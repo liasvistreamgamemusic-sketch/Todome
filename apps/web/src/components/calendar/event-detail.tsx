@@ -31,6 +31,7 @@ import {
   useSharedCalendars,
   useCreateSharedCalendarEvent,
 } from '@/hooks/queries';
+import { AttachmentPanel } from '@/components/attachments';
 import type { SharedCalendarEvent } from '@todome/db';
 import { Users } from 'lucide-react';
 import { DeleteEventDialog } from './delete-event-dialog';
@@ -215,7 +216,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
       location: initialFormData?.location ?? '',
       description: initialFormData?.description ?? '',
       color: initialFormData?.color ?? null,
-      reminder: '15m',
+      reminder: (initialFormData?.isAllDay) ? null : '15m',
       repeat: 'none',
       customWeekdays: [false, false, false, false, false, false, false],
       customDayOfMonth: 1,
@@ -395,6 +396,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           color: form.color,
           diary_content: null,
           remind_at: remindAt,
+          reminded_at: null,
           repeat_rule: repeatRule,
           repeat_parent_id: null,
           todo_ids: form.linkedTodoIds,
@@ -567,7 +569,14 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           <Checkbox
             label={t('calendar.allDay')}
             checked={form.isAllDay}
-            onChange={(e) => updateField('isAllDay', e.target.checked)}
+            onChange={(e) => {
+              const allDay = e.target.checked;
+              setForm((prev) => ({
+                ...prev,
+                isAllDay: allDay,
+                reminder: allDay ? null : (prev.reminder ?? '15m'),
+              }));
+            }}
           />
 
           {/* Date/Time pickers */}
@@ -908,6 +917,15 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
               </div>
             )}
           </div>
+
+          {/* Attachments (existing events only) */}
+          {isEditing && existingEvent && userId && (
+            <AttachmentPanel
+              parentType="event"
+              parentId={existingEvent.id}
+              userId={userId}
+            />
+          )}
         </div>
 
         {/* Footer */}

@@ -4,18 +4,11 @@ import { Extension } from '@tiptap/core';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { NodeSelection } from '@tiptap/pm/state';
 
-const DRAGGABLE_NODE_TYPES = new Set([
-  'image',
-  'audio',
-  'table',
-  'codeBlock',
-  'blockquote',
-  'horizontalRule',
-]);
-
 const dragHandlePluginKey = new PluginKey('dragHandle');
 
 const GRIP_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/></svg>`;
+
+const MENU_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>`;
 
 export const DragHandle = Extension.create({
   name: 'dragHandle',
@@ -26,14 +19,30 @@ export const DragHandle = Extension.create({
         key: dragHandlePluginKey,
         view(editorView) {
           let dragHandleEl: HTMLElement | null = null;
+          let gripEl: HTMLElement | null = null;
+          let menuBtnEl: HTMLButtonElement | null = null;
           let currentNodePos: number | null = null;
+          let currentNodeType: string | null = null;
           let hideTimeout: ReturnType<typeof setTimeout> | null = null;
 
+          // Build handle container
           dragHandleEl = document.createElement('div');
           dragHandleEl.className = 'drag-handle';
-          dragHandleEl.draggable = true;
-          dragHandleEl.innerHTML = GRIP_SVG;
           dragHandleEl.style.display = 'none';
+
+          // Grip area (draggable)
+          gripEl = document.createElement('div');
+          gripEl.className = 'drag-handle__grip';
+          gripEl.draggable = true;
+          gripEl.innerHTML = GRIP_SVG;
+          dragHandleEl.appendChild(gripEl);
+
+          // Menu button ("...")
+          menuBtnEl = document.createElement('button');
+          menuBtnEl.className = 'drag-handle__menu';
+          menuBtnEl.type = 'button';
+          menuBtnEl.innerHTML = MENU_SVG;
+          dragHandleEl.appendChild(menuBtnEl);
 
           // Attach to the ProseMirror DOM itself (position: relative)
           const proseMirrorEl = editorView.dom as HTMLElement;
@@ -44,9 +53,8 @@ export const DragHandle = Extension.create({
             if (!dragHandleEl) return;
             dragHandleEl.style.display = 'flex';
             dragHandleEl.classList.add('visible');
-            // Position in the left padding area (28px padding-left)
             dragHandleEl.style.top = `${rect.top - editorRect.top + rect.height / 2 - 10}px`;
-            dragHandleEl.style.left = '4px';
+            dragHandleEl.style.left = '0px';
           };
 
           const hideHandle = () => {
@@ -54,6 +62,7 @@ export const DragHandle = Extension.create({
             dragHandleEl.classList.remove('visible');
             dragHandleEl.style.display = 'none';
             currentNodePos = null;
+            currentNodeType = null;
           };
 
           const handleMouseMove = (e: MouseEvent) => {
@@ -87,11 +96,6 @@ export const DragHandle = Extension.create({
             const nodePos = resolved.before(depth);
             const node = resolved.node(depth);
 
-            if (!DRAGGABLE_NODE_TYPES.has(node.type.name)) {
-              hideHandle();
-              return;
-            }
-
             const domNode = editorView.nodeDOM(nodePos);
             if (!domNode || !(domNode instanceof HTMLElement)) {
               hideHandle();
@@ -99,6 +103,7 @@ export const DragHandle = Extension.create({
             }
 
             currentNodePos = nodePos;
+            currentNodeType = node.type.name;
             const nodeRect = domNode.getBoundingClientRect();
             const editorRect = proseMirrorEl.getBoundingClientRect();
             showHandle(nodeRect, editorRect);
@@ -106,6 +111,20 @@ export const DragHandle = Extension.create({
 
           const handleMouseLeave = () => {
             hideTimeout = setTimeout(hideHandle, 200);
+          };
+
+          // Click on grip (without drag) selects the block
+          const handleGripClick = (e: MouseEvent) => {
+            if (currentNodePos === null) return;
+            e.preventDefault();
+            const { state } = editorView;
+            try {
+              const selection = NodeSelection.create(state.doc, currentNodePos);
+              editorView.dispatch(state.tr.setSelection(selection));
+              editorView.focus();
+            } catch {
+              // Node may not support NodeSelection (e.g. paragraph) — ignore
+            }
           };
 
           const handleDragStart = (e: DragEvent) => {
@@ -135,16 +154,39 @@ export const DragHandle = Extension.create({
             hideHandle();
           };
 
+          // Menu button dispatches a custom event for the React block-action-menu
+          const handleMenuClick = (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (currentNodePos === null || currentNodeType === null) return;
+
+            const domNode = editorView.nodeDOM(currentNodePos);
+            if (!domNode || !(domNode instanceof HTMLElement)) return;
+
+            const rect = domNode.getBoundingClientRect();
+            window.dispatchEvent(
+              new CustomEvent('block-action-menu:open', {
+                detail: {
+                  pos: currentNodePos,
+                  nodeType: currentNodeType,
+                  rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+                },
+              }),
+            );
+          };
+
           dragHandleEl.addEventListener('mouseenter', () => {
             if (hideTimeout) clearTimeout(hideTimeout);
           });
           dragHandleEl.addEventListener('mouseleave', handleMouseLeave);
           proseMirrorEl.addEventListener('mousemove', handleMouseMove);
           proseMirrorEl.addEventListener('mouseleave', handleMouseLeave);
-          dragHandleEl.addEventListener('dragstart', handleDragStart);
-          dragHandleEl.addEventListener('dragend', () => {
+          gripEl.addEventListener('click', handleGripClick);
+          gripEl.addEventListener('dragstart', handleDragStart);
+          gripEl.addEventListener('dragend', () => {
             (editorView as any).dragging = null;
           });
+          menuBtnEl.addEventListener('click', handleMenuClick);
 
           return {
             update() {
@@ -156,7 +198,7 @@ export const DragHandle = Extension.create({
                 }
                 try {
                   const node = editorView.state.doc.nodeAt(currentNodePos);
-                  if (!node || !DRAGGABLE_NODE_TYPES.has(node.type.name)) {
+                  if (!node) {
                     hideHandle();
                   }
                 } catch {

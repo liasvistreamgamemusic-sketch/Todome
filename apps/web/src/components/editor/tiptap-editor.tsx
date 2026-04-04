@@ -23,8 +23,11 @@ import Mathematics from '@tiptap/extension-mathematics';
 import { createLowlight, common } from 'lowlight';
 import { FontSize } from './font-size-extension';
 import { DragHandle } from './drag-handle-extension';
+import { SlashCommand } from './slash-command-extension';
 import { AudioNode } from './audio-node';
 import { EditorToolbar } from './editor-toolbar';
+import { BlockActionMenu } from './block-action-menu';
+import { SlashCommandMenu } from './slash-command-menu';
 import './editor-styles.css';
 
 const lowlight = createLowlight(common);
@@ -39,6 +42,10 @@ interface TiptapEditorProps {
   hideToolbar?: boolean;
   onEditorReady?: (editor: Editor) => void;
   contentKey?: string;
+  /** When provided, images dropped/pasted into the editor are uploaded via this
+   *  callback instead of being embedded as base64 data URLs. Falls back to
+   *  base64 when not provided. */
+  onFileUpload?: (file: File) => Promise<string>;
 }
 
 export const TiptapEditor = ({
@@ -49,9 +56,12 @@ export const TiptapEditor = ({
   hideToolbar = false,
   onEditorReady,
   contentKey,
+  onFileUpload,
 }: TiptapEditorProps) => {
   const latestContentRef = useRef<JSONContent | null>(null);
   const prevContentKeyRef = useRef<string | undefined>(contentKey);
+  const onFileUploadRef = useRef(onFileUpload);
+  onFileUploadRef.current = onFileUpload;
 
   const editor = useEditor({
     extensions: [
@@ -106,6 +116,7 @@ export const TiptapEditor = ({
         katexOptions: { throwOnError: false, displayMode: false },
       }),
       DragHandle,
+      SlashCommand,
       AudioNode,
     ],
     content: content ?? undefined,
@@ -126,15 +137,33 @@ export const TiptapEditor = ({
           );
           if (images.length > 0) {
             event.preventDefault();
+            const uploadFn = onFileUploadRef.current;
             images.forEach((image) => {
-              const reader = new FileReader();
-              reader.onload = (readerEvent) => {
-                const result = readerEvent.target?.result;
-                if (typeof result === 'string') {
-                  editor?.chain().focus().setImage({ src: result }).run();
-                }
-              };
-              reader.readAsDataURL(image);
+              if (image.size > 20 * 1024 * 1024) return;
+              if (uploadFn) {
+                uploadFn(image).then((url) => {
+                  editor?.chain().focus().setImage({ src: url }).run();
+                }).catch(() => {
+                  // Fallback to base64 on upload failure
+                  const reader = new FileReader();
+                  reader.onload = (readerEvent) => {
+                    const result = readerEvent.target?.result;
+                    if (typeof result === 'string') {
+                      editor?.chain().focus().setImage({ src: result }).run();
+                    }
+                  };
+                  reader.readAsDataURL(image);
+                });
+              } else {
+                const reader = new FileReader();
+                reader.onload = (readerEvent) => {
+                  const result = readerEvent.target?.result;
+                  if (typeof result === 'string') {
+                    editor?.chain().focus().setImage({ src: result }).run();
+                  }
+                };
+                reader.readAsDataURL(image);
+              }
             });
             return true;
           }
@@ -149,15 +178,33 @@ export const TiptapEditor = ({
           );
           if (images.length > 0) {
             event.preventDefault();
+            const uploadFn = onFileUploadRef.current;
             images.forEach((image) => {
-              const reader = new FileReader();
-              reader.onload = (readerEvent) => {
-                const result = readerEvent.target?.result;
-                if (typeof result === 'string') {
-                  editor?.chain().focus().setImage({ src: result }).run();
-                }
-              };
-              reader.readAsDataURL(image);
+              if (image.size > 20 * 1024 * 1024) return;
+              if (uploadFn) {
+                uploadFn(image).then((url) => {
+                  editor?.chain().focus().setImage({ src: url }).run();
+                }).catch(() => {
+                  // Fallback to base64 on upload failure
+                  const reader = new FileReader();
+                  reader.onload = (readerEvent) => {
+                    const result = readerEvent.target?.result;
+                    if (typeof result === 'string') {
+                      editor?.chain().focus().setImage({ src: result }).run();
+                    }
+                  };
+                  reader.readAsDataURL(image);
+                });
+              } else {
+                const reader = new FileReader();
+                reader.onload = (readerEvent) => {
+                  const result = readerEvent.target?.result;
+                  if (typeof result === 'string') {
+                    editor?.chain().focus().setImage({ src: result }).run();
+                  }
+                };
+                reader.readAsDataURL(image);
+              }
             });
             return true;
           }
@@ -278,8 +325,10 @@ export const TiptapEditor = ({
 
   return (
     <div className="tiptap-editor">
-      {editable && !hideToolbar && <EditorToolbar editor={editor} />}
+      {editable && !hideToolbar && <EditorToolbar editor={editor} onFileUpload={onFileUpload} />}
       <EditorContent editor={editor} />
+      {editable && <BlockActionMenu editor={editor} />}
+      {editable && <SlashCommandMenu editor={editor} />}
     </div>
   );
 };

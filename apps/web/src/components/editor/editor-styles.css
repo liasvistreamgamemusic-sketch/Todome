@@ -8,7 +8,7 @@
 /* ProseMirror base styles */
 .tiptap-editor .ProseMirror {
   outline: none;
-  padding: 12px 4px;
+  padding: 12px 4px 12px 36px;
   min-height: 200px;
   font-size: 14px;
   line-height: 1.6;
@@ -589,21 +589,25 @@
 /* Drop cursor */
 .tiptap-editor .ProseMirror .ProseMirror-dropcursor {
   color: var(--accent);
+  border-top: 2px solid var(--accent);
+}
+
+/* Node selection outline */
+.tiptap-editor .ProseMirror .ProseMirror-selectednode {
+  outline: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Drag handle for block nodes */
 .drag-handle {
   position: absolute;
-  width: 20px;
-  height: 20px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  cursor: grab;
-  border-radius: 4px;
+  gap: 0;
+  height: 20px;
   opacity: 0;
-  transition: opacity 150ms ease-out, background-color 150ms ease-out;
-  color: var(--text-tertiary);
+  transition: opacity 150ms ease-out;
   z-index: 50;
   user-select: none;
 }
@@ -612,13 +616,45 @@
   opacity: 1;
 }
 
-.drag-handle:hover {
+.drag-handle__grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 20px;
+  cursor: grab;
+  border-radius: 3px;
+  color: var(--text-tertiary);
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.drag-handle__grip:hover {
   background-color: var(--bg-tertiary);
   color: var(--text-secondary);
 }
 
-.drag-handle:active {
+.drag-handle__grip:active {
   cursor: grabbing;
+}
+
+.drag-handle__menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 20px;
+  cursor: pointer;
+  border-radius: 3px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--text-tertiary);
+  transition: background-color 150ms ease-out, color 150ms ease-out;
+}
+
+.drag-handle__menu:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 @media (pointer: coarse) {

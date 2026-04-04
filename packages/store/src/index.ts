@@ -60,6 +60,7 @@ export type {
   FontSize,
   Locale,
   CalendarWeekStart,
+  SyncStatus,
 } from './ui-store';
 
 // i18n

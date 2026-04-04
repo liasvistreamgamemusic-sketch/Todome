@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   useQuery,
   useMutation,
@@ -7,20 +8,50 @@ import {
 } from '@tanstack/react-query';
 import {
   loadDiaries,
-  createDiary,
-  updateDiary,
-  deleteDiary,
+  getCachedDiaries,
+  cacheDiaries,
+  offlineCreateDiary,
+  offlineUpdateDiary,
+  offlineDeleteDiary,
 } from '@todome/db';
 import type { Diary } from '@todome/db';
+import { useOnline } from '@todome/hooks';
 import { queryKeys } from './keys';
 import { useUserId } from './use-auth';
 
+/** Seed TanStack Query from IndexedDB on cold start. */
+function useSeedDiariesFromCache() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+
+  useEffect(() => {
+    if (!userId) return;
+    const key = queryKeys.diaries.all(userId);
+    if (!queryClient.getQueryData(key)) {
+      getCachedDiaries(userId).then((cached) => {
+        if (cached.length > 0 && !queryClient.getQueryData(key)) {
+          queryClient.setQueryData(key, cached);
+        }
+      });
+    }
+  }, [userId, queryClient]);
+}
+
 export function useDiaries() {
   const userId = useUserId();
+  const isOnline = useOnline();
+  useSeedDiariesFromCache();
 
   return useQuery({
     queryKey: queryKeys.diaries.all(userId ?? ''),
-    queryFn: () => loadDiaries(userId!),
+    queryFn: async () => {
+      if (!isOnline) {
+        return (await getCachedDiaries(userId!)) ?? [];
+      }
+      const data = await loadDiaries(userId!);
+      cacheDiaries(data, userId!);
+      return data;
+    },
     enabled: !!userId,
   });
 }
@@ -28,9 +59,10 @@ export function useDiaries() {
 export function useCreateDiary() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (diary: Diary) => createDiary(diary),
+    mutationFn: (diary: Diary) => offlineCreateDiary(isOnline, diary),
     onMutate: async (diary) => {
       const key = queryKeys.diaries.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -44,7 +76,9 @@ export function useCreateDiary() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.diaries.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.diaries.all(userId!) });
+      }
     },
   });
 }
@@ -52,10 +86,11 @@ export function useCreateDiary() {
 export function useUpdateDiary() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: Partial<Diary> }) =>
-      updateDiary(id, patch),
+      offlineUpdateDiary(isOnline, id, patch, userId!),
     onMutate: async ({ id, patch }) => {
       const key = queryKeys.diaries.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -71,7 +106,9 @@ export function useUpdateDiary() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.diaries.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.diaries.all(userId!) });
+      }
     },
   });
 }
@@ -79,9 +116,10 @@ export function useUpdateDiary() {
 export function useDeleteDiary() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (id: string) => deleteDiary(id),
+    mutationFn: (id: string) => offlineDeleteDiary(isOnline, id, userId!),
     onMutate: async (id) => {
       const key = queryKeys.diaries.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -97,7 +135,9 @@ export function useDeleteDiary() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.diaries.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.diaries.all(userId!) });
+      }
     },
   });
 }

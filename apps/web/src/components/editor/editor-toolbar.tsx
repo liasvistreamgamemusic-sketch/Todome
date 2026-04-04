@@ -38,6 +38,7 @@ import {
   TableCellsMerge,
   TableCellsSplit,
   Mic,
+  Upload,
 } from 'lucide-react';
 import { useTranslation } from '@todome/store';
 import { ColorPicker } from './color-picker';
@@ -47,6 +48,7 @@ import { LinkEditor } from './link-editor';
 
 interface EditorToolbarProps {
   editor: Editor;
+  onFileUpload?: (file: File) => Promise<string>;
 }
 
 const TEXT_COLORS = [
@@ -101,11 +103,12 @@ type PopoverType =
   | 'overflow'
   | null;
 
-export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
+export const EditorToolbar = ({ editor, onFileUpload }: EditorToolbarProps) => {
   const { t } = useTranslation();
   const [activePopover, setActivePopover] = useState<PopoverType>(null);
   const [imageUrl, setImageUrl] = useState('');
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
 
   const togglePopover = useCallback(
     (popover: PopoverType) => {
@@ -200,6 +203,42 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
     [editor, imageUrl, closePopover],
   );
 
+  const handleImageFileSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      e.target.value = '';
+
+      if (onFileUpload) {
+        try {
+          const url = await onFileUpload(file);
+          editor.chain().focus().setImage({ src: url }).run();
+        } catch {
+          // Fallback to base64 on upload failure
+          const reader = new FileReader();
+          reader.onload = (readerEvent) => {
+            const result = readerEvent.target?.result;
+            if (typeof result === 'string') {
+              editor.chain().focus().setImage({ src: result }).run();
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onload = (readerEvent) => {
+          const result = readerEvent.target?.result;
+          if (typeof result === 'string') {
+            editor.chain().focus().setImage({ src: result }).run();
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+      closePopover();
+    },
+    [editor, onFileUpload, closePopover],
+  );
+
   const handleSetLink = useCallback(
     (url: string, openInNewTab: boolean) => {
       editor
@@ -245,6 +284,9 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
     editor.chain().focus().insertContent('$E = mc^2$').run();
   }, [editor]);
 
+  const onFileUploadRef = useRef(onFileUpload);
+  onFileUploadRef.current = onFileUpload;
+
   const [isRecording, setIsRecording] = useState(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -274,12 +316,34 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
 
       mediaRecorder.onstop = () => {
         const blob = new Blob(audioChunksRef.current, { type: mediaRecorder.mimeType });
-        const reader = new FileReader();
-        reader.onload = () => {
-          const duration = (Date.now() - recordingStartTimeRef.current) / 1000;
-          editor.chain().focus().setAudio({ src: reader.result as string, duration }).run();
-        };
-        reader.readAsDataURL(blob);
+        const duration = (Date.now() - recordingStartTimeRef.current) / 1000;
+
+        const currentUploadFn = onFileUploadRef.current;
+        if (currentUploadFn) {
+          const ext = mediaRecorder.mimeType.includes('webm') ? 'webm' : 'ogg';
+          const file = new File([blob], `recording-${Date.now()}.${ext}`, {
+            type: mediaRecorder.mimeType,
+          });
+          currentUploadFn(file)
+            .then((url) => {
+              editor.chain().focus().setAudio({ src: url, duration }).run();
+            })
+            .catch(() => {
+              // Fallback to base64
+              const reader = new FileReader();
+              reader.onload = () => {
+                editor.chain().focus().setAudio({ src: reader.result as string, duration }).run();
+              };
+              reader.readAsDataURL(blob);
+            });
+        } else {
+          const reader = new FileReader();
+          reader.onload = () => {
+            editor.chain().focus().setAudio({ src: reader.result as string, duration }).run();
+          };
+          reader.readAsDataURL(blob);
+        }
+
         stream.getTracks().forEach((t) => t.stop());
       };
 
@@ -709,7 +773,7 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
           </ToolbarButton>
           {activePopover === 'image' && (
             <Popover>
-              <div className="w-72 p-2">
+              <div className="w-72 p-2 space-y-1.5">
                 <form onSubmit={handleInsertImage}>
                   <div className="flex items-center gap-1.5">
                     <input
@@ -728,6 +792,21 @@ export const EditorToolbar = ({ editor }: EditorToolbarProps) => {
                     </button>
                   </div>
                 </form>
+                <button
+                  type="button"
+                  onClick={() => imageFileInputRef.current?.click()}
+                  className="w-full h-7 px-2 text-xs rounded border border-border text-text-secondary hover:bg-bg-secondary transition-colors"
+                >
+                  <Upload size={12} className="inline mr-1" />
+                  Upload
+                </button>
+                <input
+                  ref={imageFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileSelect}
+                  className="hidden"
+                />
               </div>
             </Popover>
           )}

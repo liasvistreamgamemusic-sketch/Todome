@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   useQuery,
   useMutation,
@@ -7,20 +8,50 @@ import {
 } from '@tanstack/react-query';
 import {
   loadTodoLists,
-  createTodoList,
-  updateTodoList,
-  deleteTodoList,
+  getCachedTodoLists,
+  cacheTodoLists,
+  offlineCreateTodoList,
+  offlineUpdateTodoList,
+  offlineDeleteTodoList,
 } from '@todome/db';
 import type { TodoList } from '@todome/db';
+import { useOnline } from '@todome/hooks';
 import { queryKeys } from './keys';
 import { useUserId } from './use-auth';
 
+/** Seed TanStack Query from IndexedDB on cold start. */
+function useSeedTodoListsFromCache() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+
+  useEffect(() => {
+    if (!userId) return;
+    const key = queryKeys.todoLists.all(userId);
+    if (!queryClient.getQueryData(key)) {
+      getCachedTodoLists(userId).then((cached) => {
+        if (cached.length > 0 && !queryClient.getQueryData(key)) {
+          queryClient.setQueryData(key, cached);
+        }
+      });
+    }
+  }, [userId, queryClient]);
+}
+
 export function useTodoLists() {
   const userId = useUserId();
+  const isOnline = useOnline();
+  useSeedTodoListsFromCache();
 
   return useQuery({
     queryKey: queryKeys.todoLists.all(userId ?? ''),
-    queryFn: () => loadTodoLists(userId!),
+    queryFn: async () => {
+      if (!isOnline) {
+        return (await getCachedTodoLists(userId!)) ?? [];
+      }
+      const data = await loadTodoLists(userId!);
+      cacheTodoLists(data, userId!);
+      return data;
+    },
     enabled: !!userId,
   });
 }
@@ -28,9 +59,10 @@ export function useTodoLists() {
 export function useCreateTodoList() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (list: TodoList) => createTodoList(list),
+    mutationFn: (list: TodoList) => offlineCreateTodoList(isOnline, list),
     onMutate: async (list) => {
       const key = queryKeys.todoLists.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -44,7 +76,9 @@ export function useCreateTodoList() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.todoLists.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.todoLists.all(userId!) });
+      }
     },
   });
 }
@@ -52,10 +86,11 @@ export function useCreateTodoList() {
 export function useUpdateTodoList() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: Partial<TodoList> }) =>
-      updateTodoList(id, patch),
+      offlineUpdateTodoList(isOnline, id, patch, userId!),
     onMutate: async ({ id, patch }) => {
       const key = queryKeys.todoLists.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -71,7 +106,9 @@ export function useUpdateTodoList() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.todoLists.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.todoLists.all(userId!) });
+      }
     },
   });
 }
@@ -79,9 +116,10 @@ export function useUpdateTodoList() {
 export function useDeleteTodoList() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (id: string) => deleteTodoList(id),
+    mutationFn: (id: string) => offlineDeleteTodoList(isOnline, id, userId!),
     onMutate: async (id) => {
       const key = queryKeys.todoLists.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -97,7 +135,9 @@ export function useDeleteTodoList() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.todoLists.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.todoLists.all(userId!) });
+      }
     },
   });
 }

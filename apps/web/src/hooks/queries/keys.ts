@@ -32,4 +32,8 @@ export const queryKeys = {
       ['sharedCalendars', 'displayNames', ...userIds] as const,
     events: (userId: string) => ['sharedCalendarEvents', userId] as const,
   },
+  attachments: {
+    byParent: (parentType: string, parentId: string) =>
+      ['attachments', parentType, parentId] as const,
+  },
 } as const;

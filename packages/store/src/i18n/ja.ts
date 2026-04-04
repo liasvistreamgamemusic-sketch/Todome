@@ -327,6 +327,34 @@ export const ja = {
   'editor.stopRecording': '録音停止',
   'editor.record': '録音',
 
+  // Block action menu
+  'editor.blockMenu.turnInto': '変換',
+  'editor.blockMenu.text': 'テキスト',
+  'editor.blockMenu.heading1': '見出し 1',
+  'editor.blockMenu.heading2': '見出し 2',
+  'editor.blockMenu.heading3': '見出し 3',
+  'editor.blockMenu.bulletList': '箇条書き',
+  'editor.blockMenu.numberedList': '番号リスト',
+  'editor.blockMenu.taskList': 'タスクリスト',
+  'editor.blockMenu.codeBlock': 'コードブロック',
+  'editor.blockMenu.blockquote': '引用',
+  // Slash command menu
+  'editor.slashCommand.text': 'テキスト',
+  'editor.slashCommand.heading1': '見出し 1',
+  'editor.slashCommand.heading2': '見出し 2',
+  'editor.slashCommand.heading3': '見出し 3',
+  'editor.slashCommand.bulletList': '箇条書き',
+  'editor.slashCommand.numberedList': '番号リスト',
+  'editor.slashCommand.taskList': 'タスクリスト',
+  'editor.slashCommand.codeBlock': 'コードブロック',
+  'editor.slashCommand.blockquote': '引用',
+  'editor.slashCommand.table': 'テーブル',
+  'editor.slashCommand.image': '画像',
+  'editor.slashCommand.math': '数式',
+  'editor.slashCommand.divider': '区切り線',
+  'editor.slashCommand.placeholder': '絞り込み...',
+  'editor.slashCommand.noResults': '結果なし',
+
   // Subscription Manager
   'subscription.title': '外部カレンダー',
   'subscription.description': 'ICS URLで他のカレンダーの予定を表示',
@@ -400,6 +428,40 @@ export const ja = {
   'notification.event.body': '「{title}」まもなく開始',
   'notification.test.title': 'テスト通知',
   'notification.test.body': '通知が正常に動作しています',
+
+  // Push notifications
+  'settings.notifications.push': 'プッシュ通知',
+  'settings.notifications.push.detail':
+    'アプリを閉じていてもリマインダー通知を受け取ります',
+  'settings.notifications.push.subscribed': '有効',
+  'settings.notifications.push.notSubscribed': '無効',
+  'settings.notifications.push.unsupported':
+    'このブラウザはプッシュ通知に対応していません',
+  'settings.notifications.push.subscribing': '登録中…',
+
+  // Attachments
+  'attachments.title': '添付ファイル',
+  'attachments.upload': 'アップロード',
+  'attachments.uploading': 'アップロード中...',
+  'attachments.dragDrop': 'ファイルをドラッグ&ドロップ',
+  'attachments.delete': '削除',
+  'attachments.download': 'ダウンロード',
+  'attachments.maxSize': '最大20MB',
+  'attachments.errorTooLarge': 'ファイルサイズが大きすぎます（最大20MB）',
+  'attachments.errorUploadFailed': 'アップロードに失敗しました',
+  'attachments.errorDeleteFailed': '削除に失敗しました',
+  'attachments.empty': '添付ファイルはありません',
+  'attachments.confirmDelete': 'この添付ファイルを削除しますか？',
+  'attachments.uploadFile': 'ファイルをアップロード',
+
+  // Offline
+  'offline.youAreOffline': 'オフラインです',
+  'offline.pendingChanges': '未同期の変更: {count}件',
+  'offline.syncing': '同期中...',
+  'offline.synced': '同期完了',
+  'offline.syncError': '同期エラー',
+  'offline.syncFailed': '同期に失敗しました',
+  'offline.retrying': '再試行中...',
 } as const;
 
 export type TranslationKey = keyof typeof ja;

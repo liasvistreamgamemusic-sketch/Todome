@@ -17,6 +17,7 @@ import type {
   SharedCalendar,
   SharedCalendarMember,
   SharedCalendarEvent,
+  Attachment,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -573,6 +574,78 @@ export async function deleteSharedCalendarEvent(id: string): Promise<void> {
   const { error } = await supabase
     .from('shared_calendar_events')
     .update({ is_deleted: true, updated_at: new Date().toISOString() } as never)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// Push Subscriptions
+// ---------------------------------------------------------------------------
+
+export async function upsertPushSubscription(
+  userId: string,
+  input: { endpoint: string; p256dh: string; auth: string },
+): Promise<void> {
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .upsert(
+      { user_id: userId, ...input } as never,
+      { onConflict: 'user_id,endpoint' },
+    );
+  if (error) throw error;
+}
+
+export async function deletePushSubscription(
+  userId: string,
+  endpoint: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('user_id', userId)
+    .eq('endpoint', endpoint);
+  if (error) throw error;
+}
+
+export async function loadPushSubscriptions(
+  userId: string,
+): Promise<{ id: string; endpoint: string }[]> {
+  const { data, error } = await supabase
+    .from('push_subscriptions')
+    .select('id, endpoint')
+    .eq('user_id', userId);
+  if (error) throw error;
+  return data as { id: string; endpoint: string }[];
+}
+
+// ---------------------------------------------------------------------------
+// Attachments
+// ---------------------------------------------------------------------------
+
+export async function loadAttachments(
+  parentType: string,
+  parentId: string,
+): Promise<Attachment[]> {
+  const { data, error } = await supabase
+    .from('attachments')
+    .select('*')
+    .eq('parent_type', parentType)
+    .eq('parent_id', parentId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data as Attachment[];
+}
+
+export async function createAttachment(attachment: Attachment): Promise<void> {
+  const { error } = await supabase.from('attachments').insert(attachment as never);
+  if (error) throw error;
+}
+
+export async function deleteAttachment(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('attachments')
+    .delete()
     .eq('id', id);
   if (error) throw error;
 }

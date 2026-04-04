@@ -34,6 +34,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
             gcTime: 10 * 60 * 1000,
             retry: 1,
             refetchOnWindowFocus: true,
+            networkMode: 'offlineFirst',
+          },
+          mutations: {
+            networkMode: 'offlineFirst',
           },
         },
       }),

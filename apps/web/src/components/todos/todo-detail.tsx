@@ -26,7 +26,8 @@ import type {
 } from '@todome/db';
 import { useTodoStore } from '@todome/store/src/todo-store';
 import { useTranslation } from '@todome/store';
-import { useTodos, useTodoLists, useUpdateTodo, useDeleteTodo } from '@/hooks/queries';
+import { useTodos, useTodoLists, useUpdateTodo, useDeleteTodo, useUserId } from '@/hooks/queries';
+import { AttachmentPanel } from '@/components/attachments';
 import { useIsMobile } from '@todome/hooks';
 import { TodoSubtasks } from './todo-subtasks';
 
@@ -62,6 +63,7 @@ export const TodoDetail = () => {
   const updateTodo = useUpdateTodo();
   const deleteTodoMutation = useDeleteTodo();
 
+  const userId = useUserId();
   const isMobile = useIsMobile();
 
   const todo = useMemo(
@@ -440,6 +442,15 @@ export const TodoDetail = () => {
 
         {/* Subtasks */}
         <TodoSubtasks subtasks={subtasks} onChange={handleSubtasksChange} />
+
+        {/* Attachments */}
+        {userId && todo && (
+          <AttachmentPanel
+            parentType="todo"
+            parentId={todo.id}
+            userId={userId}
+          />
+        )}
 
         {/* Tags */}
         <div className="space-y-2">

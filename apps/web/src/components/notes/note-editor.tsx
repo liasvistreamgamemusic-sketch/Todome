@@ -22,7 +22,8 @@ import type { Note, NoteSummary } from '@todome/db';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
 import type { Editor } from '@/components/editor/tiptap-editor';
 import { EditorToolbar } from '@/components/editor/editor-toolbar';
-import { useNote, useNoteSummaries, useFolders, useUpdateNote, useDeleteNote } from '@/hooks/queries';
+import { useNote, useNoteSummaries, useFolders, useUpdateNote, useDeleteNote, useUserId } from '@/hooks/queries';
+import { uploadFile, getPublicUrl, createAttachment } from '@todome/db';
 
 type NoteEditorProps = {
   noteId: string;
@@ -42,7 +43,28 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const deleteNoteMutation = useDeleteNote();
   const selectNote = useNoteStore((s) => s.selectNote);
 
+  const userId = useUserId();
   const note = noteData ?? null;
+
+  const handleFileUpload = useCallback(
+    async (file: File): Promise<string> => {
+      if (!userId) throw new Error('Not authenticated');
+      const { storagePath } = await uploadFile(file, userId, 'note', noteId);
+      await createAttachment({
+        id: crypto.randomUUID(),
+        user_id: userId,
+        parent_type: 'note',
+        parent_id: noteId,
+        file_name: file.name,
+        file_size: file.size,
+        mime_type: file.type || 'application/octet-stream',
+        storage_path: storagePath,
+        created_at: new Date().toISOString(),
+      });
+      return getPublicUrl(storagePath);
+    },
+    [userId, noteId],
+  );
 
   const [title, setTitle] = useState('');
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
@@ -454,7 +476,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
       {/* Editor toolbar (fixed, outside scroll area) */}
       {editorInstance && (
         <div className="shrink-0">
-          <EditorToolbar editor={editorInstance} />
+          <EditorToolbar editor={editorInstance} onFileUpload={userId ? handleFileUpload : undefined} />
         </div>
       )}
 
@@ -475,6 +497,7 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
             contentKey={noteId}
             hideToolbar
             onEditorReady={setEditorInstance}
+            onFileUpload={userId ? handleFileUpload : undefined}
           />
         )}
       </div>

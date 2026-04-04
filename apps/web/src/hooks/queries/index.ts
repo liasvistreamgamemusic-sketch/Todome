@@ -71,4 +71,10 @@ export {
   useDeleteSharedCalendarEvent,
 } from './use-shared-calendar-events';
 
+export {
+  useAttachments,
+  useUploadAttachment,
+  useDeleteAttachment,
+} from './use-attachments';
+
 export { useRealtimeSync } from './use-realtime';

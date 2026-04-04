@@ -20,7 +20,13 @@ import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
 import { exportToJSON, exportToMarkdown } from './export-data';
 import { SubscriptionManager } from './subscription-manager';
 import { SharedCalendarManager } from './shared-calendar-manager';
-import { requestNotificationPermission, sendNotification } from '@/lib/notifications';
+import { requestNotificationPermission, sendNotification, isTauriEnv } from '@/lib/notifications';
+import {
+  isPushSupported,
+  isPushSubscribed,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from '@/lib/push-subscription';
 
 type SettingsSectionProps = {
   title: string;
@@ -151,6 +157,8 @@ export const SettingsView = () => {
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [pushSubscribed, setPushSubscribed] = useState<boolean | null>(null);
+  const [pushSubscribing, setPushSubscribing] = useState(false);
 
   // Load last sync time from localStorage
   useEffect(() => {
@@ -167,6 +175,15 @@ export const SettingsView = () => {
       // Ignore parse errors
     }
   }, []);
+
+  // Check push subscription status
+  useEffect(() => {
+    if (isTauriEnv() || !isPushSupported()) {
+      setPushSubscribed(null);
+      return;
+    }
+    isPushSubscribed().then(setPushSubscribed);
+  }, [notificationsEnabled]);
 
   // Load user email from Supabase
   useEffect(() => {
@@ -198,6 +215,10 @@ export const SettingsView = () => {
         const granted = await requestNotificationPermission();
         if (!granted) return;
         setNotificationsEnabled(true);
+        // Subscribe to push in background
+        if (isPushSupported() && !isTauriEnv()) {
+          subscribeToPush().then((ok) => setPushSubscribed(ok));
+        }
         // Send test notification
         sendNotification(
           t('notification.test.title'),
@@ -206,9 +227,28 @@ export const SettingsView = () => {
         );
       } else {
         setNotificationsEnabled(false);
+        // Unsubscribe from push
+        if (isPushSupported() && !isTauriEnv()) {
+          unsubscribeFromPush().then(() => setPushSubscribed(false));
+        }
       }
     },
     [setNotificationsEnabled, soundEnabled, t],
+  );
+
+  const handlePushToggle = useCallback(
+    async (enabled: boolean) => {
+      if (enabled) {
+        setPushSubscribing(true);
+        const ok = await subscribeToPush();
+        setPushSubscribed(ok);
+        setPushSubscribing(false);
+      } else {
+        await unsubscribeFromPush();
+        setPushSubscribed(false);
+      }
+    },
+    [],
   );
 
   const handleSoundToggle = useCallback(
@@ -320,6 +360,27 @@ export const SettingsView = () => {
               label={t('settings.notifications.enable')}
             />
           </SettingsRow>
+          {/* Push notifications (web/PWA only) */}
+          {!isTauriEnv() && (
+            <SettingsRow
+              label={t('settings.notifications.push')}
+              description={
+                !isPushSupported()
+                  ? t('settings.notifications.push.unsupported')
+                  : pushSubscribing
+                    ? t('settings.notifications.push.subscribing')
+                    : pushSubscribed
+                      ? t('settings.notifications.push.subscribed')
+                      : t('settings.notifications.push.notSubscribed')
+              }
+            >
+              <ToggleSwitch
+                checked={pushSubscribed === true}
+                onChange={handlePushToggle}
+                label={t('settings.notifications.push')}
+              />
+            </SettingsRow>
+          )}
           <SettingsRow
             label={t('settings.sound')}
             description={t('settings.sound.detail')}

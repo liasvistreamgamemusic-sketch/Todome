@@ -113,6 +113,7 @@ export interface Todo {
   due_date: string | null;
   remind_at: string | null;
   remind_repeat: RemindRepeat | null;
+  reminded_at: string | null;
   note_ids: string[];
   tags: string[];
   list_id: string | null;
@@ -149,6 +150,7 @@ export interface CalendarEvent {
   color: string | null;
   diary_content: TiptapDocument | null;
   remind_at: string | null;
+  reminded_at: string | null;
   repeat_rule: string | null;
   repeat_parent_id: string | null;
   todo_ids: string[];
@@ -455,5 +457,25 @@ export interface CreateAttachmentInput {
   file_size: number;
   mime_type: string;
   storage_path: string;
+}
+
+// ---------------------------------------------------------------------------
+// Push Subscription (Web Push API)
+// ---------------------------------------------------------------------------
+
+export interface PushSubscriptionRow {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePushSubscriptionInput {
+  endpoint: string;
+  p256dh: string;
+  auth: string;
 }
 

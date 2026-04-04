@@ -11,12 +11,6 @@ import {
   loadNoteSummaries,
   loadNoteById,
   loadFolders,
-  createNote,
-  updateNote,
-  deleteNote,
-  createFolder,
-  updateFolder,
-  deleteFolder,
   getCachedNoteSummaries,
   getCachedNoteById,
   getCachedFolders,
@@ -24,8 +18,15 @@ import {
   cacheNote,
   cacheFolders,
   removeCachedNote,
+  offlineCreateNote,
+  offlineUpdateNote,
+  offlineDeleteNote,
+  offlineCreateFolder,
+  offlineUpdateFolder,
+  offlineDeleteFolder,
 } from '@todome/db';
 import type { Note, NoteSummary, Folder } from '@todome/db';
+import { useOnline } from '@todome/hooks';
 import { queryKeys } from './keys';
 import { useUserId } from './use-auth';
 
@@ -96,11 +97,15 @@ export function useNotes() {
 
 export function useNoteSummaries() {
   const userId = useUserId();
+  const isOnline = useOnline();
   useSeedFromCache();
 
   return useQuery({
     queryKey: queryKeys.notes.summaries(userId ?? ''),
     queryFn: async () => {
+      if (!isOnline) {
+        return (await getCachedNoteSummaries(userId!)) ?? [];
+      }
       const data = await loadNoteSummaries(userId!);
       cacheNoteSummaries(data, userId!);
       return data;
@@ -138,11 +143,15 @@ export function useNote(noteId: string | null) {
 
 export function useFolders() {
   const userId = useUserId();
+  const isOnline = useOnline();
   useSeedFromCache();
 
   return useQuery({
     queryKey: queryKeys.folders.all(userId ?? ''),
     queryFn: async () => {
+      if (!isOnline) {
+        return (await getCachedFolders(userId!)) ?? [];
+      }
       const data = await loadFolders(userId!);
       cacheFolders(data, userId!);
       return data;
@@ -155,9 +164,10 @@ export function useFolders() {
 export function useCreateNote() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (note: Note) => createNote(note),
+    mutationFn: (note: Note) => offlineCreateNote(isOnline, note),
     onMutate: async (note) => {
       const allKey = queryKeys.notes.all(userId!);
       const sumKey = queryKeys.notes.summaries(userId!);
@@ -183,9 +193,11 @@ export function useCreateNote() {
       }
     },
     onSettled: (_data, _err, note) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.detail(note.id) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notes.detail(note.id) });
+      }
     },
   });
 }
@@ -193,10 +205,11 @@ export function useCreateNote() {
 export function useUpdateNote() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: Partial<Note> }) =>
-      updateNote(id, patch),
+      offlineUpdateNote(isOnline, id, patch, userId!),
     onMutate: async ({ id, patch }) => {
       const allKey = queryKeys.notes.all(userId!);
       const sumKey = queryKeys.notes.summaries(userId!);
@@ -234,9 +247,11 @@ export function useUpdateNote() {
       }
     },
     onSettled: (_data, _err, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.detail(id) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notes.detail(id) });
+      }
     },
   });
 }
@@ -244,9 +259,10 @@ export function useUpdateNote() {
 export function useDeleteNote() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (id: string) => deleteNote(id),
+    mutationFn: (id: string) => offlineDeleteNote(isOnline, id, userId!),
     onMutate: async (id) => {
       const allKey = queryKeys.notes.all(userId!);
       const sumKey = queryKeys.notes.summaries(userId!);
@@ -272,8 +288,10 @@ export function useDeleteNote() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.notes.all(userId!) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.notes.summaries(userId!) });
+      }
     },
   });
 }
@@ -281,9 +299,10 @@ export function useDeleteNote() {
 export function useCreateFolder() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (folder: Folder) => createFolder(folder),
+    mutationFn: (folder: Folder) => offlineCreateFolder(isOnline, folder),
     onMutate: async (folder) => {
       const key = queryKeys.folders.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -297,7 +316,9 @@ export function useCreateFolder() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(userId!) });
+      }
     },
   });
 }
@@ -305,10 +326,11 @@ export function useCreateFolder() {
 export function useUpdateFolder() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: Partial<Folder> }) =>
-      updateFolder(id, patch),
+      offlineUpdateFolder(isOnline, id, patch, userId!),
     onMutate: async ({ id, patch }) => {
       const key = queryKeys.folders.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -324,7 +346,9 @@ export function useUpdateFolder() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(userId!) });
+      }
     },
   });
 }
@@ -332,9 +356,10 @@ export function useUpdateFolder() {
 export function useDeleteFolder() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (id: string) => deleteFolder(id),
+    mutationFn: (id: string) => offlineDeleteFolder(isOnline, id, userId!),
     onMutate: async (id) => {
       const key = queryKeys.folders.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -350,7 +375,9 @@ export function useDeleteFolder() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.folders.all(userId!) });
+      }
     },
   });
 }

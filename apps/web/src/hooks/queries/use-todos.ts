@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   useQuery,
   useMutation,
@@ -8,11 +9,14 @@ import {
 import { addDays, addMonths, addYears } from 'date-fns';
 import {
   loadTodos,
-  createTodo,
-  updateTodo,
-  deleteTodo,
+  getCachedTodos,
+  cacheTodos,
+  offlineCreateTodo,
+  offlineUpdateTodo,
+  offlineDeleteTodo,
 } from '@todome/db';
 import type { Todo, RemindRepeat } from '@todome/db';
+import { useOnline } from '@todome/hooks';
 import { queryKeys } from './keys';
 import { useUserId } from './use-auth';
 
@@ -27,12 +31,39 @@ function computeNextDueDate(currentDueDate: string, repeat: RemindRepeat): strin
   }
 }
 
+/** Seed TanStack Query from IndexedDB on cold start. */
+function useSeedTodosFromCache() {
+  const queryClient = useQueryClient();
+  const userId = useUserId();
+
+  useEffect(() => {
+    if (!userId) return;
+    const key = queryKeys.todos.all(userId);
+    if (!queryClient.getQueryData(key)) {
+      getCachedTodos(userId).then((cached) => {
+        if (cached.length > 0 && !queryClient.getQueryData(key)) {
+          queryClient.setQueryData(key, cached);
+        }
+      });
+    }
+  }, [userId, queryClient]);
+}
+
 export function useTodos() {
   const userId = useUserId();
+  const isOnline = useOnline();
+  useSeedTodosFromCache();
 
   return useQuery({
     queryKey: queryKeys.todos.all(userId ?? ''),
-    queryFn: () => loadTodos(userId!),
+    queryFn: async () => {
+      if (!isOnline) {
+        return (await getCachedTodos(userId!)) ?? [];
+      }
+      const data = await loadTodos(userId!);
+      cacheTodos(data, userId!);
+      return data;
+    },
     enabled: !!userId,
   });
 }
@@ -40,9 +71,10 @@ export function useTodos() {
 export function useCreateTodo() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (todo: Todo) => createTodo(todo),
+    mutationFn: (todo: Todo) => offlineCreateTodo(isOnline, todo),
     onMutate: async (todo) => {
       const key = queryKeys.todos.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -56,7 +88,9 @@ export function useCreateTodo() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.todos.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.todos.all(userId!) });
+      }
     },
   });
 }
@@ -64,10 +98,11 @@ export function useCreateTodo() {
 export function useUpdateTodo() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: Partial<Todo> }) =>
-      updateTodo(id, patch),
+      offlineUpdateTodo(isOnline, id, patch, userId!),
     onMutate: async ({ id, patch }) => {
       const key = queryKeys.todos.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -83,7 +118,9 @@ export function useUpdateTodo() {
       }
     },
     onSettled: (_data, _error, variables) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.todos.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.todos.all(userId!) });
+      }
 
       // Auto-create next occurrence for recurring todos
       if (variables.patch.status === 'completed') {
@@ -103,6 +140,7 @@ export function useUpdateTodo() {
               status: 'pending',
               due_date: nextDueDate,
               remind_at: null,
+              reminded_at: null,
               remind_repeat: todo.remind_repeat,
               note_ids: [],
               tags: [...todo.tags],
@@ -115,8 +153,10 @@ export function useUpdateTodo() {
               created_at: now,
               updated_at: now,
             };
-            createTodo(nextTodo);
-            queryClient.invalidateQueries({ queryKey: queryKeys.todos.all(userId!) });
+            offlineCreateTodo(isOnline, nextTodo).catch(() => {});
+            if (isOnline) {
+              queryClient.invalidateQueries({ queryKey: queryKeys.todos.all(userId!) });
+            }
           }
         }
       }
@@ -127,9 +167,10 @@ export function useUpdateTodo() {
 export function useDeleteTodo() {
   const queryClient = useQueryClient();
   const userId = useUserId();
+  const isOnline = useOnline();
 
   return useMutation({
-    mutationFn: (id: string) => deleteTodo(id),
+    mutationFn: (id: string) => offlineDeleteTodo(isOnline, id, userId!),
     onMutate: async (id) => {
       const key = queryKeys.todos.all(userId!);
       await queryClient.cancelQueries({ queryKey: key });
@@ -145,7 +186,9 @@ export function useDeleteTodo() {
       }
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.todos.all(userId!) });
+      if (isOnline) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.todos.all(userId!) });
+      }
     },
   });
 }

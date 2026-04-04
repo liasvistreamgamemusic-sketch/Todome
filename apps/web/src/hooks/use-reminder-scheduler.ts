@@ -6,9 +6,16 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useUserId } from '@/hooks/queries';
 import { queryKeys } from '@/hooks/queries/keys';
 import { sendNotification } from '@/lib/notifications';
+import { supabase } from '@todome/db';
 import type { Todo, CalendarEvent } from '@todome/store';
 
 const INTERVAL_MS = 60_000;
+
+/** True if this reminder has already been handled (server-side or client-side). */
+function alreadyReminded(remindAt: string, remindedAt: string | null): boolean {
+  if (!remindedAt) return false;
+  return new Date(remindedAt) >= new Date(remindAt);
+}
 
 export function useReminderScheduler(): void {
   const notificationsEnabled = useUiStore((s) => s.notificationsEnabled);
@@ -32,13 +39,20 @@ export function useReminderScheduler(): void {
             todo.remind_at &&
             !notifiedIds.current.has(key) &&
             new Date(todo.remind_at) <= now &&
+            !alreadyReminded(todo.remind_at, todo.reminded_at) &&
             todo.status !== 'completed' &&
             todo.status !== 'cancelled'
           ) {
             notifiedIds.current.add(key);
-            sendNotification('Todo\u30EA\u30DE\u30A4\u30F3\u30C0\u30FC', `\u300C${todo.title}\u300D\u306E\u671F\u9650\u3067\u3059`, {
+            sendNotification('Todoリマインダー', `「${todo.title}」の期限です`, {
               sound: soundEnabled,
             });
+            // Mark as reminded in DB so server-side won't re-send
+            supabase
+              .from('todos')
+              .update({ reminded_at: now.toISOString() } as never)
+              .eq('id', todo.id)
+              .then(() => {});
           }
         }
       }
@@ -51,14 +65,21 @@ export function useReminderScheduler(): void {
             event.remind_at &&
             !notifiedIds.current.has(key) &&
             new Date(event.remind_at) <= now &&
+            !alreadyReminded(event.remind_at, event.reminded_at) &&
             !event.is_deleted
           ) {
             notifiedIds.current.add(key);
             sendNotification(
-              '\u30AB\u30EC\u30F3\u30C0\u30FC\u30EA\u30DE\u30A4\u30F3\u30C0\u30FC',
-              `\u300C${event.title}\u300D\u307E\u3082\u306A\u304F\u958B\u59CB`,
+              'カレンダーリマインダー',
+              `「${event.title}」まもなく開始`,
               { sound: soundEnabled },
             );
+            // Mark as reminded in DB so server-side won't re-send
+            supabase
+              .from('calendar_events')
+              .update({ reminded_at: now.toISOString() } as never)
+              .eq('id', event.id)
+              .then(() => {});
           }
         }
       }

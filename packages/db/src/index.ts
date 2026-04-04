@@ -47,6 +47,8 @@ export type {
   CreateDiaryInput,
   UpdateDiaryInput,
   CreateAttachmentInput,
+  PushSubscriptionRow,
+  CreatePushSubscriptionInput,
 } from './types';
 
 export {
@@ -76,6 +78,14 @@ export {
   removeCachedNote,
   getCachedFolders,
   cacheFolders,
+  getCachedTodos,
+  cacheTodos,
+  getCachedTodoLists,
+  cacheTodoLists,
+  getCachedCalendarEvents,
+  cacheCalendarEvents,
+  getCachedDiaries,
+  cacheDiaries,
 } from './cache';
 
 // Repository layer
@@ -126,4 +136,58 @@ export {
   createSharedCalendarEvent,
   updateSharedCalendarEvent,
   deleteSharedCalendarEvent,
+  upsertPushSubscription,
+  deletePushSubscription,
+  loadPushSubscriptions,
+  loadAttachments,
+  createAttachment,
+  deleteAttachment,
 } from './repository';
+
+// Offline queue
+export {
+  enqueueOperation,
+  getPendingOps,
+  getPendingCount,
+  deleteOperation,
+  markOperationFailed,
+  clearUserQueue,
+} from './offline-queue';
+export type {
+  TableName,
+  OperationType,
+  PendingOperation,
+} from './offline-queue';
+
+// Queue flush engine
+export { flushQueue } from './queue-flush';
+export type { FlushResult } from './queue-flush';
+
+// Offline-aware repository wrappers
+export {
+  offlineCreateNote,
+  offlineUpdateNote,
+  offlineDeleteNote,
+  offlineCreateFolder,
+  offlineUpdateFolder,
+  offlineDeleteFolder,
+  offlineCreateTodo,
+  offlineUpdateTodo,
+  offlineDeleteTodo,
+  offlineCreateTodoList,
+  offlineUpdateTodoList,
+  offlineDeleteTodoList,
+  offlineCreateCalendarEvent,
+  offlineUpdateCalendarEvent,
+  offlineDeleteCalendarEvent,
+  offlineCreateDiary,
+  offlineUpdateDiary,
+  offlineDeleteDiary,
+} from './offline-aware-repo';
+
+// Storage helpers
+export {
+  uploadFile,
+  deleteFile,
+  getPublicUrl,
+} from './storage';

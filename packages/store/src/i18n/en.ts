@@ -330,6 +330,34 @@ export const en: Record<TranslationKey, string> = {
   'editor.stopRecording': 'Stop recording',
   'editor.record': 'Record',
 
+  // Block action menu
+  'editor.blockMenu.turnInto': 'Turn into',
+  'editor.blockMenu.text': 'Text',
+  'editor.blockMenu.heading1': 'Heading 1',
+  'editor.blockMenu.heading2': 'Heading 2',
+  'editor.blockMenu.heading3': 'Heading 3',
+  'editor.blockMenu.bulletList': 'Bullet List',
+  'editor.blockMenu.numberedList': 'Numbered List',
+  'editor.blockMenu.taskList': 'Task List',
+  'editor.blockMenu.codeBlock': 'Code Block',
+  'editor.blockMenu.blockquote': 'Blockquote',
+  // Slash command menu
+  'editor.slashCommand.text': 'Text',
+  'editor.slashCommand.heading1': 'Heading 1',
+  'editor.slashCommand.heading2': 'Heading 2',
+  'editor.slashCommand.heading3': 'Heading 3',
+  'editor.slashCommand.bulletList': 'Bullet List',
+  'editor.slashCommand.numberedList': 'Numbered List',
+  'editor.slashCommand.taskList': 'Task List',
+  'editor.slashCommand.codeBlock': 'Code Block',
+  'editor.slashCommand.blockquote': 'Blockquote',
+  'editor.slashCommand.table': 'Table',
+  'editor.slashCommand.image': 'Image',
+  'editor.slashCommand.math': 'Math',
+  'editor.slashCommand.divider': 'Divider',
+  'editor.slashCommand.placeholder': 'Type to filter...',
+  'editor.slashCommand.noResults': 'No results',
+
   // Subscription Manager
   'subscription.title': 'External Calendars',
   'subscription.description': 'Display events from other calendars via ICS URL',
@@ -403,4 +431,38 @@ export const en: Record<TranslationKey, string> = {
   'notification.event.body': '"{title}" is starting soon',
   'notification.test.title': 'Test Notification',
   'notification.test.body': 'Notifications are working correctly',
+
+  // Push notifications
+  'settings.notifications.push': 'Push Notifications',
+  'settings.notifications.push.detail':
+    'Receive reminder notifications even when the app is closed',
+  'settings.notifications.push.subscribed': 'Enabled',
+  'settings.notifications.push.notSubscribed': 'Disabled',
+  'settings.notifications.push.unsupported':
+    'Push notifications are not supported in this browser',
+  'settings.notifications.push.subscribing': 'Subscribing…',
+
+  // Attachments
+  'attachments.title': 'Attachments',
+  'attachments.upload': 'Upload',
+  'attachments.uploading': 'Uploading...',
+  'attachments.dragDrop': 'Drag & drop files',
+  'attachments.delete': 'Delete',
+  'attachments.download': 'Download',
+  'attachments.maxSize': 'Max 20MB',
+  'attachments.errorTooLarge': 'File is too large (max 20MB)',
+  'attachments.errorUploadFailed': 'Upload failed',
+  'attachments.errorDeleteFailed': 'Delete failed',
+  'attachments.empty': 'No attachments',
+  'attachments.confirmDelete': 'Delete this attachment?',
+  'attachments.uploadFile': 'Upload file',
+
+  // Offline
+  'offline.youAreOffline': 'You are offline',
+  'offline.pendingChanges': '{count} pending changes',
+  'offline.syncing': 'Syncing...',
+  'offline.synced': 'Synced',
+  'offline.syncError': 'Sync error',
+  'offline.syncFailed': 'Sync failed',
+  'offline.retrying': 'Retrying...',
 };

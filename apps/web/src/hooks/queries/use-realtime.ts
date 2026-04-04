@@ -162,6 +162,21 @@ export function useRealtimeSync(): void {
           });
         },
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'attachments',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          queryClient.invalidateQueries({
+            queryKey: ['attachments'],
+            exact: false,
+          });
+        },
+      )
       .subscribe((status, err) => {
         if (status === 'SUBSCRIBED') {
           console.debug('[realtime] subscribed to db-changes');

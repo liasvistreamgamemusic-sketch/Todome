@@ -6,6 +6,7 @@ export type Theme = 'light' | 'dark' | 'system';
 export type FontSize = 'small' | 'medium' | 'large' | 'xlarge';
 export type Locale = 'ja' | 'en';
 export type CalendarWeekStart = 0 | 1;
+export type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
 
 export type UiStoreState = {
   // State
@@ -18,6 +19,11 @@ export type UiStoreState = {
   notificationsEnabled: boolean;
   soundEnabled: boolean;
 
+  // Sync state (not persisted)
+  syncStatus: SyncStatus;
+  pendingOpCount: number;
+  syncError: string | null;
+
   // Actions
   setActiveSection: (section: ActiveSection) => void;
   toggleCommandPalette: () => void;
@@ -27,6 +33,9 @@ export type UiStoreState = {
   setCalendarWeekStart: (start: CalendarWeekStart) => void;
   setNotificationsEnabled: (enabled: boolean) => void;
   setSoundEnabled: (enabled: boolean) => void;
+  setSyncStatus: (status: SyncStatus) => void;
+  setPendingOpCount: (count: number) => void;
+  setSyncError: (error: string | null) => void;
 };
 
 export const useUiStore = create<UiStoreState>()(
@@ -42,6 +51,11 @@ export const useUiStore = create<UiStoreState>()(
       notificationsEnabled: false,
       soundEnabled: true,
 
+      // Sync state (not persisted)
+      syncStatus: 'idle',
+      pendingOpCount: 0,
+      syncError: null,
+
       // Actions
       setActiveSection: (section) => set({ activeSection: section }),
       toggleCommandPalette: () =>
@@ -52,6 +66,9 @@ export const useUiStore = create<UiStoreState>()(
       setCalendarWeekStart: (start) => set({ calendarWeekStart: start }),
       setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
       setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
+      setSyncStatus: (status) => set({ syncStatus: status }),
+      setPendingOpCount: (count) => set({ pendingOpCount: count }),
+      setSyncError: (error) => set({ syncError: error }),
     }),
     {
       name: 'todome-ui-settings',

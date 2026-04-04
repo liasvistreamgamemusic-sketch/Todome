@@ -1,6 +1,6 @@
 import { playNotificationSound } from './sound';
 
-function isTauriEnv(): boolean {
+export function isTauriEnv(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
 }
 

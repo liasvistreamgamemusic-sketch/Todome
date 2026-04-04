@@ -89,6 +89,7 @@ export const TodoQuickAdd = () => {
       status,
       due_date: dueDate,
       remind_at: remindAt ? new Date(remindAt).toISOString() : null,
+      reminded_at: null,
       remind_repeat: 'none' as const,
       note_ids: [],
       tags,
