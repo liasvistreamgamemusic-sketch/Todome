@@ -580,35 +580,43 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           />
 
           {/* Date/Time pickers */}
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label={t('event.startDate')}
-              type="date"
-              value={form.startDate}
-              onChange={(e) => handleStartDateChange(e.target.value)}
-            />
-            {!form.isAllDay && (
+          <div className="space-y-3">
+            <div className="flex flex-col gap-3 min-[420px]:flex-row">
               <Input
-                label={t('event.startTime')}
-                type="time"
-                value={form.startTime}
-                onChange={(e) => handleStartTimeChange(e.target.value)}
+                label={t('event.startDate')}
+                type="date"
+                value={form.startDate}
+                onChange={(e) => handleStartDateChange(e.target.value)}
+                wrapperClassName="flex-1 min-w-0"
               />
-            )}
-            <Input
-              label={t('event.endDate')}
-              type="date"
-              value={form.endDate}
-              onChange={(e) => updateField('endDate', e.target.value)}
-            />
-            {!form.isAllDay && (
+              {!form.isAllDay && (
+                <Input
+                  label={t('event.startTime')}
+                  type="time"
+                  value={form.startTime}
+                  onChange={(e) => handleStartTimeChange(e.target.value)}
+                  wrapperClassName="flex-1 min-w-0"
+                />
+              )}
+            </div>
+            <div className="flex flex-col gap-3 min-[420px]:flex-row">
               <Input
-                label={t('event.endTime')}
-                type="time"
-                value={form.endTime}
-                onChange={(e) => updateField('endTime', e.target.value)}
+                label={t('event.endDate')}
+                type="date"
+                value={form.endDate}
+                onChange={(e) => updateField('endDate', e.target.value)}
+                wrapperClassName="flex-1 min-w-0"
               />
-            )}
+              {!form.isAllDay && (
+                <Input
+                  label={t('event.endTime')}
+                  type="time"
+                  value={form.endTime}
+                  onChange={(e) => updateField('endTime', e.target.value)}
+                  wrapperClassName="flex-1 min-w-0"
+                />
+              )}
+            </div>
           </div>
 
           {/* Location */}
@@ -929,28 +937,25 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-[var(--border)] px-5 py-3">
-          <div>
-            {isEditing && (
-              <Button variant="danger" size="sm" onClick={handleDelete}>
-                <Trash2 className="h-3.5 w-3.5" />
-                {t('common.delete')}
-              </Button>
-            )}
-            {isEditing && onCopy && (
-              <Button variant="ghost" size="sm" onClick={handleCopy}>
-                <Copy className="h-3.5 w-3.5" />
-                {t('event.copy')}
-              </Button>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={onClose}>
+        <div className="flex flex-wrap items-center gap-2 border-t border-[var(--border)] px-5 py-3">
+          {isEditing && (
+            <Button variant="danger" size="sm" onClick={handleDelete}>
+              <Trash2 className="h-3.5 w-3.5" />
+              {t('common.delete')}
+            </Button>
+          )}
+          {isEditing && onCopy && (
+            <Button variant="ghost" size="sm" onClick={handleCopy}>
+              <Copy className="h-3.5 w-3.5" />
+              {t('event.copy')}
+            </Button>
+          )}
+          <div className="ml-auto flex gap-2">
+            <Button variant="ghost" onClick={onClose}>
               {t('common.cancel')}
             </Button>
             <Button
               variant="primary"
-              size="sm"
               onClick={handleSave}
               disabled={!form.title.trim() || (!isEditing && sharedCalendars.length > 0 && !form.includePersonalCalendar && form.targetSharedCalendarIds.length === 0)}
             >
