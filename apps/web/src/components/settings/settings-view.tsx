@@ -23,7 +23,7 @@ import { SharedCalendarManager } from './shared-calendar-manager';
 import { requestNotificationPermission, sendNotification, isTauriEnv } from '@/lib/notifications';
 import {
   isPushSupported,
-  isPushSubscribed,
+  isPushSubscribed as checkPushSubscribed,
   subscribeToPush,
   unsubscribeFromPush,
 } from '@/lib/push-subscription';
@@ -182,7 +182,7 @@ export const SettingsView = () => {
       setPushSubscribed(null);
       return;
     }
-    isPushSubscribed().then(setPushSubscribed);
+    checkPushSubscribed().then(setPushSubscribed);
   }, [notificationsEnabled]);
 
   // Load user email from Supabase
@@ -212,13 +212,19 @@ export const SettingsView = () => {
   const handleNotificationToggle = useCallback(
     async (enabled: boolean) => {
       if (enabled) {
+        setPushSubscribing(true);
         const granted = await requestNotificationPermission();
-        if (!granted) return;
-        setNotificationsEnabled(true);
-        // Subscribe to push in background
-        if (isPushSupported() && !isTauriEnv()) {
-          subscribeToPush().then((ok) => setPushSubscribed(ok));
+        if (!granted) {
+          setPushSubscribing(false);
+          return;
         }
+        setNotificationsEnabled(true);
+        // Auto-subscribe to push (web/PWA only)
+        if (isPushSupported() && !isTauriEnv()) {
+          const ok = await subscribeToPush();
+          setPushSubscribed(ok);
+        }
+        setPushSubscribing(false);
         // Send test notification
         sendNotification(
           t('notification.test.title'),
@@ -229,26 +235,12 @@ export const SettingsView = () => {
         setNotificationsEnabled(false);
         // Unsubscribe from push
         if (isPushSupported() && !isTauriEnv()) {
-          unsubscribeFromPush().then(() => setPushSubscribed(false));
+          await unsubscribeFromPush();
+          setPushSubscribed(false);
         }
       }
     },
     [setNotificationsEnabled, soundEnabled, t],
-  );
-
-  const handlePushToggle = useCallback(
-    async (enabled: boolean) => {
-      if (enabled) {
-        setPushSubscribing(true);
-        const ok = await subscribeToPush();
-        setPushSubscribed(ok);
-        setPushSubscribing(false);
-      } else {
-        await unsubscribeFromPush();
-        setPushSubscribed(false);
-      }
-    },
-    [],
   );
 
   const handleSoundToggle = useCallback(
@@ -352,7 +344,15 @@ export const SettingsView = () => {
         <SettingsSection title={t('settings.notifications')} description={t('settings.notifications.description')}>
           <SettingsRow
             label={t('settings.notifications.label')}
-            description={t('settings.notifications.detail')}
+            description={
+              pushSubscribing
+                ? t('settings.notifications.push.subscribing')
+                : notificationsEnabled && !isTauriEnv() && isPushSupported()
+                  ? pushSubscribed
+                    ? t('settings.notifications.push.subscribed')
+                    : t('settings.notifications.push.notSubscribed')
+                  : t('settings.notifications.detail')
+            }
           >
             <ToggleSwitch
               checked={notificationsEnabled}
@@ -360,27 +360,6 @@ export const SettingsView = () => {
               label={t('settings.notifications.enable')}
             />
           </SettingsRow>
-          {/* Push notifications (web/PWA only) */}
-          {!isTauriEnv() && (
-            <SettingsRow
-              label={t('settings.notifications.push')}
-              description={
-                !isPushSupported()
-                  ? t('settings.notifications.push.unsupported')
-                  : pushSubscribing
-                    ? t('settings.notifications.push.subscribing')
-                    : pushSubscribed
-                      ? t('settings.notifications.push.subscribed')
-                      : t('settings.notifications.push.notSubscribed')
-              }
-            >
-              <ToggleSwitch
-                checked={pushSubscribed === true}
-                onChange={handlePushToggle}
-                label={t('settings.notifications.push')}
-              />
-            </SettingsRow>
-          )}
           <SettingsRow
             label={t('settings.sound')}
             description={t('settings.sound.detail')}
