@@ -580,14 +580,15 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           />
 
           {/* Date/Time pickers */}
-          <div className="space-y-3">
-            <div className="flex flex-col gap-3 min-[420px]:flex-row">
+          <div className="space-y-3 overflow-hidden">
+            <div className="grid grid-cols-2 gap-3">
               <Input
                 label={t('event.startDate')}
                 type="date"
                 value={form.startDate}
                 onChange={(e) => handleStartDateChange(e.target.value)}
-                wrapperClassName="flex-1 min-w-0"
+                wrapperClassName="min-w-0"
+                className="max-w-full"
               />
               {!form.isAllDay && (
                 <Input
@@ -595,17 +596,19 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                   type="time"
                   value={form.startTime}
                   onChange={(e) => handleStartTimeChange(e.target.value)}
-                  wrapperClassName="flex-1 min-w-0"
+                  wrapperClassName="min-w-0"
+                  className="max-w-full"
                 />
               )}
             </div>
-            <div className="flex flex-col gap-3 min-[420px]:flex-row">
+            <div className="grid grid-cols-2 gap-3">
               <Input
                 label={t('event.endDate')}
                 type="date"
                 value={form.endDate}
                 onChange={(e) => updateField('endDate', e.target.value)}
-                wrapperClassName="flex-1 min-w-0"
+                wrapperClassName="min-w-0"
+                className="max-w-full"
               />
               {!form.isAllDay && (
                 <Input
@@ -613,7 +616,8 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
                   type="time"
                   value={form.endTime}
                   onChange={(e) => updateField('endTime', e.target.value)}
-                  wrapperClassName="flex-1 min-w-0"
+                  wrapperClassName="min-w-0"
+                  className="max-w-full"
                 />
               )}
             </div>
