@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
       .lte('remind_at', nowIso)
       .not('status', 'in', '("completed","cancelled")')
       .eq('is_deleted', false)
-      .or('reminded_at.is.null,reminded_at.lt.remind_at')
+      .is('reminded_at', null)
       .limit(200),
     supabase
       .from('calendar_events')
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
       .gte('remind_at', windowStart)
       .lte('remind_at', nowIso)
       .eq('is_deleted', false)
-      .or('reminded_at.is.null,reminded_at.lt.remind_at')
+      .is('reminded_at', null)
       .limit(200),
   ]);
 

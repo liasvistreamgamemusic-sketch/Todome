@@ -375,6 +375,7 @@ export const EventDetail = ({ eventId, initialDate, initialFormData, onClose, on
           description: form.description.trim() || null,
           color: form.color,
           remind_at: remindAt,
+          reminded_at: null,
           repeat_rule: repeatRule,
           todo_ids: form.linkedTodoIds,
           note_ids: form.linkedNoteIds,
