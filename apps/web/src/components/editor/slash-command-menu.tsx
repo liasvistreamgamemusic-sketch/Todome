@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@todome/store';
 import type { TranslationKey } from '@todome/store';
+import { toggleList } from './list-commands';
 
 interface SlashCommandMenuProps {
   editor: Editor | null;
@@ -73,21 +74,21 @@ const SLASH_ITEMS: SlashItem[] = [
     labelKey: 'editor.slashCommand.bulletList',
     icon: List,
     keywords: ['bullet', 'list', 'unordered', 'リスト'],
-    action: (editor) => editor.chain().focus().toggleBulletList().run(),
+    action: (editor) => toggleList(editor, 'bulletList'),
   },
   {
     id: 'numberedList',
     labelKey: 'editor.slashCommand.numberedList',
     icon: ListOrdered,
     keywords: ['numbered', 'ordered', 'list', '番号'],
-    action: (editor) => editor.chain().focus().toggleOrderedList().run(),
+    action: (editor) => toggleList(editor, 'orderedList'),
   },
   {
     id: 'taskList',
     labelKey: 'editor.slashCommand.taskList',
     icon: ListChecks,
     keywords: ['task', 'todo', 'checkbox', 'タスク'],
-    action: (editor) => editor.chain().focus().toggleTaskList().run(),
+    action: (editor) => toggleList(editor, 'taskList'),
   },
   {
     id: 'codeBlock',

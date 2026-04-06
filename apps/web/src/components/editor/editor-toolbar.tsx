@@ -45,6 +45,7 @@ import { ColorPicker } from './color-picker';
 import { EmojiPicker } from './emoji-picker';
 import { TableCreator } from './table-creator';
 import { LinkEditor } from './link-editor';
+import { toggleList } from './list-commands';
 
 interface EditorToolbarProps {
   editor: Editor;
@@ -599,21 +600,21 @@ export const EditorToolbar = ({ editor, onFileUpload }: EditorToolbarProps) => {
 
         {/* Lists */}
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          onClick={() => toggleList(editor, 'bulletList')}
           isActive={editor.isActive('bulletList')}
           title="Bullet list"
         >
           <List size={15} />
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          onClick={() => toggleList(editor, 'orderedList')}
           isActive={editor.isActive('orderedList')}
           title="Numbered list"
         >
           <ListOrdered size={15} />
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => editor.chain().focus().toggleTaskList().run()}
+          onClick={() => toggleList(editor, 'taskList')}
           isActive={editor.isActive('taskList')}
           title="Task list"
         >

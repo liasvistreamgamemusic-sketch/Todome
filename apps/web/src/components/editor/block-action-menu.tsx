@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useTranslation } from '@todome/store';
 import type { TranslationKey } from '@todome/store';
+import { toggleList } from './list-commands';
 
 interface BlockActionMenuProps {
   editor: Editor | null;
@@ -66,21 +67,24 @@ const BLOCK_ACTIONS: {
     labelKey: 'editor.blockMenu.bulletList',
     icon: List,
     action: (editor, pos) => {
-      editor.chain().focus().setTextSelection(pos + 1).toggleBulletList().run();
+      editor.chain().focus().setTextSelection(pos + 1).run();
+      toggleList(editor, 'bulletList');
     },
   },
   {
     labelKey: 'editor.blockMenu.numberedList',
     icon: ListOrdered,
     action: (editor, pos) => {
-      editor.chain().focus().setTextSelection(pos + 1).toggleOrderedList().run();
+      editor.chain().focus().setTextSelection(pos + 1).run();
+      toggleList(editor, 'orderedList');
     },
   },
   {
     labelKey: 'editor.blockMenu.taskList',
     icon: ListChecks,
     action: (editor, pos) => {
-      editor.chain().focus().setTextSelection(pos + 1).toggleTaskList().run();
+      editor.chain().focus().setTextSelection(pos + 1).run();
+      toggleList(editor, 'taskList');
     },
   },
   {
