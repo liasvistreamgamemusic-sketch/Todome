@@ -8,7 +8,7 @@
 /* ProseMirror base styles */
 .tiptap-editor .ProseMirror {
   outline: none;
-  padding: 12px 4px 12px 36px;
+  padding: 12px 4px;
   min-height: 200px;
   font-size: 14px;
   line-height: 1.6;
@@ -614,6 +614,8 @@
 
 .drag-handle.visible {
   opacity: 1;
+  background-color: var(--bg-primary);
+  border-radius: 4px;
 }
 
 .drag-handle__grip {
