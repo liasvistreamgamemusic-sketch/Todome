@@ -22,7 +22,7 @@ Deno.serve(async (req: Request) => {
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    const resendApiKey = Deno.env.get('RESEND_API_KEY')
+    const gasWebhookUrl = Deno.env.get('GAS_WEBHOOK_URL')
 
     const supabase = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -86,6 +86,7 @@ Deno.serve(async (req: Request) => {
 
     let sent = 0
     let skipped = 0
+    const errors: string[] = []
 
     for (const [userId, items] of byUser) {
       // Check user settings
@@ -119,11 +120,11 @@ Deno.serve(async (req: Request) => {
           timeZone: 'Asia/Tokyo',
         })
 
-        const success = await sendEmail(resendApiKey, user.email, item.title, typeLabel, remindTime)
-        if (success) {
+        const result = await sendEmail(gasWebhookUrl, user.email, item.title, typeLabel, remindTime)
+        if (result.ok) {
           sent++
         } else {
-          console.error(`Failed to send email for item ${item.id}`)
+          errors.push(`${item.title}: ${result.error}`)
         }
       }
 
@@ -132,7 +133,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ sent, skipped, total: reminders.length }),
+      JSON.stringify({ sent, skipped, total: reminders.length, errors }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     )
   } catch (error) {
@@ -148,15 +149,14 @@ Deno.serve(async (req: Request) => {
 })
 
 async function sendEmail(
-  apiKey: string | undefined,
+  webhookUrl: string | undefined,
   to: string,
   title: string,
   typeLabel: string,
   remindTime: string,
-): Promise<boolean> {
-  if (!apiKey) {
-    console.warn('RESEND_API_KEY not set, skipping email send')
-    return false
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (!webhookUrl) {
+    return { ok: false, error: 'GAS_WEBHOOK_URL not set' }
   }
 
   const html = `
@@ -178,29 +178,23 @@ async function sendEmail(
 </html>`
 
   try {
-    const res = await fetch('https://api.resend.com/emails', {
+    const res = await fetch(webhookUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: 'Todome <onboarding@resend.dev>',
-        to: [to],
-        subject: `[Todome] リマインダー: ${title}`,
+        to,
+        subject: `[Todome] リマインダー: ${escapeHtml(title)}`,
         html,
       }),
     })
 
     if (!res.ok) {
       const body = await res.text()
-      console.error(`Resend API error: ${res.status} ${body}`)
-      return false
+      return { ok: false, error: `GAS ${res.status}: ${body}` }
     }
-    return true
+    return { ok: true }
   } catch (err) {
-    console.error('Email send failed:', err)
-    return false
+    return { ok: false, error: `fetch error: ${(err as Error).message}` }
   }
 }
 
