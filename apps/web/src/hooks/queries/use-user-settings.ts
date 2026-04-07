@@ -24,7 +24,7 @@ export function useUpdateUserSettings() {
   const queryClient = useQueryClient();
   const userId = useUserId();
   return useMutation({
-    mutationFn: (patch: Partial<Pick<UserSettings, 'email_reminders_enabled' | 'lock_password_hash' | 'lock_salt'>>) =>
+    mutationFn: (patch: Partial<Pick<UserSettings, 'email_reminders_enabled' | 'lock_password_hash' | 'lock_salt' | 'webauthn_credential_id'>>) =>
       upsertUserSettings(userId!, patch),
     onSettled: () => {
       if (userId) {

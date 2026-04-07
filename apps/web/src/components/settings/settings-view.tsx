@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { isWebAuthnSupported, registerPasskey } from '@/lib/webauthn';
 import { useTheme } from 'next-themes';
 import {
   Sun,
@@ -11,6 +12,7 @@ import {
   RefreshCw,
   LogOut,
   Lock,
+  Fingerprint,
 } from 'lucide-react';
 import { useUiStore, useTranslation } from '@todome/store';
 import type { Theme, FontSize, Locale, CalendarWeekStart } from '@todome/store';
@@ -151,6 +153,13 @@ export const SettingsView = () => {
   const { data: userSettings } = useUserSettings();
   const updateSettings = useUpdateUserSettings();
   const [showLockPasswordModal, setShowLockPasswordModal] = useState(false);
+  const [passkeySupported, setPasskeySupported] = useState(false);
+  const [passkeyRegistering, setPasskeyRegistering] = useState(false);
+
+  // Check WebAuthn support
+  useEffect(() => {
+    isWebAuthnSupported().then(setPasskeySupported);
+  }, []);
 
   // Load last sync time from localStorage
   useEffect(() => {
@@ -191,6 +200,25 @@ export const SettingsView = () => {
     },
     [setUiTheme, setTheme],
   );
+
+  const handlePasskeyRegister = useCallback(async () => {
+    setPasskeyRegistering(true);
+    try {
+      const { supabase } = await import('@todome/db');
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) return;
+      const credentialId = await registerPasskey(data.user.id, data.user.email ?? 'user');
+      await updateSettings.mutateAsync({ webauthn_credential_id: credentialId });
+    } catch {
+      // Registration cancelled or failed
+    } finally {
+      setPasskeyRegistering(false);
+    }
+  }, [updateSettings]);
+
+  const handlePasskeyRemove = useCallback(() => {
+    updateSettings.mutate({ webauthn_credential_id: null });
+  }, [updateSettings]);
 
   const handleEmailReminderToggle = useCallback(
     (enabled: boolean) => {
@@ -393,6 +421,38 @@ export const SettingsView = () => {
                 : t('settings.security.setPassword')}
             </Button>
           </SettingsRow>
+          {passkeySupported && (
+            <SettingsRow
+              label={t('settings.security.passkey')}
+              description={
+                userSettings?.webauthn_credential_id
+                  ? t('settings.security.passkey.registered')
+                  : t('settings.security.passkey.notRegistered')
+              }
+            >
+              {userSettings?.webauthn_credential_id ? (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  onClick={handlePasskeyRemove}
+                >
+                  <Fingerprint className="h-4 w-4" />
+                  {t('settings.security.passkey.remove')}
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handlePasskeyRegister}
+                  loading={passkeyRegistering}
+                  disabled={!userSettings?.lock_password_hash}
+                >
+                  <Fingerprint className="h-4 w-4" />
+                  {t('settings.security.passkey.register')}
+                </Button>
+              )}
+            </SettingsRow>
+          )}
         </SettingsSection>
 
         <LockPasswordModal

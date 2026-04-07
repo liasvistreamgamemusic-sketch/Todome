@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import { Modal, Input, Button } from '@todome/ui';
 import { useTranslation, useNoteStore } from '@todome/store';
 import { generateSalt, hashPassword, verifyPassword } from '@/lib/lock-crypto';
+import { isWebAuthnSupported, authenticatePasskey } from '@/lib/webauthn';
 import { useUserSettings, useUpdateUserSettings } from '@/hooks/queries';
 
 type Props = {
@@ -25,6 +26,28 @@ export function LockPasswordModal({ open, onClose, mode, onSuccess }: Props) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Auto-attempt biometric auth when verifying and passkey is registered
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!open || mode !== 'verify') return;
+    const credentialId = settings?.webauthn_credential_id;
+    if (!credentialId) return;
+
+    let cancelled = false;
+    (async () => {
+      const supported = await isWebAuthnSupported();
+      if (!supported || cancelled) return;
+      const success = await authenticatePasskey(credentialId);
+      if (success && !cancelled) {
+        setLockPasswordVerified(true);
+        handleClose();
+        onSuccess();
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [open, mode]);
 
   const handleClose = () => {
     setPassword('');

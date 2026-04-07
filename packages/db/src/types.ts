@@ -471,6 +471,7 @@ export interface UserSettings {
   email_reminders_enabled: boolean;
   lock_password_hash: string | null;
   lock_salt: string | null;
+  webauthn_credential_id: string | null;
   created_at: string;
   updated_at: string;
 }

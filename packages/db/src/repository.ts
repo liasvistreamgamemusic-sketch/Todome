@@ -628,7 +628,7 @@ export async function loadUserSettings(userId: string): Promise<UserSettings | n
 
 export async function upsertUserSettings(
   userId: string,
-  patch: Partial<Pick<UserSettings, 'email_reminders_enabled' | 'lock_password_hash' | 'lock_salt'>>,
+  patch: Partial<Pick<UserSettings, 'email_reminders_enabled' | 'lock_password_hash' | 'lock_salt' | 'webauthn_credential_id'>>,
 ): Promise<void> {
   const { error } = await supabase
     .from('user_settings')

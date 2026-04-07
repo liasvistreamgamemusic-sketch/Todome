@@ -71,6 +71,11 @@ export const ja = {
   'settings.security.lockPassword.notSet': 'パスワードが設定されていません',
   'settings.security.setPassword': 'パスワードを設定',
   'settings.security.changePassword': 'パスワードを変更',
+  'settings.security.passkey': 'パスキー（生体認証）',
+  'settings.security.passkey.registered': '登録済み — Face ID / Touch ID で解除できます',
+  'settings.security.passkey.notRegistered': '未登録 — 登録するとパスワード入力なしで解除できます',
+  'settings.security.passkey.register': '登録',
+  'settings.security.passkey.remove': '削除',
 
   // Calendar
   'calendar.view.month': '月',

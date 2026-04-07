@@ -72,6 +72,11 @@ export const en: Record<TranslationKey, string> = {
   'settings.security.lockPassword.notSet': 'No password set',
   'settings.security.setPassword': 'Set Password',
   'settings.security.changePassword': 'Change Password',
+  'settings.security.passkey': 'Passkey (Biometric)',
+  'settings.security.passkey.registered': 'Registered — Unlock with Face ID / Touch ID',
+  'settings.security.passkey.notRegistered': 'Not registered — Register to unlock without password',
+  'settings.security.passkey.register': 'Register',
+  'settings.security.passkey.remove': 'Remove',
 
   // Calendar
   'calendar.view.month': 'Month',
