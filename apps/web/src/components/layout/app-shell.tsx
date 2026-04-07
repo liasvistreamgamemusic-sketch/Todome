@@ -16,7 +16,7 @@ export const AppShell = ({ children }: { children: React.ReactNode }) => {
       <SyncStatusIndicator />
       <main className="relative flex-1 overflow-y-auto scrollbar-thin">
         {children}
-        <span className="absolute bottom-0 right-2 text-[8px] text-text-tertiary/30 select-none pointer-events-none z-10">
+        <span className="fixed bottom-12 right-2 text-[8px] text-text-tertiary/30 select-none pointer-events-none z-10 md:bottom-2">
           v{process.env.APP_VERSION}
         </span>
       </main>
