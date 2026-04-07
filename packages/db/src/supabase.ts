@@ -6,7 +6,7 @@ import type {
   Todo,
   CalendarEvent,
   Attachment,
-  PushSubscriptionRow,
+  UserSettings,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -55,14 +55,13 @@ export interface Database {
         };
         Update: Partial<Omit<Attachment, 'id'>>;
       };
-      push_subscriptions: {
-        Row: PushSubscriptionRow;
-        Insert: Omit<PushSubscriptionRow, 'id' | 'created_at' | 'updated_at'> & {
-          id?: string;
+      user_settings: {
+        Row: UserSettings;
+        Insert: Omit<UserSettings, 'created_at' | 'updated_at'> & {
           created_at?: string;
           updated_at?: string;
         };
-        Update: Partial<Omit<PushSubscriptionRow, 'id'>>;
+        Update: Partial<Omit<UserSettings, 'user_id'>>;
       };
     };
     Views: Record<string, never>;

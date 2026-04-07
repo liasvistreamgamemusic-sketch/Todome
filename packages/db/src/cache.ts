@@ -30,6 +30,7 @@ interface CachedNote {
   is_pinned: boolean;
   is_archived: boolean;
   is_deleted: boolean;
+  is_locked: boolean;
   created_at: string;
   updated_at: string;
   synced_at: string | null;

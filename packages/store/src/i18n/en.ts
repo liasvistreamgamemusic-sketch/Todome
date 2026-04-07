@@ -36,18 +36,11 @@ export const en: Record<TranslationKey, string> = {
   'settings.language': 'Language',
   'settings.language.description': 'Select display language',
   'settings.language.label': 'Language',
-  'settings.notifications': 'Notifications',
-  'settings.notifications.description': 'Notification and sound settings',
-  'settings.notifications.label': 'Notifications',
-  'settings.notifications.detail':
-    'Receive reminders and event notifications',
-  'settings.notifications.enable': 'Enable notifications',
-  'settings.notifications.testSent': 'Test notification sent',
-  'settings.notifications.permissionDenied':
-    'Notification permission is required. Please allow it in your browser settings.',
-  'settings.sound': 'Sound',
-  'settings.sound.detail': 'Play notification sounds',
-  'settings.sound.enable': 'Enable sound',
+  'settings.emailReminders': 'Email Reminders',
+  'settings.emailReminders.description': 'Email reminder notification settings',
+  'settings.emailReminders.label': 'Email Reminders',
+  'settings.emailReminders.detail': 'Send email notifications at reminder time',
+  'settings.emailReminders.enable': 'Enable email reminders',
   'settings.calendar': 'Calendar',
   'settings.calendar.description': 'Calendar display settings',
   'settings.calendar.weekStart': 'Week starts on',
@@ -72,6 +65,13 @@ export const en: Record<TranslationKey, string> = {
   'settings.account.email': 'Email',
   'settings.account.notLoggedIn': 'Not logged in',
   'settings.account.logout': 'Log out',
+  'settings.security': 'Security',
+  'settings.security.description': 'Note lock settings',
+  'settings.security.lockPassword': 'Lock Password',
+  'settings.security.lockPassword.set': 'Password is set',
+  'settings.security.lockPassword.notSet': 'No password set',
+  'settings.security.setPassword': 'Set Password',
+  'settings.security.changePassword': 'Change Password',
 
   // Calendar
   'calendar.view.month': 'Month',
@@ -163,6 +163,23 @@ export const en: Record<TranslationKey, string> = {
   'notes.saveError': 'Save error',
   'notes.more': 'More',
   'notes.title': 'Title',
+  'notes.lock': 'Lock',
+  'notes.unlock': 'Unlock',
+  'notes.locked': 'This note is locked',
+  'notes.lock.setPassword': 'Set Lock Password',
+  'notes.lock.setPasswordDescription': 'Set a password to lock your notes',
+  'notes.lock.enterPassword': 'Enter Password',
+  'notes.lock.password': 'Password',
+  'notes.lock.passwordPlaceholder': 'Enter password...',
+  'notes.lock.confirmPassword': 'Confirm Password',
+  'notes.lock.confirmPasswordPlaceholder': 'Enter password again...',
+  'notes.lock.passwordTooShort': 'Password must be at least 4 characters',
+  'notes.lock.passwordMismatch': 'Passwords do not match',
+  'notes.lock.incorrectPassword': 'Incorrect password',
+  'notes.lock.noPasswordSet': 'No lock password has been set',
+  'notes.lock.error': 'An error occurred',
+  'notes.lock.setButton': 'Set',
+  'notes.lock.unlockButton': 'Unlock',
 
   // Todos
   'todos.list': 'List',
@@ -432,15 +449,6 @@ export const en: Record<TranslationKey, string> = {
   'notification.test.title': 'Test Notification',
   'notification.test.body': 'Notifications are working correctly',
 
-  // Push notifications
-  'settings.notifications.push': 'Push Notifications',
-  'settings.notifications.push.detail':
-    'Receive reminder notifications even when the app is closed',
-  'settings.notifications.push.subscribed': 'Enabled',
-  'settings.notifications.push.notSubscribed': 'Disabled',
-  'settings.notifications.push.unsupported':
-    'Push notifications are not supported in this browser',
-  'settings.notifications.push.subscribing': 'Subscribing…',
 
   // Attachments
   'attachments.title': 'Attachments',

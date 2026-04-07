@@ -10,23 +10,18 @@ import {
   FileText,
   RefreshCw,
   LogOut,
+  Lock,
 } from 'lucide-react';
 import { useUiStore, useTranslation } from '@todome/store';
 import type { Theme, FontSize, Locale, CalendarWeekStart } from '@todome/store';
 import { Button } from '@todome/ui';
 import { clsx } from 'clsx';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNotes, useTodos, useCalendarEvents } from '@/hooks/queries';
+import { useNotes, useTodos, useCalendarEvents, useUserSettings, useUpdateUserSettings } from '@/hooks/queries';
 import { exportToJSON, exportToMarkdown } from './export-data';
+import { LockPasswordModal } from '@/components/notes/lock-password-modal';
 import { SubscriptionManager } from './subscription-manager';
 import { SharedCalendarManager } from './shared-calendar-manager';
-import { requestNotificationPermission, isTauriEnv } from '@/lib/notifications';
-import {
-  isPushSupported,
-  isPushSubscribed as checkPushSubscribed,
-  subscribeToPush,
-  unsubscribeFromPush,
-} from '@/lib/push-subscription';
 
 type SettingsSectionProps = {
   title: string;
@@ -139,14 +134,10 @@ export const SettingsView = () => {
   const fontSize = useUiStore((s) => s.fontSize);
   const locale = useUiStore((s) => s.locale);
   const calendarWeekStart = useUiStore((s) => s.calendarWeekStart);
-  const notificationsEnabled = useUiStore((s) => s.notificationsEnabled);
-  const soundEnabled = useUiStore((s) => s.soundEnabled);
   const setUiTheme = useUiStore((s) => s.setTheme);
   const setFontSize = useUiStore((s) => s.setFontSize);
   const setLocale = useUiStore((s) => s.setLocale);
   const setCalendarWeekStart = useUiStore((s) => s.setCalendarWeekStart);
-  const setNotificationsEnabled = useUiStore((s) => s.setNotificationsEnabled);
-  const setSoundEnabled = useUiStore((s) => s.setSoundEnabled);
 
   const { data: notes } = useNotes();
   const { data: todos } = useTodos();
@@ -157,8 +148,9 @@ export const SettingsView = () => {
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [pushSubscribed, setPushSubscribed] = useState<boolean | null>(null);
-  const [pushSubscribing, setPushSubscribing] = useState(false);
+  const { data: userSettings } = useUserSettings();
+  const updateSettings = useUpdateUserSettings();
+  const [showLockPasswordModal, setShowLockPasswordModal] = useState(false);
 
   // Load last sync time from localStorage
   useEffect(() => {
@@ -175,15 +167,6 @@ export const SettingsView = () => {
       // Ignore parse errors
     }
   }, []);
-
-  // Check push subscription status
-  useEffect(() => {
-    if (isTauriEnv() || !isPushSupported()) {
-      setPushSubscribed(null);
-      return;
-    }
-    checkPushSubscribed().then(setPushSubscribed);
-  }, [notificationsEnabled]);
 
   // Load user email from Supabase
   useEffect(() => {
@@ -209,39 +192,11 @@ export const SettingsView = () => {
     [setUiTheme, setTheme],
   );
 
-  const handleNotificationToggle = useCallback(
-    async (enabled: boolean) => {
-      if (enabled) {
-        setPushSubscribing(true);
-        const granted = await requestNotificationPermission();
-        if (!granted) {
-          setPushSubscribing(false);
-          return;
-        }
-        setNotificationsEnabled(true);
-        // Auto-subscribe to push (web/PWA only)
-        if (isPushSupported() && !isTauriEnv()) {
-          const ok = await subscribeToPush();
-          setPushSubscribed(ok);
-        }
-        setPushSubscribing(false);
-      } else {
-        setNotificationsEnabled(false);
-        // Unsubscribe from push
-        if (isPushSupported() && !isTauriEnv()) {
-          await unsubscribeFromPush();
-          setPushSubscribed(false);
-        }
-      }
-    },
-    [setNotificationsEnabled, soundEnabled, t],
-  );
-
-  const handleSoundToggle = useCallback(
+  const handleEmailReminderToggle = useCallback(
     (enabled: boolean) => {
-      setSoundEnabled(enabled);
+      updateSettings.mutate({ email_reminders_enabled: enabled });
     },
-    [setSoundEnabled],
+    [updateSettings],
   );
 
   const handleExportJSON = useCallback(() => {
@@ -334,34 +289,20 @@ export const SettingsView = () => {
           </SettingsRow>
         </SettingsSection>
 
-        {/* Notifications */}
-        <SettingsSection title={t('settings.notifications')} description={t('settings.notifications.description')}>
+        {/* Email Reminders */}
+        <SettingsSection title={t('settings.emailReminders')} description={t('settings.emailReminders.description')}>
           <SettingsRow
-            label={t('settings.notifications.label')}
+            label={t('settings.emailReminders.label')}
             description={
-              pushSubscribing
-                ? t('settings.notifications.push.subscribing')
-                : notificationsEnabled && !isTauriEnv() && isPushSupported()
-                  ? pushSubscribed
-                    ? t('settings.notifications.push.subscribed')
-                    : t('settings.notifications.push.notSubscribed')
-                  : t('settings.notifications.detail')
+              userEmail
+                ? `${t('settings.emailReminders.detail')} (${userEmail})`
+                : t('settings.emailReminders.detail')
             }
           >
             <ToggleSwitch
-              checked={notificationsEnabled}
-              onChange={handleNotificationToggle}
-              label={t('settings.notifications.enable')}
-            />
-          </SettingsRow>
-          <SettingsRow
-            label={t('settings.sound')}
-            description={t('settings.sound.detail')}
-          >
-            <ToggleSwitch
-              checked={soundEnabled}
-              onChange={handleSoundToggle}
-              label={t('settings.sound.enable')}
+              checked={userSettings?.email_reminders_enabled ?? false}
+              onChange={handleEmailReminderToggle}
+              label={t('settings.emailReminders.enable')}
             />
           </SettingsRow>
         </SettingsSection>
@@ -430,6 +371,36 @@ export const SettingsView = () => {
             </Button>
           </SettingsRow>
         </SettingsSection>
+
+        {/* Security */}
+        <SettingsSection title={t('settings.security')} description={t('settings.security.description')}>
+          <SettingsRow
+            label={t('settings.security.lockPassword')}
+            description={
+              userSettings?.lock_password_hash
+                ? t('settings.security.lockPassword.set')
+                : t('settings.security.lockPassword.notSet')
+            }
+          >
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setShowLockPasswordModal(true)}
+            >
+              <Lock className="h-4 w-4" />
+              {userSettings?.lock_password_hash
+                ? t('settings.security.changePassword')
+                : t('settings.security.setPassword')}
+            </Button>
+          </SettingsRow>
+        </SettingsSection>
+
+        <LockPasswordModal
+          open={showLockPasswordModal}
+          onClose={() => setShowLockPasswordModal(false)}
+          mode="set"
+          onSuccess={() => setShowLockPasswordModal(false)}
+        />
 
         {/* Account */}
         <SettingsSection title={t('settings.account')} description={t('settings.account.description')}>

@@ -18,6 +18,7 @@ import type {
   SharedCalendarMember,
   SharedCalendarEvent,
   Attachment,
+  UserSettings,
 } from './types';
 
 // ---------------------------------------------------------------------------
@@ -36,7 +37,7 @@ export async function loadNotes(userId: string): Promise<Note[]> {
   return data as Note[];
 }
 
-const NOTE_SUMMARY_COLUMNS = 'id, user_id, title, plain_text, folder_id, is_pinned, is_archived, is_deleted, created_at, updated_at, synced_at';
+const NOTE_SUMMARY_COLUMNS = 'id, user_id, title, plain_text, folder_id, is_pinned, is_archived, is_deleted, is_locked, created_at, updated_at, synced_at';
 
 export async function loadNoteSummaries(userId: string): Promise<NoteSummary[]> {
   const { data, error } = await supabase
@@ -579,46 +580,6 @@ export async function deleteSharedCalendarEvent(id: string): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// Push Subscriptions
-// ---------------------------------------------------------------------------
-
-export async function upsertPushSubscription(
-  userId: string,
-  input: { endpoint: string; p256dh: string; auth: string },
-): Promise<void> {
-  const { error } = await supabase
-    .from('push_subscriptions')
-    .upsert(
-      { user_id: userId, ...input } as never,
-      { onConflict: 'user_id,endpoint' },
-    );
-  if (error) throw error;
-}
-
-export async function deletePushSubscription(
-  userId: string,
-  endpoint: string,
-): Promise<void> {
-  const { error } = await supabase
-    .from('push_subscriptions')
-    .delete()
-    .eq('user_id', userId)
-    .eq('endpoint', endpoint);
-  if (error) throw error;
-}
-
-export async function loadPushSubscriptions(
-  userId: string,
-): Promise<{ id: string; endpoint: string }[]> {
-  const { data, error } = await supabase
-    .from('push_subscriptions')
-    .select('id, endpoint')
-    .eq('user_id', userId);
-  if (error) throw error;
-  return data as { id: string; endpoint: string }[];
-}
-
-// ---------------------------------------------------------------------------
 // Attachments
 // ---------------------------------------------------------------------------
 
@@ -647,5 +608,33 @@ export async function deleteAttachment(id: string): Promise<void> {
     .from('attachments')
     .delete()
     .eq('id', id);
+  if (error) throw error;
+}
+
+// ---------------------------------------------------------------------------
+// User Settings
+// ---------------------------------------------------------------------------
+
+export async function loadUserSettings(userId: string): Promise<UserSettings | null> {
+  const { data, error } = await supabase
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') throw error;
+  return data as UserSettings | null;
+}
+
+export async function upsertUserSettings(
+  userId: string,
+  patch: Partial<Pick<UserSettings, 'email_reminders_enabled' | 'lock_password_hash' | 'lock_salt'>>,
+): Promise<void> {
+  const { error } = await supabase
+    .from('user_settings')
+    .upsert(
+      { user_id: userId, ...patch } as never,
+      { onConflict: 'user_id' },
+    );
   if (error) throw error;
 }

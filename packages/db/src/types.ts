@@ -76,6 +76,7 @@ export interface Note {
   is_pinned: boolean;
   is_archived: boolean;
   is_deleted: boolean;
+  is_locked: boolean;
   created_at: string;
   updated_at: string;
   synced_at: string | null;
@@ -193,6 +194,7 @@ export interface UpdateNoteInput {
   is_pinned?: boolean;
   is_archived?: boolean;
   is_deleted?: boolean;
+  is_locked?: boolean;
 }
 
 export interface CreateFolderInput {
@@ -460,22 +462,16 @@ export interface CreateAttachmentInput {
 }
 
 // ---------------------------------------------------------------------------
-// Push Subscription (Web Push API)
+// User Settings
 // ---------------------------------------------------------------------------
 
-export interface PushSubscriptionRow {
+export interface UserSettings {
   id: string;
   user_id: string;
-  endpoint: string;
-  p256dh: string;
-  auth: string;
+  email_reminders_enabled: boolean;
+  lock_password_hash: string | null;
+  lock_salt: string | null;
   created_at: string;
   updated_at: string;
-}
-
-export interface CreatePushSubscriptionInput {
-  endpoint: string;
-  p256dh: string;
-  auth: string;
 }
 

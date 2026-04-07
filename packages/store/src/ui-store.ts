@@ -16,9 +16,6 @@ export type UiStoreState = {
   fontSize: FontSize;
   locale: Locale;
   calendarWeekStart: CalendarWeekStart;
-  notificationsEnabled: boolean;
-  soundEnabled: boolean;
-
   // Sync state (not persisted)
   syncStatus: SyncStatus;
   pendingOpCount: number;
@@ -31,8 +28,6 @@ export type UiStoreState = {
   setFontSize: (fontSize: FontSize) => void;
   setLocale: (locale: Locale) => void;
   setCalendarWeekStart: (start: CalendarWeekStart) => void;
-  setNotificationsEnabled: (enabled: boolean) => void;
-  setSoundEnabled: (enabled: boolean) => void;
   setSyncStatus: (status: SyncStatus) => void;
   setPendingOpCount: (count: number) => void;
   setSyncError: (error: string | null) => void;
@@ -48,9 +43,6 @@ export const useUiStore = create<UiStoreState>()(
       fontSize: 'medium',
       locale: 'ja',
       calendarWeekStart: 0,
-      notificationsEnabled: false,
-      soundEnabled: true,
-
       // Sync state (not persisted)
       syncStatus: 'idle',
       pendingOpCount: 0,
@@ -64,8 +56,6 @@ export const useUiStore = create<UiStoreState>()(
       setFontSize: (fontSize) => set({ fontSize }),
       setLocale: (locale) => set({ locale }),
       setCalendarWeekStart: (start) => set({ calendarWeekStart: start }),
-      setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
-      setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
       setSyncStatus: (status) => set({ syncStatus: status }),
       setPendingOpCount: (count) => set({ pendingOpCount: count }),
       setSyncError: (error) => set({ syncError: error }),
@@ -87,8 +77,6 @@ export const useUiStore = create<UiStoreState>()(
         fontSize: state.fontSize,
         locale: state.locale,
         calendarWeekStart: state.calendarWeekStart,
-        notificationsEnabled: state.notificationsEnabled,
-        soundEnabled: state.soundEnabled,
       }),
     },
   ),

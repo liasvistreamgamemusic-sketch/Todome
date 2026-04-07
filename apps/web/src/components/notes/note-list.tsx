@@ -54,6 +54,8 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
   const setNoteFilter = useNoteStore((s) => s.setNoteFilter);
   const setViewMode = useNoteStore((s) => s.setViewMode);
   const setSortBy = useNoteStore((s) => s.setSortBy);
+  const lockPasswordVerified = useNoteStore((s) => s.lockPasswordVerified);
+  const unlockedNoteIds = useNoteStore((s) => s.unlockedNoteIds);
 
   const userId = useUserId();
   const { data: allNotes } = useNoteSummaries();
@@ -91,7 +93,7 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
       id: crypto.randomUUID(), user_id: userId, title: '',
       content: { type: 'doc', content: [] }, plain_text: '',
       folder_id: selectedFolderId, is_pinned: false,
-      is_archived: false, is_deleted: false,
+      is_archived: false, is_deleted: false, is_locked: false,
       created_at: now, updated_at: now, synced_at: null,
     };
     createNoteMutation.mutate(n);
@@ -137,6 +139,12 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
     if (note) exportNoteAsPdf(note);
   }, [allNotes]);
 
+  const handleToggleLock = useCallback((id: string) => {
+    const note = notes.find((n) => n.id === id);
+    if (!note) return;
+    updateNoteMutation.mutate({ id, patch: { is_locked: !note.is_locked } });
+  }, [notes, updateNoteMutation]);
+
   const handleContextMenu = useCallback((e: React.MouseEvent, _id: string) => {
     e.preventDefault();
   }, []);
@@ -175,10 +183,12 @@ export function NoteList({ onSelectNote, onCreateNote }: NoteListProps = {}) {
     onMoveToFolder: handleMoveToFolder,
     onExportText: handleExportText,
     onExportPdf: handleExportPdf,
+    onToggleLock: handleToggleLock,
   };
 
   const renderNote = (note: NoteSummary) => {
-    const props = { ...itemProps, note, isActive: selectedNoteId === note.id };
+    const isLocked = note.is_locked && !lockPasswordVerified && !unlockedNoteIds[note.id];
+    const props = { ...itemProps, note, isActive: selectedNoteId === note.id, isLocked };
     return viewMode === 'card'
       ? <NoteCard key={note.id} {...props} />
       : <NoteListItem key={note.id} {...props} />;

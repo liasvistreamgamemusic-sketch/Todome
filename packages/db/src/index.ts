@@ -47,8 +47,7 @@ export type {
   CreateDiaryInput,
   UpdateDiaryInput,
   CreateAttachmentInput,
-  PushSubscriptionRow,
-  CreatePushSubscriptionInput,
+  UserSettings,
 } from './types';
 
 export {
@@ -136,12 +135,11 @@ export {
   createSharedCalendarEvent,
   updateSharedCalendarEvent,
   deleteSharedCalendarEvent,
-  upsertPushSubscription,
-  deletePushSubscription,
-  loadPushSubscriptions,
   loadAttachments,
   createAttachment,
   deleteAttachment,
+  loadUserSettings,
+  upsertUserSettings,
 } from './repository';
 
 // Offline queue

@@ -12,12 +12,18 @@ export type NoteStoreState = {
   sortBy: NoteSortBy;
   noteFilter: NoteFilter;
 
+  // Lock feature (session-only, cleared on reload)
+  unlockedNoteIds: Record<string, boolean>;
+  lockPasswordVerified: boolean;
+
   selectNote: (id: string | null) => void;
   selectFolder: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setViewMode: (mode: NoteViewMode) => void;
   setSortBy: (sortBy: NoteSortBy) => void;
   setNoteFilter: (filter: NoteFilter) => void;
+  unlockNote: (id: string) => void;
+  setLockPasswordVerified: (verified: boolean) => void;
 };
 
 export const useNoteStore = create<NoteStoreState>()((set) => ({
@@ -28,10 +34,15 @@ export const useNoteStore = create<NoteStoreState>()((set) => ({
   sortBy: 'updated_at',
   noteFilter: 'active',
 
+  unlockedNoteIds: {},
+  lockPasswordVerified: false,
+
   selectNote: (id) => set({ selectedNoteId: id }),
   selectFolder: (id) => set({ selectedFolderId: id, noteFilter: 'active', selectedNoteId: null }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setViewMode: (mode) => set({ viewMode: mode }),
   setSortBy: (sortBy) => set({ sortBy }),
   setNoteFilter: (filter) => set({ noteFilter: filter, selectedFolderId: null, selectedNoteId: null }),
+  unlockNote: (id) => set((s) => ({ unlockedNoteIds: { ...s.unlockedNoteIds, [id]: true } })),
+  setLockPasswordVerified: (verified) => set({ lockPasswordVerified: verified }),
 }));

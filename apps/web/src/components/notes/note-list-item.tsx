@@ -1,7 +1,7 @@
 'use client';
 
 import { memo, useState, useRef, useCallback, useEffect } from 'react';
-import { Pin, MoreVertical, Archive, ArchiveRestore, FolderOpen, Trash2, FileText, FileDown } from 'lucide-react';
+import { Pin, MoreVertical, Archive, ArchiveRestore, FolderOpen, Trash2, FileText, FileDown, Lock } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useDraggable } from '@dnd-kit/core';
 import { useTranslation } from '@todome/store';
@@ -22,6 +22,8 @@ type NoteListItemProps = {
   onMoveToFolder: (id: string, folderId: string | null) => void;
   onExportText: (id: string) => void;
   onExportPdf: (id: string) => void;
+  isLocked?: boolean;
+  onToggleLock: (id: string) => void;
 };
 
 export const NoteListItem = memo(function NoteListItem({
@@ -38,6 +40,8 @@ export const NoteListItem = memo(function NoteListItem({
   onMoveToFolder,
   onExportText,
   onExportPdf,
+  isLocked,
+  onToggleLock,
 }: NoteListItemProps) {
   const { t } = useTranslation();
   const { attributes, listeners, setNodeRef: setDragRef, transform, isDragging } = useDraggable({ id: note.id });
@@ -48,7 +52,7 @@ export const NoteListItem = memo(function NoteListItem({
   const menuRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  const previewText = (note.plain_text ?? '').slice(0, 80).replace(/\n/g, ' ');
+  const previewText = isLocked ? '' : (note.plain_text ?? '').slice(0, 80).replace(/\n/g, ' ');
 
   const closeMenu = useCallback(() => {
     setOpen(false);
@@ -103,6 +107,7 @@ export const NoteListItem = memo(function NoteListItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1">
             {note.is_pinned && <Pin className="h-2.5 w-2.5 text-text-secondary shrink-0 fill-current" />}
+            {isLocked && <Lock className="h-2.5 w-2.5 text-text-secondary shrink-0" />}
             <span className="text-sm font-semibold text-text-primary truncate block flex-1">
               {note.title || t('notes.untitled')}
             </span>
@@ -159,6 +164,11 @@ export const NoteListItem = memo(function NoteListItem({
                 className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
                 <Pin className="h-4 w-4" />
                 {note.is_pinned ? t('notes.unpin') : t('notes.pin')}
+              </button>
+              <button type="button" onClick={act(() => onToggleLock(note.id))}
+                className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">
+                <Lock className="h-4 w-4" />
+                {note.is_locked ? t('notes.unlock') : t('notes.lock')}
               </button>
               <button type="button" onClick={act(() => onArchive(note.id))}
                 className="w-full text-left px-3 py-2.5 md:py-1.5 text-sm hover:bg-bg-secondary flex items-center gap-2">

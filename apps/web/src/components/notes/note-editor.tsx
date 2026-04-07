@@ -15,6 +15,8 @@ import {
   AlertCircle,
   ChevronDown,
   Plus,
+  Lock,
+  LockOpen,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useNoteStore, useTranslation } from '@todome/store';
@@ -22,8 +24,9 @@ import type { Note, NoteSummary } from '@todome/db';
 import { TiptapEditor } from '@/components/editor/tiptap-editor';
 import type { Editor } from '@/components/editor/tiptap-editor';
 import { EditorToolbar } from '@/components/editor/editor-toolbar';
-import { useNote, useNoteSummaries, useFolders, useUpdateNote, useDeleteNote, useUserId } from '@/hooks/queries';
+import { useNote, useNoteSummaries, useFolders, useUpdateNote, useDeleteNote, useUserId, useUserSettings } from '@/hooks/queries';
 import { uploadFile, getPublicUrl, createAttachment } from '@todome/db';
+import { LockPasswordModal } from './lock-password-modal';
 
 type NoteEditorProps = {
   noteId: string;
@@ -44,6 +47,10 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const selectNote = useNoteStore((s) => s.selectNote);
 
   const userId = useUserId();
+  const lockPasswordVerified = useNoteStore((s) => s.lockPasswordVerified);
+  const unlockedNoteIds = useNoteStore((s) => s.unlockedNoteIds);
+  const unlockNote = useNoteStore((s) => s.unlockNote);
+  const { data: userSettings } = useUserSettings();
   const note = noteData ?? null;
 
   const handleFileUpload = useCallback(
@@ -71,6 +78,9 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showFolderMenu, setShowFolderMenu] = useState(false);
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null);
+  const [showLockModal, setShowLockModal] = useState(false);
+  const [lockModalMode, setLockModalMode] = useState<'set' | 'verify'>('verify');
+  const [pendingLockAction, setPendingLockAction] = useState<'lock' | 'unlock' | null>(null);
   const moreMenuRef = useRef<HTMLDivElement>(null);
   const folderMenuRef = useRef<HTMLDivElement>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -232,6 +242,43 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
     selectNote(null);
   }, [noteId, deleteNoteMutation, selectNote]);
 
+  const handleToggleLock = useCallback(() => {
+    if (!note) return;
+    if (note.is_locked) {
+      // Unlocking: remove is_locked flag
+      if (!lockPasswordVerified && !unlockedNoteIds[noteId]) {
+        setPendingLockAction('unlock');
+        setLockModalMode('verify');
+        setShowLockModal(true);
+      } else {
+        updateNoteMutation.mutate({ id: noteId, patch: { is_locked: false } });
+      }
+    } else {
+      // Locking: set is_locked flag
+      const hasPassword = !!userSettings?.lock_password_hash;
+      if (!hasPassword) {
+        setPendingLockAction('lock');
+        setLockModalMode('set');
+        setShowLockModal(true);
+      } else {
+        updateNoteMutation.mutate({ id: noteId, patch: { is_locked: true } });
+      }
+    }
+  }, [note, noteId, lockPasswordVerified, unlockedNoteIds, userSettings, updateNoteMutation]);
+
+  const handleLockModalSuccess = useCallback(() => {
+    if (pendingLockAction === 'lock') {
+      updateNoteMutation.mutate({ id: noteId, patch: { is_locked: true } });
+    }
+    // For 'unlock', setLockPasswordVerified(true) is called inside the modal
+    setPendingLockAction(null);
+  }, [pendingLockAction, noteId, updateNoteMutation]);
+
+  const handleUnlockNote = useCallback(() => {
+    setLockModalMode('verify');
+    setShowLockModal(true);
+  }, []);
+
   const handleMoveToFolder = useCallback(
     (folderId: string | null) => {
       updateNoteMutation.mutate({ id: noteId, patch: { folder_id: folderId } });
@@ -249,6 +296,70 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
   }
 
   const currentFolder = folders.find((f) => f.id === note.folder_id);
+
+  const isLocked = note.is_locked && !lockPasswordVerified && !unlockedNoteIds[noteId];
+
+  if (isLocked) {
+    return (
+      <div className="flex flex-col h-full bg-white/80 dark:bg-black/40 backdrop-blur-sm">
+        {/* Toolbar */}
+        <div className="flex items-center justify-between px-4 py-2 border-b border-border shrink-0">
+          <div className="flex items-center gap-1">
+            {onMenu && (
+              <button type="button" onClick={onMenu}
+                className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors mr-1"
+                aria-label={t('notes.noteList')}>
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
+            {onBack && !onMenu && (
+              <button type="button" onClick={onBack}
+                className="p-2 rounded-md text-text-secondary hover:bg-bg-secondary transition-colors mr-1"
+                aria-label={t('common.back')}>
+                <ArrowLeft className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            {onCreateNote && (
+              <button type="button" onClick={onCreateNote}
+                className="p-1.5 rounded-md text-text-tertiary hover:bg-bg-secondary transition-colors"
+                title={t('notes.newNote')}>
+                <Plus className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Title (visible even when locked) */}
+        <div className="px-4 md:px-6 pt-4 shrink-0">
+          <h2 className="text-xl md:text-2xl font-bold text-text-primary">
+            {note.title || t('notes.untitled')}
+          </h2>
+        </div>
+
+        {/* Lock overlay */}
+        <div className="flex-1 flex flex-col items-center justify-center gap-4">
+          <Lock className="h-12 w-12 text-text-tertiary" />
+          <p className="text-text-secondary text-sm">{t('notes.locked')}</p>
+          <button
+            type="button"
+            onClick={handleUnlockNote}
+            className="px-4 py-2 rounded-lg bg-[var(--accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+          >
+            {t('notes.unlock')}
+          </button>
+        </div>
+
+        <LockPasswordModal
+          open={showLockModal}
+          onClose={() => { setShowLockModal(false); setPendingLockAction(null); }}
+          mode={lockModalMode}
+          onSuccess={handleLockModalSuccess}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full bg-white/80 dark:bg-black/40 backdrop-blur-sm">
@@ -346,6 +457,24 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
                   <PinOff className="h-4 w-4" />
                 ) : (
                   <Pin className="h-4 w-4" />
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleToggleLock}
+                className={clsx(
+                  'p-1.5 rounded-md transition-colors',
+                  note.is_locked
+                    ? 'text-accent hover:bg-accent/10'
+                    : 'text-text-tertiary hover:bg-bg-secondary',
+                )}
+                title={note.is_locked ? t('notes.unlock') : t('notes.lock')}
+              >
+                {note.is_locked ? (
+                  <LockOpen className="h-4 w-4" />
+                ) : (
+                  <Lock className="h-4 w-4" />
                 )}
               </button>
 
@@ -501,6 +630,13 @@ export function NoteEditor({ noteId, onBack, onMenu, onCreateNote }: NoteEditorP
           />
         )}
       </div>
+
+      <LockPasswordModal
+        open={showLockModal}
+        onClose={() => { setShowLockModal(false); setPendingLockAction(null); }}
+        mode={lockModalMode}
+        onSuccess={handleLockModalSuccess}
+      />
     </div>
   );
 }

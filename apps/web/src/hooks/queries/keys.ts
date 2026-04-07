@@ -36,4 +36,5 @@ export const queryKeys = {
     byParent: (parentType: string, parentId: string) =>
       ['attachments', parentType, parentId] as const,
   },
+  userSettings: (userId: string) => ['userSettings', userId] as const,
 } as const;

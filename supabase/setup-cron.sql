@@ -1,36 +1,30 @@
 -- ==========================================================================
--- pg_cron setup for push notification reminders
---
--- Prerequisites:
---   1. Enable pg_cron extension in Supabase Dashboard > Database > Extensions
---   2. Enable pg_net extension in Supabase Dashboard > Database > Extensions
---   3. Deploy the send-reminders edge function:
---        supabase functions deploy send-reminders
---   4. Set edge function secrets in Supabase Dashboard:
---        VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT
---
--- Run this SQL manually in the Supabase SQL Editor after replacing:
---   - YOUR_PROJECT_REF with your Supabase project reference
---   - YOUR_SERVICE_ROLE_KEY with your service role key
+-- Cron job setup for email reminders
+-- Run this in the Supabase SQL Editor (Dashboard > SQL Editor)
 -- ==========================================================================
 
-CREATE EXTENSION IF NOT EXISTS pg_cron;
-CREATE EXTENSION IF NOT EXISTS pg_net;
+-- Enable required extensions
+CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
+CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
 
-SELECT cron.schedule(
-  'send-reminders',
-  '* * * * *',  -- every minute
-  $$
-  SELECT net.http_post(
-    url    := 'https://YOUR_PROJECT_REF.supabase.co/functions/v1/send-reminders',
-    headers := '{"Content-Type": "application/json", "Authorization": "Bearer YOUR_SERVICE_ROLE_KEY"}'::jsonb,
-    body   := '{}'::jsonb
-  ) AS request_id;
-  $$
+-- Remove old push notification cron job if it exists
+SELECT cron.unschedule('send-reminders')
+WHERE EXISTS (
+  SELECT 1 FROM cron.job WHERE jobname = 'send-reminders'
 );
 
--- To verify the job was created:
--- SELECT * FROM cron.job;
-
--- To remove the job:
--- SELECT cron.unschedule('send-reminders');
+-- Schedule email reminder check every minute
+SELECT cron.schedule(
+  'send-email-reminders',
+  '* * * * *',
+  $$
+  SELECT net.http_post(
+    url := (SELECT value FROM vault.decrypted_secrets WHERE name = 'supabase_url') || '/functions/v1/send-email-reminders',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' || (SELECT value FROM vault.decrypted_secrets WHERE name = 'supabase_service_role_key')
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);

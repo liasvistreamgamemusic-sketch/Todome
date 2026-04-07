@@ -78,3 +78,8 @@ export {
 } from './use-attachments';
 
 export { useRealtimeSync } from './use-realtime';
+
+export {
+  useUserSettings,
+  useUpdateUserSettings,
+} from './use-user-settings';

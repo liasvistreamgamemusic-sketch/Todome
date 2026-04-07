@@ -34,17 +34,11 @@ export const ja = {
   'settings.language': '言語',
   'settings.language.description': '表示言語を選択します',
   'settings.language.label': '言語',
-  'settings.notifications': '通知',
-  'settings.notifications.description': '通知とサウンドの設定',
-  'settings.notifications.label': '通知',
-  'settings.notifications.detail': 'リマインダーやイベントの通知を受け取ります',
-  'settings.notifications.enable': '通知を有効にする',
-  'settings.notifications.testSent': 'テスト通知を送信しました',
-  'settings.notifications.permissionDenied':
-    '通知の許可が必要です。ブラウザの設定から許可してください。',
-  'settings.sound': 'サウンド',
-  'settings.sound.detail': '通知音を鳴らします',
-  'settings.sound.enable': 'サウンドを有効にする',
+  'settings.emailReminders': 'メールリマインダー',
+  'settings.emailReminders.description': 'メールによるリマインダー通知の設定',
+  'settings.emailReminders.label': 'メールリマインダー',
+  'settings.emailReminders.detail': 'リマインダー時刻にメールでお知らせします',
+  'settings.emailReminders.enable': 'メールリマインダーを有効にする',
   'settings.calendar': 'カレンダー',
   'settings.calendar.description': 'カレンダーの表示設定',
   'settings.calendar.weekStart': '週の開始日',
@@ -70,6 +64,13 @@ export const ja = {
   'settings.account.email': 'メールアドレス',
   'settings.account.notLoggedIn': '未ログイン',
   'settings.account.logout': 'ログアウト',
+  'settings.security': 'セキュリティ',
+  'settings.security.description': 'メモのロック設定',
+  'settings.security.lockPassword': 'ロックパスワード',
+  'settings.security.lockPassword.set': 'パスワードが設定されています',
+  'settings.security.lockPassword.notSet': 'パスワードが設定されていません',
+  'settings.security.setPassword': 'パスワードを設定',
+  'settings.security.changePassword': 'パスワードを変更',
 
   // Calendar
   'calendar.view.month': '月',
@@ -161,6 +162,23 @@ export const ja = {
   'notes.saveError': '保存エラー',
   'notes.more': 'その他',
   'notes.title': 'タイトル',
+  'notes.lock': 'ロック',
+  'notes.unlock': 'ロック解除',
+  'notes.locked': 'このメモはロックされています',
+  'notes.lock.setPassword': 'ロックパスワードを設定',
+  'notes.lock.setPasswordDescription': 'メモをロックするためのパスワードを設定してください',
+  'notes.lock.enterPassword': 'パスワードを入力',
+  'notes.lock.password': 'パスワード',
+  'notes.lock.passwordPlaceholder': 'パスワードを入力...',
+  'notes.lock.confirmPassword': 'パスワード確認',
+  'notes.lock.confirmPasswordPlaceholder': 'もう一度パスワードを入力...',
+  'notes.lock.passwordTooShort': 'パスワードは4文字以上で設定してください',
+  'notes.lock.passwordMismatch': 'パスワードが一致しません',
+  'notes.lock.incorrectPassword': 'パスワードが正しくありません',
+  'notes.lock.noPasswordSet': 'ロックパスワードが設定されていません',
+  'notes.lock.error': 'エラーが発生しました',
+  'notes.lock.setButton': '設定',
+  'notes.lock.unlockButton': 'ロック解除',
 
   // Todos
   'todos.list': 'リスト',
@@ -429,15 +447,6 @@ export const ja = {
   'notification.test.title': 'テスト通知',
   'notification.test.body': '通知が正常に動作しています',
 
-  // Push notifications
-  'settings.notifications.push': 'プッシュ通知',
-  'settings.notifications.push.detail':
-    'アプリを閉じていてもリマインダー通知を受け取ります',
-  'settings.notifications.push.subscribed': '有効',
-  'settings.notifications.push.notSubscribed': '無効',
-  'settings.notifications.push.unsupported':
-    'このブラウザはプッシュ通知に対応していません',
-  'settings.notifications.push.subscribing': '登録中…',
 
   // Attachments
   'attachments.title': '添付ファイル',

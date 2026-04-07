@@ -2,13 +2,14 @@
 
 import { useEffect } from 'react';
 import { useUiStore } from '@todome/store';
-import { isTauriEnv } from '@/lib/notifications';
-import { subscribeToPush, isPushSupported } from '@/lib/push-subscription';
+
+function isTauriEnv(): boolean {
+  return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
+}
 
 export function useSettingsEffects(): void {
   const fontSize = useUiStore((s) => s.fontSize);
   const locale = useUiStore((s) => s.locale);
-  const notificationsEnabled = useUiStore((s) => s.notificationsEnabled);
 
   useEffect(() => {
     document.documentElement.dataset.fontSize = fontSize;
@@ -24,12 +25,4 @@ export function useSettingsEffects(): void {
     if (!('serviceWorker' in navigator)) return;
     navigator.serviceWorker.register('/sw.js').catch(() => {});
   }, []);
-
-  // Auto-subscribe to push when notifications are enabled
-  useEffect(() => {
-    if (isTauriEnv()) return;
-    if (!notificationsEnabled) return;
-    if (!isPushSupported()) return;
-    subscribeToPush().catch(() => {});
-  }, [notificationsEnabled]);
 }

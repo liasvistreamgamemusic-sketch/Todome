@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { CommandPaletteProvider } from '@/components/command-palette/command-palette-provider';
 import { KeyboardShortcuts } from '@/components/shortcuts/keyboard-shortcuts';
 import { useSettingsEffects } from '@/hooks/use-settings-effects';
-import { useReminderScheduler } from '@/hooks/use-reminder-scheduler';
 
 // Tauri: cors-fetch plugin proxies ALL https:// fetch by default, which breaks
 // Next.js internal navigation. Exclude Tauri's own origin (tauri.localhost and
@@ -20,7 +19,6 @@ if (typeof window !== 'undefined' && 'CORSFetch' in window) {
 
 function SettingsAndReminders(): null {
   useSettingsEffects();
-  useReminderScheduler();
   return null;
 }
 

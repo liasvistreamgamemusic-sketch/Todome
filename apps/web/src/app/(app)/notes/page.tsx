@@ -68,7 +68,7 @@ export default function NotesPage() {
       id: crypto.randomUUID(), user_id: userId, title: '',
       content: { type: 'doc', content: [] }, plain_text: '',
       folder_id: selectedFolderId, is_pinned: false,
-      is_archived: false, is_deleted: false,
+      is_archived: false, is_deleted: false, is_locked: false,
       created_at: now, updated_at: now, synced_at: null,
     };
     justCreatedNoteIdRef.current = n.id;
@@ -98,8 +98,11 @@ export default function NotesPage() {
 
     if (selectedNoteId && visible.some((n) => n.id === selectedNoteId)) return;
 
-    if (visible.length > 0 && visible[0]) {
-      selectNote(visible[0].id);
+    if (visible.length > 0) {
+      const mostRecent = visible.reduce((latest, note) =>
+        note.updated_at > latest.updated_at ? note : latest,
+      );
+      selectNote(mostRecent.id);
     } else if (noteFilter === 'active' && !autoCreatedRef.current && !selectedFolderId) {
       // Only auto-create when no folder is selected (root level).
       // Empty folders should not trigger auto-creation.
@@ -115,6 +118,7 @@ export default function NotesPage() {
         is_pinned: false,
         is_archived: false,
         is_deleted: false,
+        is_locked: false,
         created_at: now,
         updated_at: now,
         synced_at: null,
